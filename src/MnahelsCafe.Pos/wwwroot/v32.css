@@ -1,0 +1,154 @@
+/* ==========================================================================
+   Mnahel's Cafe POS - v32 layer styles - build 0.14.8
+   Owner    : TechMint Software Solutions - https://techmint.org
+   Copyright: (c) 2026 TechMint Software Solutions. All rights reserved.
+   A product by TechMint Software Solutions.
+   NOTE: strip ko HAMESHA poori row me rakha jata hai (grid-column:1/-1 aur
+   flex-basis:100%) taake order card ka asal layout na toote.
+   ========================================================================== */
+
+.v32-strip {
+	grid-column: 1 / -1;
+	flex: 0 0 100%;
+	width: 100%;
+	order: -1;
+	box-sizing: border-box;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 18px;
+	margin: 0 0 12px;
+	padding: 9px 14px;
+	border: 1px solid rgba(120, 110, 90, 0.22);
+	border-radius: 12px;
+	background: rgba(238, 189, 47, 0.10);
+	font-size: 12.5px;
+	line-height: 1.45;
+}
+
+.v32-when {
+	display: flex;
+	align-items: baseline;
+	gap: 7px;
+	white-space: nowrap;
+}
+
+.v32-when span {
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	font-size: 10px;
+	opacity: 0.65;
+}
+
+.v32-when strong {
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.v32-amt {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 6px;
+	flex: 1 1 auto;
+}
+
+.v32-amt .v32-b {
+	opacity: 0.68;
+}
+
+.v32-amt b {
+	font-weight: 700;
+}
+
+.v32-off {
+	color: #b4522c;
+}
+
+.v32-paid {
+	color: #1f7a44;
+}
+
+.v32-sep {
+	opacity: 0.35;
+	padding: 0 2px;
+}
+
+.v32-btns {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-left: auto;
+}
+
+.v32-btn {
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 6px 11px;
+	border-radius: 9px;
+	border: 1px solid rgba(120, 110, 90, 0.35);
+	background: rgba(255, 255, 255, 0.55);
+	color: inherit;
+	white-space: nowrap;
+}
+
+.v32-btn:hover {
+	border-color: rgba(238, 189, 47, 0.9);
+	background: rgba(238, 189, 47, 0.2);
+}
+
+.v32-btn:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+.v32-hint {
+	margin: 12px 0 0;
+	font-size: 12px;
+	line-height: 1.5;
+	opacity: 0.75;
+}
+
+.v32-bstatus {
+	margin: 10px 0 0;
+	padding: 10px 12px;
+	border-radius: 10px;
+	font-size: 12.5px;
+	line-height: 1.6;
+	border: 1px solid rgba(120, 110, 90, 0.25);
+	background: rgba(120, 110, 90, 0.08);
+}
+
+.v32-bstatus.good {
+	border-color: rgba(31, 122, 68, 0.35);
+	background: rgba(31, 122, 68, 0.10);
+}
+
+.v32-bstatus.bad {
+	border-color: rgba(180, 60, 40, 0.45);
+	background: rgba(180, 60, 40, 0.10);
+}
+
+.v32-note {
+	display: block;
+	margin: 8px 0 0;
+	font-size: 11px;
+	opacity: 0.6;
+}
+
+.v32-build {
+	display: block;
+	margin-top: 2px;
+	font-size: 10px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	opacity: 0.55;
+}
+
+@media (max-width: 900px) {
+	.v32-btns {
+		margin-left: 0;
+	}
+}

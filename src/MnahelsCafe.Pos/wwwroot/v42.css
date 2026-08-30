@@ -1,0 +1,27 @@
+/* Mnahel's Cafe POS v0.15.17 cashier navigation and keyboard menu refinement · A product by TechMint Software Solutions */
+
+/* Cashier gets the current menu plus the same live operations dashboard used by admin. */
+html.v42-cashier .sidebar nav>.nav-item{display:none!important}
+html.v42-cashier .sidebar nav>[data-screen="admin"],html.v42-cashier .sidebar nav>[data-screen="pos"]{display:flex!important}
+html.v42-cashier #screen-admin .backup-panel,html.v42-cashier #screen-admin .backup-export-card,html.v42-cashier #screen-admin #admin-intelligence{display:none!important}
+
+/* Every category remains legible: icon above, complete label below. */
+#screen-pos .categories{display:grid!important;grid-template-columns:repeat(var(--v42-category-count,1),minmax(46px,1fr))!important;align-items:stretch!important;gap:4px!important;padding:8px 0 9px!important;overflow-x:auto!important;overflow-y:visible!important;scrollbar-width:none}
+#screen-pos .categories::-webkit-scrollbar{display:none}
+#screen-pos .category{min-width:0!important;width:100%!important;height:48px!important;display:grid!important;grid-template-rows:22px 14px!important;place-items:center!important;align-content:center!important;gap:1px!important;padding:4px 2px!important;border-radius:9px!important;overflow:visible!important;white-space:normal!important;line-height:1!important}
+#screen-pos .v42-category-icon{display:grid;place-items:center;min-width:18px;height:21px;font-size:14px;line-height:1}
+#screen-pos .v42-category-name{display:block;width:100%;overflow:visible;color:inherit;font-size:6.1px;font-weight:850;line-height:1.1;text-align:center;white-space:nowrap}
+
+/* Typing fields stay clean and can never look like a selected menu card. */
+#screen-pos .search:focus-within,#screen-pos input:focus,#screen-pos input:focus-visible,#screen-pos textarea:focus,#screen-pos textarea:focus-visible{outline:0!important;outline-offset:0!important;box-shadow:none!important}
+#screen-pos .search:focus-within{border-color:var(--ma-line)!important}
+#screen-pos #search:focus,#screen-pos #search:focus-visible{border-color:transparent!important}
+#screen-pos #order-note:focus,#screen-pos #order-note:focus-visible{border-color:var(--ma-line)!important}
+
+/* Direction-independent keyboard focus: left/right and up/down use one clear border. */
+#screen-pos #product-grid .product-card.v38-grid-focus,#screen-pos #product-grid .product-card:focus,#screen-pos #product-grid .product-card:focus-visible{z-index:5!important;outline:0!important;border-color:#f4bf24!important;box-shadow:0 0 0 3px rgba(244,191,36,.18),0 15px 30px rgba(0,0,0,.34)!important;transition:none!important}
+
+#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.17"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
+
+@media(max-width:1100px){#screen-pos .categories{grid-template-columns:repeat(var(--v42-category-count,1),minmax(48px,1fr))!important}#screen-pos .v42-category-name{font-size:5.8px}}
+@media(prefers-reduced-motion:reduce){#screen-pos #product-grid .product-card.v38-grid-focus{scroll-behavior:auto}}

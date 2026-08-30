@@ -1,0 +1,30 @@
+name: Build Windows installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore and build
+        run: dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release
+      - name: Publish self-contained Windows app
+        shell: pwsh
+        run: ./scripts/publish-windows.ps1
+      - name: Compile installer
+        shell: pwsh
+        run: |
+          choco install innosetup -y
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\MnahelsCafePOS.iss
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: MnahelsCafePOS-Windows-Installer
+          path: installer/output/*.exe

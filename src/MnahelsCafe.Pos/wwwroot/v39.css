@@ -1,0 +1,55 @@
+/*
+ * Mnahel's Cafe POS · v0.15.12 compact five-item cart, percent discount and menu refresh
+ * Copyright (c) 2026 TechMint Software Solutions. All rights reserved.
+ */
+
+/* Toasts inform without blocking compact checkout controls. */
+.toast{pointer-events:none!important}
+
+/* Five normal cart lines remain visible before the item list needs a scrollbar. */
+#screen-pos.v38-ready .cart-panel{display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important}
+#screen-pos.v38-ready .cart-head{min-height:58px!important;padding:8px 10px!important}
+#screen-pos.v38-ready .v37-cart-bag{width:36px!important;height:36px!important;border-radius:10px!important}
+#screen-pos.v38-ready .cart-items{display:flex!important;min-height:0!important;max-height:none!important;height:auto!important;padding:5px 8px 6px!important;gap:5px!important;overflow-y:auto!important;align-content:flex-start!important}
+#screen-pos.v38-ready .cart-line.v37-cart-line{grid-template-columns:35px minmax(0,1fr) auto!important;min-height:46px!important;height:46px!important;padding:5px 6px!important;gap:6px!important;border-radius:11px!important;flex:0 0 46px!important}
+#screen-pos.v38-ready .v37-cart-thumb{width:35px!important;height:35px!important;border-radius:8px!important}
+#screen-pos.v38-ready .cart-line.v37-cart-line h5{font-size:8.5px!important;line-height:1.1!important;margin-bottom:2px!important}
+#screen-pos.v38-ready .cart-line.v37-cart-line small{font-size:6.6px!important;line-height:1.05!important}
+#screen-pos.v38-ready .cart-line.v37-cart-line>.qty{min-width:75px!important;height:29px!important;gap:3px!important;padding:2px!important;border-radius:999px!important}
+#screen-pos.v38-ready .cart-line.v37-cart-line>.qty button{width:23px!important;min-width:23px!important;height:23px!important;min-height:23px!important;font-size:11px!important}
+#screen-pos.v38-ready .cart-line.v37-cart-line>.qty b{min-width:15px!important;font-size:9px!important}
+#screen-pos.v38-ready .cart-items::-webkit-scrollbar{width:4px}#screen-pos.v38-ready .cart-items::-webkit-scrollbar-thumb{border-radius:99px;background:rgba(244,191,36,.45)}
+
+/* Checkout controls use a compact visual hierarchy, leaving vertical room for items. */
+#screen-pos.v38-ready .cart-footer{display:grid!important;gap:4px!important;padding:6px 10px 8px!important;overflow:visible!important}
+#screen-pos.v38-ready .cart-footer .note-field[data-v36]{gap:2px!important;margin:0!important;font-size:7px!important}
+#screen-pos.v38-ready .note-field[data-v36]>span{height:9px!important}
+#screen-pos.v38-ready .note-field[data-v36] small{font-size:5.7px!important}
+#screen-pos.v38-ready .cart-footer .note-field textarea{min-height:28px!important;max-height:28px!important;height:28px!important;padding:6px 8px!important;border-radius:7px!important;resize:none!important;font-size:7.5px!important}
+#screen-pos.v38-ready .cart-footer .totals{display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important;margin:0!important;padding:0!important}
+#screen-pos.v38-ready .cart-footer .totals>div{min-width:0;min-height:32px;padding:5px 7px!important;border:1px solid var(--ma-line);border-radius:8px;background:var(--ma-bg);align-items:center;font-size:7px!important}
+#screen-pos.v38-ready .cart-footer .totals>div:first-child{grid-column:1}#screen-pos.v38-ready .cart-footer .totals>div:first-child strong{font-size:10px!important}
+#screen-pos.v38-ready .cart-footer .totals>.grand{grid-column:1/-1;min-height:31px!important;padding:4px 8px!important;border-top:1px dashed rgba(244,191,36,.45)!important;background:linear-gradient(90deg,rgba(244,191,36,.08),var(--ma-bg))}
+#screen-pos.v38-ready .cart-footer .totals>.grand strong{font-size:16px!important;color:var(--ma-amber)!important}
+.v39-discount-row>span{display:grid;gap:1px}.v39-discount-row>span>b{font-size:7px}.v39-discount-row>span>small{max-width:74px;color:var(--ma-muted);font-size:5.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v39-percent-input{height:25px;display:flex;align-items:center;justify-content:flex-end;gap:3px;padding:0 6px;border:1px solid rgba(244,191,36,.28);border-radius:7px;background:var(--ma-panel)!important;color:var(--ma-amber)!important}
+.v39-percent-input input{width:38px!important;height:22px!important;padding:0!important;border:0!important;background:transparent!important;color:var(--ma-text)!important;text-align:right!important;font-size:11px!important;font-weight:900!important;appearance:textfield!important;-moz-appearance:textfield!important;outline:0!important}
+.v39-percent-input input::-webkit-outer-spin-button,.v39-percent-input input::-webkit-inner-spin-button{margin:0!important;appearance:none!important;-webkit-appearance:none!important}.v39-percent-sign{font-size:10px;color:var(--ma-amber)}
+#screen-pos.v38-ready .cart-footer .pay-row{gap:4px!important;margin:0!important}
+#screen-pos.v38-ready .cart-footer .pay{min-height:30px!important;height:30px!important;padding:4px!important;border-radius:8px!important;font-size:7.5px!important}
+#screen-pos.v38-ready .v36-cash-box{grid-template-columns:1fr 112px!important;gap:5px!important;min-height:43px!important;margin:0!important}
+#screen-pos.v38-ready .v36-cash-box>label,#screen-pos.v38-ready .v36-cash-box>div{min-height:43px!important;padding:5px 7px!important;border-radius:8px!important}
+#screen-pos.v38-ready .v36-cash-box label>span{font-size:6px!important}#screen-pos.v38-ready .v36-cash-box svg{width:11px!important;height:11px!important}
+#screen-pos.v38-ready .v36-cash-box label>div{margin-top:1px!important;font-size:7px!important}#screen-pos.v38-ready .v36-cash-box input{height:20px!important;font-size:11px!important}
+#screen-pos.v38-ready #v36-change small{font-size:5.8px!important}#screen-pos.v38-ready #v36-change strong{margin-top:1px!important;font-size:12px!important}
+#screen-pos.v38-ready #place-order{min-height:38px!important;height:38px!important;border-radius:10px!important;font-size:9px!important}
+
+/* Water and soft drinks have five size options; all stay inside the card. */
+.v38-variant-list{grid-template-rows:repeat(var(--v39-option-count,4),minmax(0,1fr))!important;gap:3px!important}
+.v38-variant-list>[data-v38-variant]{min-height:0!important;padding:3px 6px!important;border-radius:7px!important}
+.v38-variant-list>[data-v38-variant] b{font-size:7.5px!important}.v38-variant-list>[data-v38-variant] em{font-size:7px!important}
+.v38-variant-panel{gap:3px!important;padding:7px!important}.v38-variant-panel>strong{font-size:9px!important}.v38-variant-panel>small{font-size:5.8px!important}
+
+@media(max-height:720px) and (min-width:901px){#screen-pos.v38-ready .cart-head{min-height:54px!important;padding:6px 9px!important}#screen-pos.v38-ready .cart-line.v37-cart-line{min-height:43px!important;height:43px!important;flex-basis:43px!important}#screen-pos.v38-ready .v37-cart-thumb{width:32px!important;height:32px!important}#screen-pos.v38-ready .cart-footer{gap:3px!important;padding-top:5px!important}#screen-pos.v38-ready .cart-footer .note-field textarea{height:26px!important;min-height:26px!important;max-height:26px!important}#screen-pos.v38-ready .cart-footer .totals>div{min-height:29px!important;padding:3px 6px!important}#screen-pos.v38-ready .cart-footer .totals>.grand{min-height:28px!important}#screen-pos.v38-ready .cart-footer .pay{height:28px!important;min-height:28px!important}#screen-pos.v38-ready .v36-cash-box,#screen-pos.v38-ready .v36-cash-box>label,#screen-pos.v38-ready .v36-cash-box>div{min-height:40px!important}#screen-pos.v38-ready #place-order{height:36px!important;min-height:36px!important}}
+@media(max-width:600px){#screen-pos.v38-ready .cart-line.v37-cart-line{height:44px!important;min-height:44px!important;flex-basis:44px!important}#screen-pos.v38-ready .cart-footer{padding-bottom:7px!important}}
+#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.12"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}

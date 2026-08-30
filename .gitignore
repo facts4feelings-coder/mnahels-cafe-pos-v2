@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/.vs/
+**/App_Data/
+**/Backups/
+*.db
+*.db-shm
+*.db-wal
+publish/
+installer/output/
+.DS_Store

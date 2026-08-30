@@ -1,0 +1,16 @@
+{
+  "name": "Mnahel's Cafe POS",
+  "short_name": "Mnahel's POS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#161613",
+  "theme_color": "#161613",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

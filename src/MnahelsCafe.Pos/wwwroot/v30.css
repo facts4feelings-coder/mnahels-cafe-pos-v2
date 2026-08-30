@@ -1,0 +1,26 @@
+/* Mnahel's Cafe POS - v30 styles - build 0.14.1
+   Owner: TechMint Software Solutions (https://techmint.org)
+   Copyright (c) 2026 TechMint Software Solutions. All rights reserved. */
+.v30-when span{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.6}
+.v30-when strong{font-size:12.5px;font-weight:700;line-height:1.35}
+.v30-reprint{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.v30-reprint button{flex:1 1 170px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:10px;border:1px solid rgba(127,127,127,.38);background:rgba(127,127,127,.10);color:inherit;font:inherit;font-size:12px;font-weight:700;letter-spacing:.01em;cursor:pointer;transition:background .15s ease,border-color .15s ease,transform .15s ease}
+.v30-reprint button:hover{background:rgba(127,127,127,.22);border-color:rgba(127,127,127,.6);transform:translateY(-1px)}
+.v30-reprint button:active{transform:translateY(0)}
+.v30-reprint button:disabled{opacity:.55;cursor:progress;transform:none}
+.v30-disc{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0 0;padding:10px 12px;border-radius:12px;border:1px dashed rgba(127,127,127,.35);background:rgba(127,127,127,.07)}
+.v30-disc>div span{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;opacity:.62}
+.v30-disc>div strong{font-size:13px;font-weight:700}
+.v30-disc .v30-off strong{color:#b4540a}
+.v30-disc .v30-net strong{font-size:14px}
+.v30-disc.v30-none{border-style:solid;opacity:.9}
+.v30-metric small{opacity:.7}
+.v30-dc{white-space:nowrap;font-weight:600}
+.v30-dc small{opacity:.6;font-weight:500}
+.v30-backup-hint{margin:10px 0 0;font-size:12px;line-height:1.6;opacity:.72}
+.v30-saved{margin:8px 0 0;font-size:12.5px;font-weight:700;opacity:.85}
+.v30-build{display:block;padding:6px 2px 0;font-size:10.5px;letter-spacing:.05em;opacity:.55}
+.tp-saved{margin:4px 0 0;text-align:center;font-size:11px;font-weight:700}
+.v30-dialog-toast{position:fixed;left:50%;top:22px;transform:translateX(-50%) translateY(-8px);z-index:2147483647;max-width:min(560px,92vw);padding:12px 20px;border-radius:12px;background:#171717;color:#fff;border:1px solid rgba(244,180,15,.7);box-shadow:0 20px 55px rgba(0,0,0,.5);font-size:13.5px;font-weight:700;line-height:1.45;text-align:center;pointer-events:none;opacity:0;transition:opacity .18s ease,transform .18s ease}
+.v30-dialog-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media print{.v30-reprint,.v30-build,.v30-dialog-toast{display:none!important}}

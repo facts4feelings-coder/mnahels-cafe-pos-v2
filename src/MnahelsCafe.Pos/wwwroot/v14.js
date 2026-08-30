@@ -1,0 +1,14 @@
+(()=>{
+const ORDER_TYPES=['Takeaway','Dine-in','Delivery'];
+function resetOrderInput(){const input=$('#ow-input');if(!input||!$('#order-wizard')?.open)return;input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));requestAnimationFrame(()=>input.focus())}
+function validatePhone(){const input=$('#ow-phone'),error=$('#ow-phone-error');if(!input)return true;const valid=input.value.length===11;input.classList.toggle('input-error',!valid);if(error)error.hidden=valid;if(!valid){toast('Phone number must contain exactly 11 digits.');input.focus()}return valid}
+function customerStep(){return $('#order-wizard')?.open&&!$('#ow-customer')?.hidden}
+function cycleOrderType(direction){const current=Math.max(0,ORDER_TYPES.indexOf(state.orderType)),next=(current+direction+ORDER_TYPES.length)%ORDER_TYPES.length;$(`[data-ow-type="${ORDER_TYPES[next]}"]`)?.click()}
+function trimRecentOrders(){if(window.__v37Dashboard)return;const cards=$$('#admin-orders .recent-order-card');cards.slice(5).forEach(x=>x.remove())}
+function setupWizard(){const wizard=$('#order-wizard');if(!wizard||wizard.dataset.v14Ready)return false;wizard.dataset.v14Ready='1';const phone=$('#ow-phone');phone.maxLength=11;phone.inputMode='numeric';phone.pattern='[0-9]{11}';phone.insertAdjacentHTML('afterend','<small id="ow-phone-error" class="phone-error" hidden>Phone number must be exactly 11 digits.</small>');phone.addEventListener('input',()=>{phone.value=phone.value.replace(/\D/g,'').slice(0,11);const complete=phone.value.length===11;phone.classList.toggle('input-error',phone.value.length>0&&!complete);$('#ow-phone-error').hidden=phone.value.length===0||complete});const variant=$('#variant-dialog');if(variant&&!variant.dataset.focusReset){variant.dataset.focusReset='1';variant.addEventListener('close',()=>setTimeout(resetOrderInput,0))}const lock=()=>document.documentElement.classList.toggle('order-modal-open',wizard.open);new MutationObserver(lock).observe(wizard,{attributes:true,attributeFilter:['open']});wizard.addEventListener('close',lock);lock();return true}
+const timer=setInterval(()=>{if(setupWizard())clearInterval(timer)},100);setTimeout(()=>clearInterval(timer),10000);
+document.addEventListener('keydown',e=>{if(!customerStep()||$('#variant-dialog')?.open)return;if(e.ctrlKey&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();e.stopImmediatePropagation();cycleOrderType(e.key==='ArrowRight'?1:-1);return}if(e.shiftKey&&(e.key==='Enter'||e.key==='ArrowRight')&&!validatePhone()){e.preventDefault();e.stopImmediatePropagation()}},true);
+document.addEventListener('click',e=>{if(e.target.closest('#ow-primary')&&customerStep()&&!validatePhone()){e.preventDefault();e.stopImmediatePropagation()}},true);
+const previousDashboard=loadDashboard;loadDashboard=async function(force=false){await previousDashboard(force);trimRecentOrders()};
+setInterval(()=>{if(state.currentScreen==='admin')trimRecentOrders()},500);
+})();

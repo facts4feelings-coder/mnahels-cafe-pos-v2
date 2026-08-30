@@ -1,0 +1,84 @@
+/*
+ * Mnahel's Cafe POS · v0.15.6 inline booking and order operations
+ * Owner: TechMint Software Solutions · https://techmint.org
+ * A product by TechMint Software Solutions.
+ */
+
+/* One compact category row on desktop. */
+#screen-pos .categories{display:grid!important;grid-template-columns:repeat(var(--v35-category-count,14),minmax(0,1fr))!important;gap:4px!important;width:100%!important;max-width:100%!important;min-width:0!important;padding:10px 0 11px!important;overflow:visible!important;max-height:none!important}
+#screen-pos .category{width:100%!important;min-width:0!important;height:34px!important;padding:0 3px!important;border-radius:9px!important;font-size:clamp(6.5px,.58vw,8.5px)!important;letter-spacing:-.015em!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important}
+
+/* Product motion is deliberately slight; there is no continuous movement. */
+#screen-pos .product-card{animation:v35ProductIn .18s ease-out both!important;transition:transform .14s ease,border-color .16s ease,box-shadow .16s ease!important}
+#screen-pos .product-card:hover{transform:translateY(-1px)!important;box-shadow:0 9px 22px rgba(0,0,0,.2)!important}
+@keyframes v35ProductIn{from{opacity:.94;transform:translateY(2px)}to{opacity:1;transform:none}}
+
+/* Retire the modal wizard; F2 opens the inline booking workspace instead. */
+#order-wizard.v35-retired{display:none!important}
+html.v35-booking-active,html.v35-booking-active body{overflow:auto!important}
+#screen-pos.v35-booking-open .pos-grid{display:grid!important;grid-template-columns:minmax(0,1fr) 370px!important;align-items:start!important;gap:12px!important;width:100%!important;overflow:visible!important}
+#screen-pos.v35-booking-open .catalog-panel{grid-column:1!important;min-width:0!important}
+#screen-pos.v35-booking-open .cart-panel{grid-column:2!important;display:flex!important;position:sticky!important;top:86px!important;width:100%!important;max-width:none!important;min-width:0!important;max-height:calc(100vh - 105px)!important;overflow:hidden!important;border:1px solid var(--ma-line)!important;border-radius:17px!important;background:var(--ma-panel)!important;color:var(--ma-text)!important;box-shadow:0 16px 36px rgba(0,0,0,.28)!important}
+#screen-pos.v35-booking-open .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+#screen-pos.v35-booking-open .product-card{min-height:205px!important}
+#screen-pos.v35-booking-open .ma-food-media{height:112px!important}
+#screen-pos .cart-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;gap:7px!important;padding:13px 13px 8px!important}
+#screen-pos .cart-head h3{margin:2px 0 0!important;font-size:18px!important}
+.v35-close-booking{height:32px;padding:0 10px;border:1px solid var(--ma-line);border-radius:9px;background:var(--ma-panel-2);color:var(--ma-muted);font-size:9px;font-weight:800}
+#screen-pos .cart-panel>.segment{margin:0 12px 9px!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;padding:4px!important;border:1px solid var(--ma-line)!important;border-radius:11px!important;background:var(--ma-bg)!important}
+#screen-pos .cart-panel>.segment button{min-width:0!important;height:35px!important;padding:0 4px!important;border-radius:8px!important;font-size:9px!important;white-space:nowrap!important}
+#screen-pos .cart-items{flex:1 1 auto!important;min-height:116px!important;max-height:245px!important;margin:0 12px!important;padding:0 3px!important;overflow-y:auto!important;overscroll-behavior:contain}
+#screen-pos .cart-line{padding:9px 1px!important;gap:8px!important}
+#screen-pos .cart-line h5{font-size:11px!important}
+#screen-pos .cart-line small{font-size:8px!important}
+#screen-pos .qty button{min-width:29px!important;min-height:29px!important}
+#screen-pos .cart-footer{display:block!important;padding:10px 12px 13px!important;border-top:1px solid var(--ma-line)!important;background:var(--ma-panel)!important;overflow-y:auto!important;scrollbar-width:thin}
+#screen-pos .cart-footer .note-field{display:none!important}
+#screen-pos .totals{margin-top:9px!important}
+#screen-pos .totals>div{padding:4px 0!important;font-size:10px!important}
+#screen-pos .totals .grand strong{font-size:19px!important}
+#screen-pos .pay-row{gap:5px!important;margin:8px 0!important}
+#screen-pos .pay-row button{height:35px!important;font-size:9px!important}
+#screen-pos .order-button{height:43px!important;border-radius:11px!important}
+
+/* Customer details live below the cart content. */
+#customer-compact.v35-customer{display:block!important;margin:0!important;padding:10px!important;border:1px solid var(--ma-line)!important;border-radius:12px!important;background:var(--ma-bg)!important}
+#customer-compact.v35-customer .customer-caption{display:flex!important;align-items:baseline!important;justify-content:space-between!important;gap:8px!important;margin-bottom:8px!important}
+#customer-compact.v35-customer .customer-caption span{color:var(--ma-text)!important;font-size:10px!important;font-weight:900!important}
+#customer-compact.v35-customer .customer-caption small{color:var(--ma-muted)!important;font-size:7px!important;text-align:right!important}
+#customer-compact.v35-customer .customer-inputs{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important}
+#customer-compact.v35-customer label{display:grid!important;gap:4px!important;color:var(--ma-muted)!important;font-size:8px!important;font-weight:800!important}
+#customer-compact.v35-customer input{width:100%!important;height:37px!important;padding:0 9px!important;border:1px solid var(--ma-line)!important;border-radius:9px!important;background:var(--ma-panel)!important;color:var(--ma-text)!important;font-size:10px!important}
+#customer-compact.v35-customer .address-field{margin-top:7px!important}
+#customer-compact.v35-customer .address-field.hidden,#customer-compact.v35-customer .address-field[hidden]{display:none!important}
+#customer-compact.v35-customer .customer-suggestions{z-index:80!important}
+
+/* Four dine-in tables; occupied tables remain locked until completion/cancel. */
+.v35-table-field{margin:0 12px 9px;padding:10px;border:1px solid var(--ma-line);border-radius:12px;background:var(--ma-bg)}
+.v35-table-field[hidden]{display:none!important}.v35-table-field>div:first-child{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}.v35-table-field strong{font-size:10px}.v35-table-field>div:first-child small{color:var(--ma-muted);font-size:7px;text-align:right}.v35-tables{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.v35-tables button{min-width:0;min-height:52px;padding:5px 2px;display:grid;justify-items:center;align-content:center;gap:2px;border:1px solid var(--ma-line);border-radius:9px;background:var(--ma-panel);color:var(--ma-muted)}.v35-tables button span{height:15px}.v35-tables button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7}.v35-tables button b{font-size:8px;white-space:nowrap}.v35-tables button small{font-size:6px}.v35-tables button.active{border-color:var(--ma-amber);background:rgba(244,191,36,.13);color:var(--ma-amber);box-shadow:0 0 0 2px rgba(244,191,36,.08)}.v35-tables button.occupied{border-color:rgba(229,100,88,.35);color:var(--ma-danger);opacity:.72}.v35-tables button:disabled{cursor:not-allowed}
+
+/* Dashboard now owns order operations. No polling animation or full-card repaint. */
+#screen-admin .v35-operations-panel{padding:14px!important;overflow:visible!important}
+#screen-admin .v35-operations-panel>h3{margin:0 0 12px!important}
+#admin-orders{display:grid!important;gap:12px!important}
+.v35-order-card{position:relative;overflow:hidden;padding:12px 14px 13px;border:1px solid #454035;border-left:4px solid var(--ma-amber);border-radius:17px;background:linear-gradient(112deg,#242014 0%,#1e1d18 48%,#171814 100%);box-shadow:0 10px 26px rgba(0,0,0,.22);color:var(--ma-text);animation:v35OrderIn .2s ease-out both}
+.v35-order-card.cancelled{opacity:.65;border-left-color:var(--ma-danger)}
+@keyframes v35OrderIn{from{opacity:.94;transform:translateY(3px)}to{opacity:1;transform:none}}
+.v35-order-card header{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}.v35-id strong,.v35-id small{display:block}.v35-id strong{color:#ffd65b;font-size:18px;font-weight:950}.v35-id small{margin-top:2px;color:#9f988a;font-size:8px}.v35-card-actions{display:flex;align-items:center;gap:7px}.v35-cancel{padding:5px 8px;border:1px solid rgba(229,100,88,.42);border-radius:8px;background:transparent;color:var(--ma-danger);font-size:8px;font-weight:800}
+.v35-main{display:grid;grid-template-columns:215px minmax(250px,1fr) 120px;align-items:center;gap:12px;margin-top:9px}.v35-customer{display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;gap:10px;padding:10px 11px;border:1px solid #403a2e;border-radius:13px;background:rgba(15,16,13,.72)}.v35-customer>span{width:42px;height:42px;display:grid;place-items:center;border:1px solid #55491f;border-radius:11px;background:#2d291d;color:var(--ma-amber)}.v35-customer svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.v35-customer div{min-width:0}.v35-customer strong,.v35-customer small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v35-customer strong{color:#fffaf0;font-size:14px;font-weight:950}.v35-customer small{margin-top:4px;color:#ffd65b;font-size:11px;font-weight:800;letter-spacing:.035em}
+.v35-gallery{min-width:0;display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:6px;min-height:58px}.v35-food{position:relative;width:56px;height:56px;flex:0 0 56px;overflow:hidden;border:1px solid #554b32;border-radius:12px;background:#111;box-shadow:0 6px 14px rgba(0,0,0,.32);transition:transform .14s ease,border-color .14s ease}.v35-food:hover{z-index:2;transform:translateY(-2px);border-color:var(--ma-amber)}.v35-food img{width:100%!important;height:100%!important;aspect-ratio:1/1!important;object-fit:cover!important}.v35-food div{position:absolute;inset:auto 0 0;padding:10px 4px 3px;background:linear-gradient(transparent,rgba(0,0,0,.94))}.v35-food strong,.v35-food small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v35-food strong{color:#fff;font-size:6px}.v35-food small{margin-top:1px;color:#ddd2b3;font-size:5.5px}.v35-empty{color:var(--ma-muted);font-size:9px}
+.v35-total{text-align:right;padding:10px 11px;border-left:1px solid #48402d}.v35-total small,.v35-total b{display:block}.v35-total small{color:#a69d8d;font-size:8px;text-transform:uppercase}.v35-total b{margin-top:5px;color:#ffd65b;font-size:19px;white-space:nowrap}
+.v35-order-card>footer{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:9px}.v35-order-card>footer>strong{margin-left:auto;color:var(--ma-amber);font-size:9px}.v35-mode{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #494437;border-radius:8px;background:#23211c;color:#dfd8c9}.v35-mode svg{width:13px;height:13px;fill:none;stroke:var(--ma-amber);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.v35-mode b{font-size:8px;white-space:nowrap}
+.v35-progress{display:grid;grid-template-columns:180px minmax(0,1fr);align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid #3d392f}.v35-progress>div:first-child>p{margin:0 0 3px}.v35-progress>div:first-child>small{color:var(--ma-muted);font-size:7px}.v35-timeline{display:grid;grid-template-columns:repeat(var(--stage-count),minmax(0,1fr));gap:7px;align-items:start}.v35-stage-wrap{min-width:0;display:grid;justify-items:center;gap:4px}.v35-stage{position:relative;width:100%;min-width:0;display:grid;grid-template-columns:24px minmax(0,1fr);align-items:center;gap:6px;padding:5px 7px;border:1px solid var(--ma-line);border-radius:9px;background:var(--ma-panel-2);color:var(--ma-muted);text-align:left}.v35-stage i{width:24px;height:24px;display:grid;place-items:center;border-radius:7px;background:#34322d;color:#aaa398;font-style:normal;font-size:8px;font-weight:900}.v35-stage span{font-size:8px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v35-stage.done,.v35-stage.current{border-color:rgba(244,191,36,.46);color:#ffe394;background:rgba(244,191,36,.08)}.v35-stage.done i,.v35-stage.current i{background:var(--ma-amber);color:#17140c}.v35-stage.current{box-shadow:0 0 0 2px rgba(244,191,36,.08)}.v35-stage:hover{transform:translateY(-1px)}.v35-temp-print{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:25px;padding:3px 7px;border:1px solid rgba(244,191,36,.36);border-radius:7px;background:transparent;color:var(--ma-amber)}.v35-temp-print svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.7}.v35-temp-print span{font-size:7px;font-weight:800;white-space:nowrap}.v35-temp-print:disabled{opacity:.34;cursor:not-allowed}.v35-cancelled{padding:9px;border:1px solid rgba(229,100,88,.35);border-radius:9px;color:var(--ma-danger);text-align:center;font-size:9px;font-weight:900}
+
+/* Light-theme equivalents. */
+html[data-theme="light"] .v35-order-card{border-color:#e1d7c5;background:linear-gradient(112deg,#fffdfa,#f6f0e5)}html[data-theme="light"] .v35-id strong,html[data-theme="light"] .v35-total b{color:#8a6100}html[data-theme="light"] .v35-customer{border-color:#e0d4bf;background:#fff}html[data-theme="light"] .v35-customer>span{border-color:#e5c86d;background:#fff4cd;color:#8a6100}html[data-theme="light"] .v35-customer strong{color:#28241e}html[data-theme="light"] .v35-customer small{color:#8a6100}html[data-theme="light"] .v35-mode{border-color:#ddd2bf;background:#fff;color:#554e43}html[data-theme="light"] .v35-total,html[data-theme="light"] .v35-progress{border-color:#dfd5c4}
+
+/* Desktop compression and responsive fallback. */
+@media(max-width:1180px){#screen-pos.v35-booking-open .pos-grid{grid-template-columns:minmax(0,1fr) 340px!important}#screen-pos.v35-booking-open .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#screen-pos .category{font-size:6.5px!important;padding:0 2px!important}.v35-main{grid-template-columns:190px minmax(210px,1fr) 105px}.v35-food{width:50px;height:50px;flex-basis:50px}.v35-progress{grid-template-columns:150px minmax(0,1fr)}}
+@media(max-width:900px){#screen-pos.v35-booking-open{transform:none!important;animation:none!important}#screen-pos .categories{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none}#screen-pos .categories::-webkit-scrollbar{display:none}#screen-pos .category{flex:0 0 auto!important;width:auto!important;min-width:max-content!important;padding:0 7px!important;font-size:7px!important}#screen-pos.v35-booking-open .cart-panel{position:fixed!important;z-index:70!important;top:66px!important;right:0!important;bottom:68px!important;width:min(390px,100vw)!important;height:auto!important;min-height:0!important;max-height:none!important;border-radius:16px 0 0 16px!important}#screen-pos.v35-booking-open .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.v35-main{grid-template-columns:1fr 105px}.v35-gallery{grid-column:1/-1;grid-row:2}.v35-progress{grid-template-columns:1fr}.v35-progress>div:first-child{display:none}}
+@media(max-width:600px){#screen-pos.v35-booking-open .cart-items{flex:0 1 130px!important;min-height:90px!important;max-height:130px!important}#screen-pos.v35-booking-open .cart-footer{flex:1 1 auto!important}#screen-pos.v35-booking-open .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.v35-main{grid-template-columns:1fr}.v35-total{border-left:0;border-top:1px solid var(--ma-line);text-align:left}.v35-timeline{grid-template-columns:1fr!important}.v35-stage span{font-size:9px}.v35-order-card>footer>strong{margin-left:0}.v35-customer{grid-template-columns:36px minmax(0,1fr)}.v35-customer>span{width:36px;height:36px}}
+@media(prefers-reduced-motion:reduce){#screen-pos .product-card,.v35-order-card,.v35-food{animation:none!important;transition:none!important}}
+
+/* The old layered build chips are replaced by the current release label. */
+#v30-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.6"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}

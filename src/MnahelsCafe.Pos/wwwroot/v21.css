@@ -1,0 +1,8 @@
+#dashboard-hidden{display:none!important}
+#screen-admin .admin-grid,#screen-admin .admin-intelligence{display:grid!important;grid-template-columns:1fr!important;gap:18px!important;align-items:start}
+#screen-admin .admin-grid>.panel,#screen-admin .admin-intelligence>.panel{width:100%}
+#screen-admin .admin-intelligence{margin-top:18px}
+#screen-admin .product-insight-columns{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+#screen-admin .compact-rank>div{padding:11px 12px}
+.one-peak-panel{margin-top:16px}
+.one-peak-panel #one-peak{margin-top:6px}

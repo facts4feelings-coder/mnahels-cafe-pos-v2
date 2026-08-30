@@ -1,0 +1,65 @@
+/*
+ * Mnahel's Cafe POS · v0.15.10 stable dashboard and Midnight Amber cart
+ * Copyright (c) 2026 TechMint Software Solutions. All rights reserved.
+ */
+
+/* A state update never replays a whole-card animation. The card scan is a single,
+   quiet entrance pass; only the newly active timeline node receives the popup. */
+.v36-order-card:after{animation:v37CardScan .9s ease-out 1 both!important;opacity:.18!important}
+@keyframes v37CardScan{0%{transform:translateX(-135%);opacity:0}24%{opacity:.18}100%{transform:translateX(135%);opacity:0}}
+.v36-step.current i{transform-origin:center;will-change:transform}
+
+/* Six compact square menu tiles on desktop. The food photograph fills a true
+   square card; title and price stay readable on the dark Amber gradient. */
+#screen-pos .product-grid,#screen-pos.v35-booking-open .product-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-auto-rows:auto!important;gap:8px!important;align-items:start!important}
+#screen-pos .product-card,#screen-pos.v35-booking-open .product-card{position:relative!important;display:block!important;aspect-ratio:1/1!important;width:100%!important;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden!important;border-radius:15px!important;border:1px solid var(--ma-line)!important;background:#171613!important;isolation:isolate!important;box-shadow:0 2px 8px rgba(0,0,0,.18)!important;animation:v37TileIn .25s ease-out both!important}
+#screen-pos .product-card .ma-food-media{position:absolute!important;inset:0!important;z-index:0!important;width:100%!important;min-width:100%!important;height:100%!important;min-height:100%!important;aspect-ratio:1/1!important;margin:0!important;border:0!important;background-size:cover!important;background-position:center!important;transition:transform .55s cubic-bezier(.16,1,.3,1)!important}
+#screen-pos .product-card .ma-food-media:after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(5,5,4,.02) 28%,rgba(7,7,6,.18) 52%,rgba(8,8,7,.94) 100%)!important}
+#screen-pos .product-card h4{position:absolute!important;z-index:2!important;left:9px!important;right:35px!important;bottom:27px!important;margin:0!important;color:#fff!important;font-size:10px!important;font-weight:800!important;line-height:1.18!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;text-shadow:0 2px 7px rgba(0,0,0,.72)!important}
+#screen-pos .product-card p{display:none!important}
+#screen-pos .product-card .price{position:absolute!important;z-index:2!important;left:9px!important;right:34px!important;bottom:9px!important;margin:0!important;color:#ffd861!important;font-size:9.5px!important;font-weight:900!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;text-shadow:0 2px 6px rgba(0,0,0,.85)!important}
+#screen-pos .product-card:after{z-index:3!important;right:7px!important;bottom:7px!important;width:26px!important;height:26px!important;border-radius:50%!important;border:1px solid rgba(255,255,255,.2)!important;background:linear-gradient(135deg,#ffd34f,#e7a90c)!important;color:#17130a!important;font-size:17px!important;box-shadow:0 7px 17px rgba(0,0,0,.3)!important}
+#screen-pos .product-card:hover{transform:translateY(-2px)!important;border-color:rgba(244,191,36,.62)!important;box-shadow:0 12px 24px rgba(0,0,0,.28)!important}
+#screen-pos .product-card:hover .ma-food-media{transform:scale(1.055)!important}
+#screen-pos .product-card.v37-pressed{transform:scale(.965)!important}
+@keyframes v37TileIn{from{opacity:.82;transform:translateY(3px) scale(.985)}to{opacity:1;transform:none}}
+
+/* Midnight Amber vertical cart copied from the supplied d1 reference: rounded
+   shell, compact image rows, product details and a pill-shaped stepper. */
+#screen-pos.v35-booking-open .pos-grid{grid-template-columns:minmax(0,1fr) 392px!important;gap:14px!important}
+#screen-pos.v35-booking-open .cart-panel{border-radius:26px!important;border-color:var(--ma-line)!important;background:var(--ma-panel)!important;box-shadow:0 22px 52px rgba(0,0,0,.32)!important}
+#screen-pos .cart-head{grid-template-columns:38px minmax(0,1fr) auto auto!important;gap:10px!important;padding:15px 16px 12px!important;border-bottom:1px solid var(--ma-line)!important;background:linear-gradient(180deg,rgba(244,191,36,.1),transparent)!important}
+.v37-cart-bag{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;border:1px solid rgba(244,191,36,.28);background:rgba(244,191,36,.11);color:var(--ma-amber)}
+.v37-cart-bag svg,.v37-empty-cart svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#screen-pos .cart-head h3{font-size:15px!important;line-height:1.2!important}
+#screen-pos .cart-head .eyebrow{font-size:7.5px!important;letter-spacing:.15em!important}
+#screen-pos .cart-panel>.segment{margin:9px 12px 10px!important}
+#screen-pos .cart-items{display:flex!important;flex:1 1 auto!important;min-height:122px!important;max-height:236px!important;flex-direction:column!important;gap:8px!important;margin:0!important;padding:0 12px 10px!important;overflow-y:auto!important;scrollbar-width:thin!important}
+#screen-pos .cart-line.v37-cart-line{position:relative!important;display:grid!important;grid-template-columns:46px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;min-height:66px!important;padding:9px!important;border:1px solid var(--ma-line)!important;border-radius:15px!important;background:var(--ma-panel-2)!important;box-shadow:0 2px 7px rgba(0,0,0,.1)!important;overflow:hidden!important}
+.v37-cart-thumb{display:block;width:46px;height:46px;aspect-ratio:1/1;object-fit:cover;border-radius:11px;background:#29261f;border:1px solid rgba(255,255,255,.06)}
+#screen-pos .cart-line.v37-cart-line>div{min-width:0!important}
+#screen-pos .cart-line.v37-cart-line h5{margin:0!important;color:var(--ma-text)!important;font-size:12px!important;font-weight:800!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#screen-pos .cart-line.v37-cart-line small{display:block!important;margin-top:3px!important;color:var(--ma-muted)!important;font-size:9.5px!important;font-weight:600!important;line-height:1.3!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.v37-line-total{color:var(--ma-amber)!important;font-size:10px!important;font-weight:800!important}
+#screen-pos .cart-line.v37-cart-line>.qty{display:flex!important;align-items:center!important;gap:2px!important;margin:0!important;padding:3px!important;border:1px solid var(--ma-line)!important;border-radius:999px!important;background:var(--ma-bg)!important}
+#screen-pos .cart-line.v37-cart-line>.qty button{display:grid!important;place-items:center!important;width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;color:var(--ma-text)!important;font-size:15px!important;font-weight:800!important;transition:transform .22s cubic-bezier(.34,1.56,.44,1),background .16s,color .16s!important}
+#screen-pos .cart-line.v37-cart-line>.qty button:hover{transform:scale(1.09)!important;background:var(--ma-amber)!important;color:#17130a!important}
+#screen-pos .cart-line.v37-cart-line>.qty b{min-width:21px!important;color:var(--ma-text)!important;font-size:12px!important;text-align:center!important;font-variant-numeric:tabular-nums!important}
+#screen-pos .cart-line.v37-cart-line>.qty .remove{display:none!important}
+#screen-pos .empty-cart.v37-empty-cart{min-height:120px!important;gap:7px!important;padding:16px!important;color:var(--ma-muted)!important}
+#screen-pos .empty-cart.v37-empty-cart>span{width:54px!important;height:54px!important;display:grid!important;place-items:center!important;border:1px dashed rgba(244,191,36,.38)!important;border-radius:50%!important;background:rgba(244,191,36,.08)!important;color:var(--ma-amber)!important;font-size:0!important}
+#screen-pos .cart-footer{padding:11px 13px 13px!important;border-top:1px solid var(--ma-line)!important;background:var(--ma-panel)!important;overflow-y:auto!important;scrollbar-width:thin!important}
+#screen-pos .cart-footer .totals{gap:5px!important;margin:8px 0!important;padding:8px 0!important}
+#screen-pos .cart-footer .pay-row{gap:6px!important;margin:7px 0!important}
+#screen-pos .cart-footer .pay{min-height:35px!important;border-radius:10px!important}
+#screen-pos #place-order{min-height:43px!important;border-radius:12px!important}
+
+html[data-theme="light"] #screen-pos .cart-line.v37-cart-line{background:#fffdf8!important;box-shadow:0 2px 8px rgba(75,55,18,.08)!important}
+html[data-theme="light"] #screen-pos .cart-line.v37-cart-line>.qty{background:#f7f1e4!important}
+
+@media(max-width:1180px){#screen-pos.v35-booking-open .pos-grid{grid-template-columns:minmax(0,1fr) 350px!important}#screen-pos .product-grid,#screen-pos.v35-booking-open .product-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:900px){#screen-pos .product-grid,#screen-pos.v35-booking-open .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}#screen-pos.v35-booking-open .cart-panel{width:min(392px,100vw)!important;border-radius:22px 0 0 22px!important}}
+@media(max-width:600px){#screen-pos .product-grid,#screen-pos.v35-booking-open .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#screen-pos.v35-booking-open .cart-items{flex:0 1 180px!important;max-height:180px!important}#screen-pos .cart-line.v37-cart-line{grid-template-columns:42px minmax(0,1fr) auto!important;gap:7px!important;padding:7px!important}.v37-cart-thumb{width:42px;height:42px}#screen-pos .cart-head{grid-template-columns:36px minmax(0,1fr) auto auto!important;padding:11px!important}.v37-cart-bag{width:36px;height:36px}}
+@media(prefers-reduced-motion:reduce){.v36-order-card:after,#screen-pos .product-card{animation:none!important}.v36-step.current i{will-change:auto}}
+
+#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.10"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
