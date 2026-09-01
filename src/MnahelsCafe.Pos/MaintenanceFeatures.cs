@@ -19,14 +19,14 @@ static class MaintenanceFeatures
                 // are deliberately outside this destructive operation.
                 foreach (var table in new[]
                 {
-                    "OrderItems", "Orders", "Customers", "MenuSearchCodes", "ProductVariants",
+                    "ShiftCashMovements", "OrderItems", "Orders", "Shifts", "Customers", "MenuSearchCodes", "ProductVariants",
                     "Products", "Categories", "ServicePeople", "CafeTables", "AuditLogs"
                 })
                     await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{table}\";");
 
                 await db.Database.ExecuteSqlRawAsync(
                     "DELETE FROM \"sqlite_sequence\" WHERE \"name\" IN " +
-                    "('OrderItems','Orders','Customers','ProductVariants','Products','Categories','ServicePeople','CafeTables','AuditLogs');");
+                    "('ShiftCashMovements','OrderItems','Orders','Shifts','Customers','ProductVariants','Products','Categories','ServicePeople','CafeTables','AuditLogs');");
 
                 db.ChangeTracker.Clear();
                 SeedData.Apply(db); // restore the photographed menu and the four default tables

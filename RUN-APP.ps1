@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$buildVersion = "0.15.24"
+$buildVersion = "0.15.26"
 $uiRevision = "20260830-receipt-readability-24"
 
 # Relaunch as Administrator when needed.

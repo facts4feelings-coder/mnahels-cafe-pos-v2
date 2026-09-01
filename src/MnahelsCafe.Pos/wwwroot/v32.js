@@ -88,7 +88,7 @@ function resetWizard(){try{
 	const wrap=el('#ow-address-wrap');if(wrap)wrap.hidden=true;
 }catch(e){}}
 let wasOpen=false,pending=false;
-setInterval(()=>{const now=wizOpen();if(wasOpen&&!now)pending=true;if(!wasOpen&&now&&pending){pending=false;setTimeout(resetWizard,50)}wasOpen=now},200);
+setInterval(()=>{const now=wizOpen();if(wasOpen&&!now)pending=true;if(!wasOpen&&now&&pending){pending=false;setTimeout(resetWizard,50)}wasOpen=now},500);
 document.addEventListener('keydown',e=>{if(e.key==='F2'&&pending){pending=false;setTimeout(resetWizard,140)}},true);
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest?e.target.closest('#ow-launch'):null;if(b&&pending){pending=false;setTimeout(resetWizard,140)}},true);
 
@@ -249,6 +249,6 @@ function note(){const p=bpanel();if(!p)return;let n=p.querySelector('.v32-note')
 	const t='Feature check \u00b7 build '+BUILD+': order strip '+(c?('ON ('+c+' cards)'):'orders screen par check karein')+' \u00b7 F2 reset ON \u00b7 Ctrl+\u2190/\u2192 payment ON \u00b7 print 70mm / left 0.8mm / font 11';
 	if(n.textContent!==t)n.textContent=t}
 
-setInterval(()=>{try{decorate()}catch(e){}try{initBackup()}catch(e){}try{chip();note()}catch(e){}},800);
+setInterval(()=>{try{decorate()}catch(e){}try{initBackup()}catch(e){}try{chip();note()}catch(e){}},2200);
 setTimeout(()=>{try{decorate()}catch(e){}try{initBackup()}catch(e){}try{chip()}catch(e){}},900);
 })();

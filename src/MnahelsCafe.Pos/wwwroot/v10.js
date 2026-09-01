@@ -1,20 +1,25 @@
 (()=>{
 const input=$('#search'),grid=$('#product-grid'),dialog=$('#variant-dialog');
 if(!input||!grid||!dialog)return;
-let candidates=[],productIndex=0,armed=false,pendingVariant=false,variantIndex=0;
+let candidates=[],productIndex=0,armed=false,pendingVariant=false,variantIndex=0,paintedCard=null;
 
 function visibleCandidates(){
   return $$('#product-grid .product-card').map(card=>{const id=Number(card.dataset.id),item=product(id);return item?{id,name:item.name,card}:null}).filter(Boolean);
 }
 function paintProducts(updateInput=false){
-  candidates.forEach((item,i)=>{
-    const selected=!!input.value.trim()&&i===productIndex;
-    item.card.classList.toggle('keyboard-selected',selected);
-    item.card.classList.toggle('v38-grid-focus',selected);
-    if(selected){item.card.style.setProperty('border-color','#f4bf24','important');item.card.style.setProperty('box-shadow','0 0 0 3px rgba(244,191,36,.18),0 15px 30px rgba(0,0,0,.34)','important')}else{item.card.style.removeProperty('border-color');item.card.style.removeProperty('box-shadow')}
-    item.card.setAttribute('aria-selected',String(selected));
-  });
   const active=candidates[productIndex];
+  const nextCard=input.value.trim()&&active?active.card:null;
+  if(paintedCard&&paintedCard!==nextCard){
+    paintedCard.classList.remove('keyboard-selected','v38-grid-focus');
+    paintedCard.removeAttribute('aria-selected');
+    paintedCard.style.removeProperty('border-color');
+    paintedCard.style.removeProperty('box-shadow');
+  }
+  if(nextCard){
+    nextCard.classList.add('keyboard-selected','v38-grid-focus');
+    nextCard.setAttribute('aria-selected','true');
+  }
+  paintedCard=nextCard;
   if(active&&armed&&updateInput){
     input.value=active.name;
     input.select();
@@ -24,6 +29,7 @@ function paintProducts(updateInput=false){
   else input.removeAttribute('aria-activedescendant');
 }
 function syncCandidates(){
+  paintedCard=null;
   candidates=visibleCandidates();
   productIndex=Math.min(productIndex,Math.max(0,candidates.length-1));
   candidates.forEach(item=>item.card.id=`keyboard-product-${item.id}`);

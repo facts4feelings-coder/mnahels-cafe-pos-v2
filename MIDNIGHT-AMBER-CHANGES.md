@@ -1,3 +1,11 @@
+# v0.15.25 — Receipt Banner, Shared Print Settings + Cashier Speed
+
+- Reworked the receipt masthead with the logo and café name centered, followed by a clear service-mode icon/label and rectangular receipt-type badge; removed the old circular stamp.
+- Removed order notes from every receipt/print route while keeping notes stored with the order for internal operations.
+- Added server-shared receipt print preferences so Cashier uses the Admin-selected width, side margin, left offset, font, header style and JPG option, including future LAN clients.
+- Removed redundant Cashier order polling, reduced passive DOM maintenance frequency, optimized recent-order queries and retained WebView cache between unchanged builds for faster startup and interaction.
+- Preserved the required TechMint Software Solutions ownership attribution.
+
 # v0.15.24 — Resource Focus + Receipt Readability
 
 - Removed the idle circular marker and pointer focus after selecting a table, waiter, or rider; only the active selection keeps the check mark.

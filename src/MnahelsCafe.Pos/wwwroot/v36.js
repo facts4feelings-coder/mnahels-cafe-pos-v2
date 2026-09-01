@@ -157,7 +157,7 @@ function syncAssignmentMode(clear=true){
 }
 function enhanceNoteAndCash(){
  const footer=q('#screen-pos .cart-footer');if(!footer)return;
- let note=q('.note-field',footer);if(note&&!note.dataset.v36){note.dataset.v36='1';note.innerHTML='<span>Order note <small>Optional · receipts par print hoga</small></span><textarea id="order-note" rows="2" placeholder="No onions, extra sauce, birthday message…"></textarea>'}
+ let note=q('.note-field',footer);if(note&&!note.dataset.v36){note.dataset.v36='1';note.innerHTML='<span>Order note <small>Optional · order record only</small></span><textarea id="order-note" rows="2" placeholder="No onions, extra sauce, birthday message…"></textarea>'}
  if(!q('#v36-cash-box')){const box=document.createElement('section');box.id='v36-cash-box';box.className='v36-cash-box';box.innerHTML=`<label><span>${icons.cash}<b>Cash received</b></span><div>Rs <input id="v36-cash-received" type="number" min="0" step="1" inputmode="decimal" placeholder="0"></div></label><div id="v36-change"><small>Customer balance</small><strong>Rs 0</strong></div>`;q('#place-order',footer)?.before(box);q('#v36-cash-received').addEventListener('input',updateChange)}
  syncCashBox();
 }
@@ -187,7 +187,7 @@ function receiptHtml(order,kind='customer'){
  const title=kind==='kitchen'?'KITCHEN TICKET':kind==='waiter'?'WAITER ORDER SLIP':'CUSTOMER RECEIPT';
  const items=(order.items||[]).map(x=>`<div class="tp-item"><div><b>${Number(x.quantity||0)}× ${E(x.productName)}</b><small>${E(x.variantName||'Regular')} · ${cash(x.unitPrice)} each</small></div><strong>${cash(x.lineTotal)}</strong></div>`).join('');
  const service=order.orderType==='Dine-in'?`${receiptRow('Table',E(order.tableName||`Table ${order.tableNumber||'—'}`))}${receiptRow('Waiter',E(order.waiterName||'—'))}`:order.orderType==='Delivery'?`${receiptRow('Rider',E(order.riderName||'—'))}${order.deliveryAddress?receiptRow('Address',E(order.deliveryAddress)):''}`:'';
- const note=order.notes?`<div class="v36-receipt-note">${icons.note}<div><b>ORDER NOTE</b><span>${E(order.notes)}</span></div></div>`:'';
+ const note='';
  const money=kind==='kitchen'?'':`<div class="tp-dash"></div>${receiptRow('Subtotal',cash(order.subtotal))}${order.discount?receiptRow('Discount',`- ${cash(order.discount)}`):''}<div class="tp-total"><span>TOTAL</span><b>${cash(order.total)}</b></div>${order.paymentMethod==='Cash'&&order.cashReceived!=null?`${receiptRow('Cash received',cash(order.cashReceived))}${receiptRow('Change',cash(order.changeDue))}`:''}`;
  return `<div class="tp tp-customer v36-receipt"><div class="tp-head"><b>MNAHEL'S CAFE</b><small>${title}</small></div>${receiptMode(order)}<div class="tp-dash"></div>${receiptRow('Order',`MC-${E(order.tokenNumber)}`)}${receiptRow('Customer',E(order.customerName||'Walk-in'))}${service}<div class="tp-dash"></div><div class="tp-th"><span>Item</span><b>${kind==='kitchen'?'Qty':'Amount'}</b></div>${items}${note}${money}<div class="tp-foot"><b>A product by TechMint Software Solutions</b><small>${kind==='waiter'?'Serve and keep with the table.':'Thank you.'}</small></div></div>`;
 }
