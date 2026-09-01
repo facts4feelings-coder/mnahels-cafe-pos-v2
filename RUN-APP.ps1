@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
-$buildVersion = "0.15.26"
-$uiRevision = "20260830-receipt-readability-24"
+$buildVersion = "0.15.27"
+$uiRevision = "20260901-ui-readability-27"
 
 # Relaunch as Administrator when needed.
 $currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -18,7 +18,7 @@ $serverProject = Join-Path $root "src\MnahelsCafe.Pos\MnahelsCafe.Pos.csproj"
 $desktopProject = Join-Path $root "src\MnahelsCafe.Desktop\MnahelsCafe.Desktop.csproj"
 $serverDirectory = Split-Path $serverProject -Parent
 $themeFile = Join-Path $root "src\MnahelsCafe.Pos\wwwroot\midnight-amber.css"
-$releaseFile = Join-Path $root "src\MnahelsCafe.Pos\wwwroot\v44.css"
+$releaseFile = Join-Path $root "src\MnahelsCafe.Pos\wwwroot\v49.css"
 
 Write-Host "`nMnahel's Cafe POS v$buildVersion" -ForegroundColor Yellow
 Write-Host "Preparing Midnight Amber...`n" -ForegroundColor Cyan
@@ -80,7 +80,7 @@ $ready = $false
 for ($attempt = 1; $attempt -le 30; $attempt++) {
     Start-Sleep -Seconds 1
     try {
-        $response = Invoke-WebRequest "http://localhost:5055/v44.js?v=$uiRevision" -UseBasicParsing -TimeoutSec 2
+        $response = Invoke-WebRequest "http://localhost:5055/v49.js?v=$uiRevision" -UseBasicParsing -TimeoutSec 2
         $expectedBuild = [regex]::Escape("const BUILD='$buildVersion'")
         $expectedRevision = [regex]::Escape($uiRevision)
         if ($response.StatusCode -eq 200 -and $response.Content -match $expectedBuild -and $response.Content -match $expectedRevision) {
