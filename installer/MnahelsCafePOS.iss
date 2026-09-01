@@ -50,18 +50,18 @@ Name: "{group}\Connection setup"; Filename: "{app}\{#MyDesktopExeName}"; Paramet
 Name: "{group}\Printer setup"; Filename: "{app}\{#MyDesktopExeName}"; Parameters: "--printers"
 [Run]
 ; Create is allowed to fail during an upgrade; config then safely refreshes the existing service.
-Filename: "{sys}\sc.exe"; Parameters: "create MnahelsCafePOS binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""Mnahel's Cafe POS Server"""; Flags: runhidden waituntilterminated ignoreerrors; Check: IsServerRole
+Filename: "{sys}\sc.exe"; Parameters: "create MnahelsCafePOS binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""Mnahel's Cafe POS Server"""; Flags: runhidden waituntilterminated; Check: IsServerRole
 Filename: "{sys}\sc.exe"; Parameters: "config MnahelsCafePOS binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""Mnahel's Cafe POS Server"""; Flags: runhidden waituntilterminated; Check: IsServerRole
 Filename: "{sys}\sc.exe"; Parameters: "failure MnahelsCafePOS reset= 86400 actions= restart/5000/restart/10000/restart/30000"; Flags: runhidden waituntilterminated; Check: IsServerRole
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Mnahels Cafe POS 5055"""; Flags: runhidden waituntilterminated ignoreerrors; Check: IsServerRole
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Mnahels Cafe POS 5055"""; Flags: runhidden waituntilterminated; Check: IsServerRole
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Mnahels Cafe POS 5055"" dir=in action=allow protocol=TCP localport=5055"; Flags: runhidden waituntilterminated; Check: IsServerRole
 Filename: "{sys}\sc.exe"; Parameters: "start MnahelsCafePOS"; Flags: runhidden waituntilterminated; Check: IsServerRole
-Filename: "{sys}\sc.exe"; Parameters: "delete MnahelsCafePOS"; Flags: runhidden waituntilterminated ignoreerrors; Check: IsClientRole
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Mnahels Cafe POS 5055"""; Flags: runhidden waituntilterminated ignoreerrors; Check: IsClientRole
+Filename: "{sys}\sc.exe"; Parameters: "delete MnahelsCafePOS"; Flags: runhidden waituntilterminated; Check: IsClientRole
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Mnahels Cafe POS 5055"""; Flags: runhidden waituntilterminated; Check: IsClientRole
 [UninstallRun]
-Filename: "{sys}\sc.exe"; Parameters: "stop MnahelsCafePOS"; Flags: runhidden waituntilterminated ignoreerrors
-Filename: "{sys}\sc.exe"; Parameters: "delete MnahelsCafePOS"; Flags: runhidden waituntilterminated ignoreerrors
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Mnahels Cafe POS 5055"""; Flags: runhidden waituntilterminated ignoreerrors
+Filename: "{sys}\sc.exe"; Parameters: "stop MnahelsCafePOS"; Flags: runhidden waituntilterminated
+Filename: "{sys}\sc.exe"; Parameters: "delete MnahelsCafePOS"; Flags: runhidden waituntilterminated
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Mnahels Cafe POS 5055"""; Flags: runhidden waituntilterminated
 [Code]
 var
   LicensePage: TInputQueryWizardPage;
