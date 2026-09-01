@@ -1,0 +1,1 @@
+file://%7B%22source%22%3A%22attachment%3A4e60928d-5650-460d-ab7e-44e93290b783%3Ahandle-test.txt%22%2C%22permissionRecord%22%3A%7B%22id%22%3A%223cea7155-2cc2-8081-9638-00a9ee87a45e%22%2C%22table%22%3A%22thread%22%2C%22spaceId%22%3A%22d92a7155-2cc2-8124-b942-0003fcc481eb%22%7D%7D
