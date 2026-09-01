@@ -1,0 +1,92 @@
+/* v0.15.25 quick UI: compact receipt controls, selectable headers, sharp JPG slips and fast keyboard navigation. */
+
+/* Settings should be controls-first: remove the long help wall. */
+#v31-print-card.v45-compact > .v31-sub,
+#v31-print-card.v45-compact > .v31-kiosk,
+#v31-print-card.v45-compact > .v31-note,
+#v31-print-card.v45-compact > #v31-status{display:none!important}
+#v31-print-card.v45-compact{padding:16px!important}
+#v31-print-card.v45-compact>h3{margin:0 0 10px!important}
+#v31-print-card.v45-compact .v31-lbl{margin-top:10px!important}
+#v31-print-card.v45-compact .v31-row{margin-top:10px!important;gap:8px!important}
+#v31-print-card.v45-compact .v31-row label{font-size:9px!important}
+#v31-print-card.v45-compact .v31-row input{width:120px!important}
+#v31-print-card.v45-compact .v31-row button{min-height:38px!important;padding:8px 13px!important}
+.v45-download{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;border-color:#d99d06!important;background:#2b2516!important;color:#ffd764!important;font-weight:900!important}
+.v45-download:hover{background:#3a3017!important}
+#v45-receipt-options{display:grid;gap:10px;margin:0 0 12px;padding:11px;border:1px solid var(--ma-line,#3a3731);border-radius:12px;background:rgba(255,255,255,.025)}
+.v45-option-line{display:flex;align-items:center;justify-content:space-between;gap:12px}.v45-option-line>b{font-size:10px;letter-spacing:.02em}.v45-header-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px}.v45-header-buttons button{min-height:34px!important;padding:7px 10px!important;border:1px solid var(--ma-line,#3a3731);border-radius:8px;background:var(--ma-panel,#23211d);color:var(--ma-text,#eee);font-size:9px;font-weight:850}.v45-header-buttons button.active{border-color:#f1b91d;background:#f1b91d;color:#18150f;box-shadow:0 0 0 2px rgba(241,185,29,.16)}
+.v45-auto-toggle{display:flex!important;align-items:center;gap:9px;padding-top:9px;border-top:1px solid var(--ma-line,#3a3731);cursor:pointer}.v45-auto-toggle input{width:18px!important;height:18px!important;accent-color:#f1b91d}.v45-auto-toggle span{display:grid;gap:2px}.v45-auto-toggle b{font-size:10px}.v45-auto-toggle small{font-size:8px;color:var(--ma-muted,#aaa59b)}
+
+/* The older receipt card also stays controls-only. */
+#v28-print-card .v28-sub,
+#v28-print-card .v28-txt small,
+#v28-print-card #v28-mode{display:none!important}
+#v28-print-card{padding:14px!important}
+#v28-print-card>h3{margin:0 0 10px!important}
+#v28-print-card .v28-toggle{margin:0!important}
+
+/* Keep every category inside the catalog instead of under the cart. */
+@media(min-width:901px){
+ #screen-pos.v35-booking-open .catalog-panel{position:relative!important;z-index:2!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;contain:layout inline-size}
+ #screen-pos.v35-booking-open .cart-panel{position:sticky!important;z-index:1!important}
+ #screen-pos .categories{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(66px,1fr))!important;grid-auto-flow:row!important;grid-auto-rows:56px!important;width:100%!important;max-width:100%!important;min-width:0!important;max-height:none!important;overflow:hidden!important;contain:layout inline-size}
+ #screen-pos .category{min-width:0!important;max-width:100%!important;height:56px!important;padding:5px 4px!important;grid-template-rows:20px minmax(18px,auto)!important;align-content:center!important}
+ #screen-pos .category .v42-category-name,#screen-pos .category .ma-category-name,#screen-pos .category span:last-child{display:block!important;max-width:100%!important;font-size:8.5px!important;line-height:1.08!important;font-weight:850!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;text-align:center!important}
+}
+
+/* Keyboard arrows should feel immediate, without queued smooth scrolling. */
+#screen-pos #product-grid{scroll-behavior:auto!important}
+#screen-pos #product-grid .product-card.v38-grid-focus,
+#screen-pos #product-grid .product-card.keyboard-selected{transition:none!important;animation:none!important}
+
+/* Download controls beside both preview surfaces. */
+.v45-preview-actions{position:sticky;bottom:0;z-index:4;display:flex;justify-content:flex-end;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.12);background:#1b1a18}
+#receipt-preview .v45-preview-actions{margin:12px -20px -20px}
+#receipt-preview .v45-preview-actions button{min-height:40px;padding:8px 14px;border:1px solid #d99d06;border-radius:9px;background:#2b2516;color:#ffd764;font:inherit;font-weight:900;cursor:pointer}
+
+/* Exact off-screen paper used by the JPG renderer. */
+.v45-capture-host{position:fixed!important;left:-10000px!important;top:0!important;z-index:-9999!important;display:block!important;margin:0!important;padding:0!important;background:#fff!important;color:#000!important;overflow:visible!important;pointer-events:none!important}
+.v45-capture-host .v43-receipt,.v45-svg-paper .v43-receipt{display:block!important;width:100%!important;max-width:none!important;margin:0!important;box-shadow:none!important}
+
+/* Sharper, printer-friendly receipt lettering. */
+.v43-receipt{font-family:Arial,"Segoe UI",sans-serif!important;font-size:12.5px!important;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased}
+.v43-mode-icon{width:28px!important;height:28px!important}.v43-mode-icon svg{width:19px!important;height:19px!important}
+.v43-item-name b{font-size:11.7px!important}.v43-item-name small{font-size:8.8px!important}.v43-meta-cell b{font-size:11.5px!important}
+
+/* White header option: same receipt, inverted to white with black ink. */
+html[data-receipt-header="white"] .v43-dark-head{background:#fff!important;color:#000!important;border-color:#000!important}
+html[data-receipt-header="white"] .v43-dark-head *{color:#000!important}
+html[data-receipt-header="white"] .v43-mode-icon,html[data-receipt-header="white"] .v43-seal{background:#fff!important;color:#000!important;border-color:#000!important}
+html[data-receipt-header="white"] .v43-mode-icon svg{stroke:#000!important}
+
+/* Desktop title bar now carries clock/user; reclaim the duplicated web-header space. */
+html.mnahels-desktop-shell .topbar{height:58px!important}
+html.mnahels-desktop-shell .topbar .clock,html.mnahels-desktop-shell .topbar .user-chip{display:none!important}
+html.mnahels-desktop-shell .topbar h2{font-size:19px!important}
+html.mnahels-desktop-shell .topbar .eyebrow{margin-bottom:3px!important;font-size:8px!important}
+html.mnahels-desktop-shell #screen-pos .cart-panel{top:70px!important;min-height:calc(100vh - 82px)!important;max-height:calc(100vh - 82px)!important}
+
+@media(max-width:900px){
+ #screen-pos .categories{position:relative!important;z-index:2!important;max-width:100%!important;overflow-x:auto!important}
+ #screen-pos.v35-booking-open .cart-panel{z-index:70!important}
+ #v31-print-card.v45-compact .v31-row input{width:100%!important}
+}
+
+@media print{
+ html[data-receipt-header="white"] .v43-dark-head{background:#fff!important;color:#000!important;border-color:#000!important}
+ html[data-receipt-header="white"] .v43-dark-head *{color:#000!important}
+ html[data-receipt-header="white"] .v43-mode-icon,html[data-receipt-header="white"] .v43-seal{background:#fff!important;border-color:#000!important}
+ html[data-receipt-header="white"] .v43-mode-icon svg{stroke:#000!important}
+}
+
+#theme-toggle{display:none!important}
+.v45-theme-buttons{display:flex;gap:7px;flex-wrap:wrap}.v45-theme-buttons button{border-radius:999px!important;min-height:32px!important}.v45-theme-buttons button.active{background:#f1b91d!important;color:#181510!important;border-color:#f1b91d!important}
+.v43-receipt.kitchen .v43-body{padding-left:12px!important;padding-right:12px!important}
+.v43-receipt .tp-foot{display:grid!important;justify-items:center!important;text-align:center!important;gap:3px!important;line-height:1.28!important;padding:7px 4px 5px!important}
+.v43-receipt .tp-foot b,.v43-receipt .tp-foot small{display:block!important;width:100%!important;text-align:center!important;line-height:1.28!important}
+
+/* v0.15.25 receipt polish: centered cafe masthead and clear thank-you footer. */
+.v43-receipt .tp-foot strong{display:block!important;width:100%!important;text-align:center!important;font-size:12.5px!important;line-height:1.05!important;font-weight:950!important;letter-spacing:.04em!important}
+.v43-receipt .tp-foot>span{display:block!important;width:100%!important;text-align:center!important;font-size:8.4px!important;line-height:1.2!important;font-weight:850!important}
+.v43-receipt .tp-foot>b{font-size:6.5px!important;line-height:1.15!important}

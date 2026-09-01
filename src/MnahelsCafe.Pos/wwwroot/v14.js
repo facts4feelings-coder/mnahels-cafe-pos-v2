@@ -10,5 +10,5 @@ const timer=setInterval(()=>{if(setupWizard())clearInterval(timer)},100);setTime
 document.addEventListener('keydown',e=>{if(!customerStep()||$('#variant-dialog')?.open)return;if(e.ctrlKey&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();e.stopImmediatePropagation();cycleOrderType(e.key==='ArrowRight'?1:-1);return}if(e.shiftKey&&(e.key==='Enter'||e.key==='ArrowRight')&&!validatePhone()){e.preventDefault();e.stopImmediatePropagation()}},true);
 document.addEventListener('click',e=>{if(e.target.closest('#ow-primary')&&customerStep()&&!validatePhone()){e.preventDefault();e.stopImmediatePropagation()}},true);
 const previousDashboard=loadDashboard;loadDashboard=async function(force=false){await previousDashboard(force);trimRecentOrders()};
-setInterval(()=>{if(state.currentScreen==='admin')trimRecentOrders()},500);
+setInterval(()=>{if(document.visibilityState==='visible'&&state.currentScreen==='admin')trimRecentOrders()},2500);
 })();

@@ -65,11 +65,16 @@ internal sealed class PosWindow : Form
 {
     private const int ResizeBorder = 7;
 
-    internal const string BuildTag = "0.15.24";
+    internal const string BuildTag = "0.15.26";
 
     private const string BridgeScript =
-        "(function(){window.__mnahelsDualPrintBridge=true;window.__mnahelsSilentPrint=true;" +
+        "(function(){document.documentElement.classList.add('mnahels-desktop-shell');window.__mnahelsDualPrintBridge=true;window.__mnahelsSilentPrint=true;" +
         "window.print=function(){try{window.chrome.webview.postMessage('mnahels-silent-print')}catch(e){}};" +
+        "if(!window.__mnahelsUserBridge){window.__mnahelsUserBridge=true;var last='';" +
+        "function syncUser(){var shell=document.getElementById('app-shell'),login=document.getElementById('login-screen'),shown=shell&&!shell.classList.contains('hidden')&&(!login||login.hidden||getComputedStyle(login).display==='none');" +
+        "var name=document.getElementById('user-name'),role=document.getElementById('user-role'),value=shown&&name?((name.textContent||'').trim()+'|'+((role&&role.textContent)||'POS').trim()):'';" +
+        "if(value===last)return;last=value;try{window.chrome.webview.postMessage(value?'mnahels-user:'+encodeURIComponent(value.split('|')[0])+'|'+encodeURIComponent(value.split('|').slice(1).join('|')):'mnahels-user-hidden')}catch(x){}}" +
+        "new MutationObserver(syncUser).observe(document.documentElement,{subtree:true,childList:true,attributes:true,characterData:true,attributeFilter:['class','style','hidden']});setInterval(syncUser,1000);syncUser();}" +
         "if(!window.__mnahelsKeyBridge){window.__mnahelsKeyBridge=true;" +
         "document.addEventListener('keydown',function(e){var k=e.key||'';" +
         "if(k==='F10'||(e.ctrlKey&&e.shiftKey&&(k==='P'||k==='p'))){e.preventDefault();e.stopPropagation();" +
@@ -81,6 +86,11 @@ internal sealed class PosWindow : Form
     private readonly ConnectionConfig _config;
     private readonly string _baseUrl;
     private readonly SemaphoreSlim _printGate = new(1, 1);
+    private readonly System.Windows.Forms.Timer _titleClock = new() { Interval = 1000 };
+    private Panel? _titleUserChip;
+    private Label? _titleUserMark;
+    private Label? _titleUserName;
+    private Label? _titleUserRole;
     private PrinterConfig _printers = PrinterConfig.Load();
     private readonly WebView2 _browser = new() { Dock = DockStyle.Fill, Visible = false };
     private readonly Label _loading = new()
@@ -127,6 +137,7 @@ internal sealed class PosWindow : Form
             await StartBrowserAsync();
         };
         SizeChanged += (_, _) => EnableRoundedCorners();
+        FormClosed += (_, _) => _titleClock.Stop();
         KeyDown += (_, e) =>
         {
             if (e.KeyCode == Keys.F5 && _browser.CoreWebView2 is not null) _browser.Reload();
@@ -145,6 +156,23 @@ internal sealed class PosWindow : Form
     {
         using var setup = new SetupForm(ConnectionConfig.Load());
         if (setup.ShowDialog(this) == DialogResult.OK) Application.Restart();
+    }
+
+    private void SetTitleUser(string? name, string? role)
+    {
+        if (_titleUserChip is null || _titleUserName is null || _titleUserRole is null || _titleUserMark is null) return;
+        var cleanName = (name ?? string.Empty).Trim();
+        var cleanRole = (role ?? string.Empty).Trim();
+        if (cleanName.Length == 0)
+        {
+            _titleUserChip.Visible = false;
+            return;
+        }
+        _titleUserName.Text = cleanName;
+        _titleUserRole.Text = cleanRole.Length == 0 ? "POS" : cleanRole.ToUpperInvariant();
+        _titleUserMark.Text = cleanName[..1].ToUpperInvariant();
+        _titleUserChip.Visible = true;
+        _titleUserChip.BringToFront();
     }
 
     private void OpenPrinterSetup()
@@ -193,11 +221,110 @@ internal sealed class PosWindow : Form
         var minimize = WindowButton("—", (_, _) => WindowState = FormWindowState.Minimized);
         close.Dock = maximize.Dock = minimize.Dock = DockStyle.Right;
 
+        Panel Chip(int width)
+        {
+            return new Panel
+            {
+                Width = width,
+                Height = 34,
+                Top = 6,
+                BackColor = Color.FromArgb(38, 37, 32),
+                BorderStyle = BorderStyle.FixedSingle,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+        }
+
+        var timeChip = Chip(118);
+        var timePrimary = new Label
+        {
+            AutoSize = false,
+            Dock = DockStyle.Top,
+            Height = 19,
+            TextAlign = ContentAlignment.BottomCenter,
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI", 9.5F, FontStyle.Bold)
+        };
+        var timeSecondary = new Label
+        {
+            AutoSize = false,
+            Dock = DockStyle.Fill,
+            TextAlign = ContentAlignment.TopCenter,
+            ForeColor = Color.FromArgb(161, 156, 145),
+            Font = new Font("Segoe UI", 6.5F, FontStyle.Regular)
+        };
+        timeChip.Controls.Add(timeSecondary);
+        timeChip.Controls.Add(timePrimary);
+
+        var userChip = Chip(146);
+        userChip.Visible = false;
+        var userMark = new Label
+        {
+            AutoSize = false,
+            Width = 30,
+            Dock = DockStyle.Left,
+            Text = _role == "admin" ? "C" : "P",
+            TextAlign = ContentAlignment.MiddleCenter,
+            BackColor = Color.FromArgb(241, 185, 29),
+            ForeColor = Color.FromArgb(24, 21, 15),
+            Font = new Font("Segoe UI", 10F, FontStyle.Bold)
+        };
+        var rolePrimary = new Label
+        {
+            AutoSize = false,
+            Dock = DockStyle.Top,
+            Height = 20,
+            Text = _role == "admin" ? "Cafe Admin" : "Cafe Cashier",
+            TextAlign = ContentAlignment.BottomLeft,
+            Padding = new Padding(8, 0, 0, 0),
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI", 9F, FontStyle.Bold)
+        };
+        var roleSecondary = new Label
+        {
+            AutoSize = false,
+            Dock = DockStyle.Fill,
+            Text = _role == "admin" ? "ADMIN" : "POS",
+            TextAlign = ContentAlignment.TopLeft,
+            Padding = new Padding(8, 0, 0, 0),
+            ForeColor = Color.FromArgb(161, 156, 145),
+            Font = new Font("Segoe UI", 6.5F, FontStyle.Regular)
+        };
+        var roleText = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent };
+        roleText.Controls.Add(roleSecondary);
+        roleText.Controls.Add(rolePrimary);
+        userChip.Controls.Add(roleText);
+        userChip.Controls.Add(userMark);
+        _titleUserChip = userChip;
+        _titleUserMark = userMark;
+        _titleUserName = rolePrimary;
+        _titleUserRole = roleSecondary;
+
+        void PositionInfoChips()
+        {
+            const int windowButtonsWidth = 144;
+            userChip.Left = Math.Max(470, bar.ClientSize.Width - windowButtonsWidth - userChip.Width - 12);
+            timeChip.Left = Math.Max(470, userChip.Left - timeChip.Width - 8);
+        }
+
+        void UpdateClock()
+        {
+            var now = DateTime.Now;
+            timePrimary.Text = now.ToString("h:mm:ss tt", CultureInfo.InvariantCulture).ToLowerInvariant();
+            timeSecondary.Text = now.ToString("ddd, dd MMM", CultureInfo.InvariantCulture);
+        }
+
         bar.Controls.Add(minimize);
         bar.Controls.Add(maximize);
         bar.Controls.Add(close);
+        bar.Controls.Add(timeChip);
+        bar.Controls.Add(userChip);
         bar.Controls.Add(title);
         bar.Controls.Add(iconBox);
+        PositionInfoChips();
+        bar.SizeChanged += (_, _) => PositionInfoChips();
+        UpdateClock();
+        _titleClock.Tick += (_, _) => UpdateClock();
+        _titleClock.Start();
         foreach (Control control in new Control[] { bar, title, iconBox })
         {
             control.MouseDown += DragWindow;
@@ -247,14 +374,26 @@ internal sealed class PosWindow : Form
             await _browser.EnsureCoreWebView2Async(environment);
 
             var core = _browser.CoreWebView2;
-            try
+            var uiRevision = "20260901-receipt-speed-25";
+            var cacheRevisionPath = Path.Combine(profile, "ui-cache-revision.txt");
+            var cachedRevision = string.Empty;
+            try { if (File.Exists(cacheRevisionPath)) cachedRevision = File.ReadAllText(cacheRevisionPath).Trim(); } catch { }
+            if (!string.Equals(cachedRevision, uiRevision, StringComparison.Ordinal))
             {
-                await core.Profile.ClearBrowsingDataAsync(CoreWebView2BrowsingDataKinds.DiskCache);
-                PrinterConfig.Log("WebView2 disk cache cleared before UI load");
+                try
+                {
+                    await core.Profile.ClearBrowsingDataAsync(CoreWebView2BrowsingDataKinds.DiskCache);
+                    File.WriteAllText(cacheRevisionPath, uiRevision);
+                    PrinterConfig.Log("WebView2 disk cache refreshed for UI revision " + uiRevision);
+                }
+                catch (Exception cacheEx)
+                {
+                    PrinterConfig.Log("WebView2 cache refresh skipped: " + cacheEx.Message);
+                }
             }
-            catch (Exception cacheEx)
+            else
             {
-                PrinterConfig.Log("WebView2 cache clear skipped: " + cacheEx.Message);
+                PrinterConfig.Log("WebView2 disk cache kept for faster startup");
             }
             core.Settings.AreBrowserAcceleratorKeysEnabled = true;
             core.Settings.AreDefaultContextMenusEnabled = false;
@@ -316,6 +455,20 @@ internal sealed class PosWindow : Form
                     return;
                 }
 
+                if (string.Equals(message, "mnahels-user-hidden", StringComparison.OrdinalIgnoreCase))
+                {
+                    BeginInvoke(() => SetTitleUser(null, null));
+                    return;
+                }
+                if (message.StartsWith("mnahels-user:", StringComparison.Ordinal))
+                {
+                    var values = message[13..].Split('|', 2);
+                    var displayName = Uri.UnescapeDataString(values.Length > 0 ? values[0] : string.Empty);
+                    var displayRole = Uri.UnescapeDataString(values.Length > 1 ? values[1] : "POS");
+                    BeginInvoke(() => SetTitleUser(displayName, displayRole));
+                    return;
+                }
+
                 var known = message is "mnahels-print-customer" or "mnahels-print-kitchen" or "mnahels-silent-print";
                 if (!known) return;
 
@@ -332,7 +485,6 @@ internal sealed class PosWindow : Form
                 }
             };
 
-            var uiRevision = "20260830-receipt-readability-24";
             _browser.Source = new Uri(_role == "admin"
                 ? _baseUrl + "/?screen=admin&ui=" + uiRevision
                 : _baseUrl + "/?ui=" + uiRevision);

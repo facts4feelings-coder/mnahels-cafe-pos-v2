@@ -66,6 +66,8 @@ static class PaymentFeatures
         if (variants.Count != variantIds.Count) return Results.BadRequest(new { message = "One or more items are unavailable." });
 
         var now = DateTimeOffset.Now;
+        var shift = request.PayNow ? await ShiftFeatures.GetOpenShiftAsync(db) : null;
+        if (request.PayNow && shift is null) return ShiftFeatures.ShiftRequired();
         Customer? customer = null;
         if (!string.IsNullOrWhiteSpace(phone))
         {
@@ -95,6 +97,7 @@ static class PaymentFeatures
             RiderId = riderId, RiderName = rider?.Name, WaiterId = waiterId, WaiterName = waiter?.Name,
             Status = "New", KitchenStatus = "Pending", PaymentStatus = "Unpaid", PaymentMethod = ""
         };
+        ShiftFeatures.StampCreated(order, principal);
         foreach (var line in request.Items)
         {
             var variant = variants[line.VariantId];
@@ -111,6 +114,7 @@ static class PaymentFeatures
             if (method is null) return Results.BadRequest(new { message = "Cash, Card ya Online payment method select karein." });
             var paymentError = ApplyPayment(order, method, request.CashReceived, request.PaymentReference, now, principal.Identity?.Name);
             if (paymentError is not null) return paymentError;
+            ShiftFeatures.StampPayment(order, shift!, principal);
         }
         db.Orders.Add(order);
         AddAudit(db, principal, request.PayNow ? "OrderBookedPaid" : "OrderBookedUnpaid", $"MC-{token} · {type} · Rs {order.Total:0.##}");
@@ -126,8 +130,11 @@ static class PaymentFeatures
         if (order.PaymentStatus == "Paid") return Results.Conflict(new { message = "Order already paid hai." });
         var method = NormalMethod(request.PaymentMethod);
         if (method is null) return Results.BadRequest(new { message = "Cash, Card ya Online payment method select karein." });
+        var shift = await ShiftFeatures.GetOpenShiftAsync(db);
+        if (shift is null) return ShiftFeatures.ShiftRequired();
         var error = ApplyPayment(order, method, request.CashReceived, request.Reference, DateTimeOffset.Now, principal.Identity?.Name);
         if (error is not null) return error;
+        ShiftFeatures.StampPayment(order, shift, principal);
         if (request.CompleteOrder) { order.Status = "Completed"; order.KitchenStatus = "Served"; }
         AddAudit(db, principal, request.CompleteOrder ? "PaymentAddedAndCompleted" : "PaymentAdded", $"MC-{order.TokenNumber} · {method} · Rs {order.Total:0.##}");
         await db.SaveChangesAsync();

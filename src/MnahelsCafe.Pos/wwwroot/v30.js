@@ -91,6 +91,6 @@ function versionChip(){const host=el('.side-bottom');if(!host)return;let n=el('#
 function buildTag(){all('#ow-pricing .ow-navhint').forEach(n=>{if(n.textContent.indexOf('build ')>=0&&n.textContent.indexOf(BUILD)<0)n.innerHTML=n.innerHTML.replace(/build\s+[0-9.]+/,'build '+BUILD)})}
 function payHint(){all('#ow-pricing .ow-label').forEach(n=>{if(n.dataset.v30)return;if(n.textContent.indexOf('PAYMENT MODE')<0)return;n.dataset.v30='1';n.insertAdjacentHTML('beforeend',' <b>Ctrl+\u2190</b> <b>Ctrl+\u2192</b>')})}
 
-setInterval(()=>{try{versionChip();buildTag();payHint()}catch(e){}try{if(el('#screen-sales.active')&&(!el('#one-metrics .v30-metric')||el('#screen-sales .sales-table tbody tr:not([data-v30])')))enhanceSales()}catch(e){}},800);
+setInterval(()=>{try{versionChip();buildTag();payHint()}catch(e){}try{if(el('#screen-sales.active')&&(!el('#one-metrics .v30-metric')||el('#screen-sales .sales-table tbody tr:not([data-v30])')))enhanceSales()}catch(e){}},2200);
 setTimeout(()=>{try{versionChip()}catch(e){}},1200);
 })();

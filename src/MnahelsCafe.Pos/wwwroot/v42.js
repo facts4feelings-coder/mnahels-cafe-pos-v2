@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='0.15.17',UI_REVISION='20260830-cashier-17';
+const BUILD='0.15.25',UI_REVISION='20260901-cashier-speed-25';
 const q=(selector,root=document)=>root.querySelector(selector),qa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const trackingIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/><path d="m3 8 6-4 6 7 6-5"/></svg>';
 let categoryObserver=null;
@@ -17,12 +17,13 @@ function restoreNav(nav){qa(':scope>.nav-item',nav).forEach(button=>{if(button.d
 function trackingTitle(){if(!isCashier()||typeof state==='undefined'||state.currentScreen!=='admin')return;const kicker=q('#page-kicker'),title=q('#page-title');if(kicker)kicker.textContent='LIVE OPERATIONS';if(title)title.textContent='Order Tracking'}
 function syncNavigation(){
  const user=currentUser(),nav=q('.sidebar nav');document.documentElement.classList.toggle('v42-cashier',isCashier());if(!user||!nav)return;
- const dashboard=q('[data-screen="admin"]',nav),menu=q('[data-screen="pos"]',nav);
+ const dashboard=q('[data-screen="admin"]',nav),menu=q('[data-screen="pos"]',nav),shift=q('[data-screen="shift"]',nav);
  restoreNav(nav);
  if(isCashier()){
-  qa(':scope>.nav-item',nav).forEach(button=>{const keep=button===dashboard||button===menu;if(!keep){button.dataset.v42Hidden='1';button.style.setProperty('display','none','important')}});
+  qa(':scope>.nav-item',nav).forEach(button=>{const keep=button===dashboard||button===menu||button===shift;if(!keep){button.dataset.v42Hidden='1';button.style.setProperty('display','none','important')}});
   if(dashboard){dashboard.style.setProperty('display','flex','important');setNavLabel(dashboard,'Order Tracking',trackingIcon)}
   if(menu){menu.style.setProperty('display','flex','important');setNavLabel(menu,'Our Menu')}
+  if(shift){shift.style.setProperty('display','flex','important');setNavLabel(shift,'Shift Details')}
   trackingTitle();
  }else{
   if(dashboard)setNavLabel(dashboard,'Dashboard');if(menu)setNavLabel(menu,'Our Menu');
@@ -31,8 +32,7 @@ function syncNavigation(){
 async function openTracking(){
  if(!isCashier())return;
  state.currentScreen='admin';qa('.screen').forEach(screen=>screen.classList.remove('active'));q('#screen-admin')?.classList.add('active');qa('.nav-item').forEach(button=>button.classList.toggle('active',button.dataset.screen==='admin'));trackingTitle();state.dashboardSignature='';
- try{if(typeof loadDashboard==='function')await loadDashboard(true)}catch(error){console.warn('[v42 tracking]',error)}
- try{await window.mnahelsV36?.renderOperations?.(true)}catch(error){console.warn('[v42 operations]',error)}
+ try{if(typeof loadDashboard==='function')await loadDashboard(true);else await window.mnahelsV36?.renderOperations?.(true)}catch(error){console.warn('[v42 tracking]',error)}
 }
 function categoryIcon(name){if(name==='All')return'✦';const row=(typeof state!=='undefined'?state.menu:[]).find(category=>category.name===name);return row?.icon||'•'}
 function enhanceCategories(){
@@ -45,7 +45,7 @@ function hookCategories(){
 }
 function clearProductFocus(){qa('#product-grid .product-card.v38-grid-focus,#product-grid .product-card.keyboard-selected').forEach(card=>{card.classList.remove('v38-grid-focus','keyboard-selected');card.style.removeProperty('border-color');card.style.removeProperty('box-shadow')})}
 function markProductFocus(card){if(!card)return;card.classList.add('v38-grid-focus');card.style.setProperty('border-color','#f4bf24','important');card.style.setProperty('box-shadow','0 0 0 3px rgba(244,191,36,.18),0 15px 30px rgba(0,0,0,.34)','important')}
-function focusProduct(card){if(!card)return;clearProductFocus();markProductFocus(card);try{card.focus({preventScroll:true})}catch{card.focus()}card.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'})}
+function focusProduct(card){if(!card)return;clearProductFocus();markProductFocus(card);try{card.focus({preventScroll:true})}catch{card.focus()}card.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'})}
 function visibleProducts(){return qa('#product-grid .product-card').filter(card=>card.offsetWidth&&card.offsetHeight)}
 function editableTarget(target){return target?.closest?.('input,textarea,select,[contenteditable="true"],[contenteditable=""]')}
 window.addEventListener('focusin',event=>{const field=editableTarget(event.target);if(field&&field.id!=='search')clearProductFocus()},true);
@@ -58,6 +58,6 @@ window.addEventListener('click',event=>{const tracking=event.target.closest?.('.
 
 function boot(){document.documentElement.dataset.uiRevision=UI_REVISION;syncNavigation();hookCategories();trackingTitle()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,100));else setTimeout(boot,100);
-setTimeout(boot,600);setTimeout(boot,1500);setInterval(()=>{syncNavigation();hookCategories();if(isCashier()&&typeof state!=='undefined'&&state.currentScreen==='admin')window.mnahelsV36?.renderOperations?.()},1200);
+setTimeout(boot,600);setTimeout(boot,1500);setInterval(()=>{if(document.visibilityState!=='visible')return;syncNavigation();hookCategories()},5000);
 window.mnahelsV42={build:BUILD,uiRevision:UI_REVISION,syncNavigation,enhanceCategories,openTracking};
 })();

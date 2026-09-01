@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.17 cashier navigation and keyboard menu refinement · A product by TechMint Software Solutions */
+/* Mnahel's Cafe POS v0.15.25 cashier navigation and keyboard menu refinement · A product by TechMint Software Solutions */
 
 /* Cashier gets the current menu plus the same live operations dashboard used by admin. */
 html.v42-cashier .sidebar nav>.nav-item{display:none!important}
@@ -21,7 +21,10 @@ html.v42-cashier #screen-admin .backup-panel,html.v42-cashier #screen-admin .bac
 /* Direction-independent keyboard focus: left/right and up/down use one clear border. */
 #screen-pos #product-grid .product-card.v38-grid-focus,#screen-pos #product-grid .product-card:focus,#screen-pos #product-grid .product-card:focus-visible{z-index:5!important;outline:0!important;border-color:#f4bf24!important;box-shadow:0 0 0 3px rgba(244,191,36,.18),0 15px 30px rgba(0,0,0,.34)!important;transition:none!important}
 
-#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.17"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
+#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.25"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
 
 @media(max-width:1100px){#screen-pos .categories{grid-template-columns:repeat(var(--v42-category-count,1),minmax(48px,1fr))!important}#screen-pos .v42-category-name{font-size:5.8px}}
 @media(prefers-reduced-motion:reduce){#screen-pos #product-grid .product-card.v38-grid-focus{scroll-behavior:auto}}
+
+/* Cashier performance: avoid expensive decorative motion while keeping clear state feedback. */
+html.v42-cashier #screen-pos .product-card,html.v42-cashier #screen-admin .v36-order-card{animation-duration:.16s!important;transition-duration:.12s!important}

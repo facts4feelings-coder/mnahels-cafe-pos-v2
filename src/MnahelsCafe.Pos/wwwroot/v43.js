@@ -1,9 +1,10 @@
 (()=>{
 'use strict';
-const BUILD='0.15.24',UI_REVISION='20260830-receipt-readability-24';
+const BUILD='0.15.25',UI_REVISION='20260901-receipt-speed-25';
 const esc=value=>String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
-const money=value=>`Rs ${Math.round(Number(value||0)).toLocaleString('en-PK')}`;
+const money=value=>Math.round(Number(value||0)).toLocaleString('en-PK');
 const paidStatus=order=>String(order?.paymentStatus||'').toLowerCase()==='paid'||order?.isPaid===true;
+const brandLogo='<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14"/><path d="M9 13h12v7a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5v-7Zm12 2h2a3 3 0 0 1 0 6h-2M12 10c0-2 2-2 2-4m4 4c0-2 2-2 2-4"/></svg>';
 const icons={
  'Dine-in':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8m3-8v8M5 3v5c0 2 1 3 3 3s3-1 3-3V3M8 11v10M16 3v18m0-18c2 0 3 2 3 5s-1 5-3 5"/></svg>',
  Takeaway:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 13H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg>',
@@ -20,7 +21,7 @@ function seal(kind){
  if(kind==='kitchen')return{label:'KITCHEN',sub:'PREPARE NOW',title:'KITCHEN TICKET'};
  if(kind==='waiter')return{label:'PAYMENT DUE',sub:'WAITER COPY',title:'WAITER ORDER · PAY LATER'};
  if(kind==='paid')return{label:'PAID',sub:'FINAL RECEIPT',title:'FINAL PAID RECEIPT'};
- return{label:'PAYMENT DUE',sub:'TEMPORARY SLIP',title:'PAY LATER · PAYMENT DUE'};
+ return{label:'TEMPORARY',sub:'SLIP',title:'TEMPORARY SLIP'};
 }
 function metaCell(label,value){return`<div class="v43-meta-cell"><span>${esc(label)}</span><b>${esc(value)}</b></div>`}
 function itemRows(order,kitchen){
@@ -38,25 +39,26 @@ function paymentLines(order,kind){
  const subtotal=money(order?.subtotal!=null?order.subtotal:order?.total);
  const discount=Number(order?.discount||0);
  const total=money(order?.total);
- return`<div class="v43-summary"><div class="tp-line"><span>Subtotal</span><b>${subtotal}</b></div>${discount?`<div class="tp-line"><span>Discount</span><b>- ${money(discount)}</b></div>`:''}<div class="tp-total"><span>${paid?'TOTAL PAID':'AMOUNT DUE'}</span><b>${total}</b></div></div>${paid?`<div class="v43-payment-grid">${metaCell('PAYMENT',order?.paymentMethod||'Paid')}${order?.paymentMethod==='Cash'&&order?.cashReceived!=null?metaCell('RECEIVED / CHANGE',`${money(order.cashReceived)} / ${money(order.changeDue)}`):metaCell('REFERENCE',order?.paymentReference||'Confirmed')}</div>`:'<div class="v43-due-warning"><b>PAYMENT PENDING</b><span>Collect full payment before completing this order.</span></div>'}`;
+ return`<div class="v43-summary"><div class="tp-line"><span>Subtotal</span><b>${subtotal}</b></div>${discount?`<div class="tp-line"><span>Discount</span><b>- ${money(discount)}</b></div>`:''}<div class="tp-total"><span>${paid?'TOTAL PAID':'AMOUNT DUE'}</span><b>${total}</b></div></div>${paid?`<div class="v43-payment-grid">${metaCell('PAYMENT',order?.paymentMethod||'Paid')}${order?.paymentMethod==='Cash'&&order?.cashReceived!=null?metaCell('RECEIVED / CHANGE',`${money(order.cashReceived)} / ${money(order.changeDue)}`):metaCell('REFERENCE',order?.paymentReference||'Confirmed')}</div>`:''}`;
 }
 function receiptHtml(order,requestedKind='customer'){
  let kind=requestedKind;
  if(kind==='customer')kind=paidStatus(order)?'paid':'unpaid';
  if(!['kitchen','waiter','paid','unpaid'].includes(kind))kind='unpaid';
  const mode=orderMode(order),serviceInfo=service(order,mode),status=seal(kind),kitchen=kind==='kitchen';
- const notes=order?.notes?`<div class="v36-receipt-note v43-note"><b>ORDER NOTE</b><span>${esc(order.notes)}</span></div>`:'';
+ const footerTitle=kind==='kitchen'?'KITCHEN COPY':kind==='waiter'?'WAITER COPY':'THANK YOU!';
+ const footerCopy=kind==='kitchen'?'Prepare with care.':kind==='waiter'?'Service order copy.':'We hope to serve you again.';
  return`<article class="tp tp-customer v43-receipt ${kind}" data-receipt-kind="${kind}" data-order-mode="${esc(mode)}">
   <header class="tp-head v43-dark-head">
-   <div class="v43-brand"><b>MNAHEL'S CAFE</b><small>THE WORLD OF TASTE</small></div>
-   <div class="v43-mode"><span class="v43-mode-icon">${icons[mode]}</span><span><b>${esc(mode.toUpperCase())}</b><small>${esc(status.title)}</small></span></div>
+   <div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">${brandLogo}</span><b>MNAHEL'S CAFE</b></div><small>THE WORLD OF TASTE</small></div>
+   <div class="v43-mode"><span class="v43-mode-icon">${icons[mode]}</span><b>${esc(mode.toUpperCase())}</b></div>
    <div class="v43-seal"><strong>${esc(status.label)}</strong><small>${esc(status.sub)}</small></div>
   </header>
   <div class="v43-body">
    <div class="v43-meta-grid">${metaCell('ORDER',`MC-${order?.tokenNumber??'—'}`)}${metaCell('PLACED AT',placedAt(order))}${metaCell('CUSTOMER',order?.customerName||'Walk-in customer')}${metaCell(serviceInfo.label,serviceInfo.value)}</div>
    <div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>${kitchen?'VARIANT':'AMOUNT'}</b></div>${itemRows(order,kitchen)}</div>
-   ${notes}${paymentLines(order,kind)}
-   <footer class="tp-foot"><b>A product by TechMint Software Solutions</b><small>${kind==='kitchen'?'Kitchen copy':kind==='waiter'?'Waiter copy · Not paid':kind==='paid'?'Thank you':'Not a paid receipt'}</small></footer>
+   ${paymentLines(order,kind)}
+   <footer class="tp-foot"><b>A product by TechMint Software Solutions</b><strong>${footerTitle}</strong><span>${footerCopy}</span></footer>
   </div>
  </article>`;
 }

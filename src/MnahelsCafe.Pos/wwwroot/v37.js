@@ -31,6 +31,6 @@ function recoverDashboard(){
 function observeDashboard(){const box=q('#admin-orders');if(!box||box.dataset.v37Observed)return;box.dataset.v37Observed='1';new MutationObserver(()=>queueMicrotask(recoverDashboard)).observe(box,{childList:true,subtree:false})}
 function boot(){document.documentElement.dataset.uiRevision=UI_REVISION;hookCart();decorateHeader();decorateCart();observeDashboard();recoverDashboard()}
 document.addEventListener('click',event=>{const product=event.target.closest?.('.product-card');if(product){product.classList.add('v37-pressed');setTimeout(()=>product.classList.remove('v37-pressed'),220)}if(event.target.closest?.('#clear-cart,#cart-items button'))setTimeout(decorateCart,0)},true);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,500);setTimeout(boot,1300);setInterval(()=>{hookCart();observeDashboard();recoverDashboard()},1800);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,500);setTimeout(boot,1300);setInterval(()=>{if(document.visibilityState==='visible'){hookCart();observeDashboard();recoverDashboard()}},5000);
 window.mnahelsV37={build:BUILD,uiRevision:UI_REVISION,decorateCart,recoverDashboard};
 })();

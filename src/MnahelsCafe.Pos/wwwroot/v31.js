@@ -1,6 +1,6 @@
 (()=>{
 /* ==========================================================================
-   Mnahel's Cafe POS - v31 layer - build 0.15.24
+   Mnahel's Cafe POS - v31 layer - build 0.15.25
    Owner    : TechMint Software Solutions - https://techmint.org
    Copyright: (c) 2026 TechMint Software Solutions. All rights reserved.
    A product by TechMint Software Solutions.
@@ -22,7 +22,7 @@
            ready shortcut + copy button)
      - WIDTH FINDER: printer ka asli printable width ek print me
    ========================================================================== */
-const BUILD='0.15.24';
+const BUILD='0.15.25';
 const WKEY='mnahels.print-width';
 const PKEY='mnahels.print-pad';
 const LKEY='mnahels.print-left';
@@ -35,11 +35,13 @@ const el=s=>document.querySelector(s);
 const all=s=>[...document.querySelectorAll(s)];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function say(t){if(typeof toast==='function')toast(t)}
+function changed(){document.dispatchEvent(new Event('mnahels-print-settings-changed'))}
 function num(k,def,min,max){const v=parseFloat(localStorage.getItem(k)||'');return (isFinite(v)&&v>=min&&v<=max)?v:def}
 const width=()=>num(WKEY,80,40,210);
 const pad=()=>num(PKEY,0,0,8);
 const left=()=>num(LKEY,1,-8,8);
 const font=()=>num(FKEY,12,8,15);
+function whiteHeader(){try{return localStorage.getItem('mnahels.receipt-header')==='white'}catch{return false}}
 const LAYOUTKEY='mnahels.print-layout-compact-21';
 try{if(localStorage.getItem(LAYOUTKEY)!=='1'){const savedW=localStorage.getItem(WKEY),savedF=parseFloat(localStorage.getItem(FKEY)||'');if(savedW===null||savedW==='70')localStorage.setItem(WKEY,'80');if(!isFinite(savedF)||savedF<12)localStorage.setItem(FKEY,'12');localStorage.setItem(LAYOUTKEY,'1')}}catch(e){}
 const bridgeReady=()=>!!(window.__mnahelsDualPrintBridge&&window.chrome&&window.chrome.webview&&window.chrome.webview.postMessage);
@@ -80,7 +82,7 @@ function keepRules(w){const s=el('#print-sheet');if(!s)return '';
 	return out}
 
 /* ------- width / left offset / margin / font ka override (v24 se strong) */
-function apply(){const w=effW(),p=effP(),l=effL(),f=font();let s=el('#v31-print-style');if(!s){s=document.createElement('style');s.id='v31-print-style';document.head.appendChild(s)}
+function apply(){const w=effW(),p=effP(),l=effL(),f=font(),white=whiteHeader(),headInk=white?'#000':'#fff',headBg=white?'#fff':'#000',headBorder=white?'#000':'#fff';let s=el('#v31-print-style');if(!s){s=document.createElement('style');s.id='v31-print-style';document.head.appendChild(s)}
 	const P='html body #print-sheet';
 	const css='@media print{'
 		+'@page{size:'+w+'mm auto;margin:0}'
@@ -91,10 +93,10 @@ function apply(){const w=effW(),p=effP(),l=effL(),f=font();let s=el('#v31-print-
 		+P+' *{visibility:visible!important;opacity:1!important;color:#000!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
 		+P+' .tp{display:block!important;visibility:visible!important;width:'+w+'mm!important;max-width:'+w+'mm!important;box-sizing:border-box!important;margin:0!important;padding:0 '+p+'mm!important;position:relative!important;left:'+l+'mm!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;color:#000!important;font-size:'+f+'px!important;line-height:1.34!important}'
 		+P+' .tp *{color:#000!important;max-width:100%!important}'
-		+P+' .v43-dark-head,'+P+' .v43-dark-head *{color:#fff!important}'
-		+P+' .v43-dark-head{background:#000!important}'
-		+P+' .v43-mode-icon,'+P+' .v43-seal{background:#000!important;border-color:#fff!important}'
-		+P+' .v43-mode-icon svg{stroke:#fff!important}'
+		+P+' .v43-dark-head,'+P+' .v43-dark-head *{color:'+headInk+'!important}'
+		+P+' .v43-dark-head{background:'+headBg+'!important;border-color:#000!important}'
+		+P+' .v43-mode-icon,'+P+' .v43-seal{background:'+headBg+'!important;border-color:'+headBorder+'!important}'
+		+P+' .v43-mode-icon svg{stroke:'+headInk+'!important}'
 		+P+' .tp-line,'+P+' .tp-item>div,'+P+' .tp-th,'+P+' .tp-total{gap:3px!important}'
 		+P+' .tp-line span,'+P+' .tp-line b{white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important}'
 		+fontRules(P,f)
@@ -108,6 +110,7 @@ function apply(){const w=effW(),p=effP(),l=effL(),f=font();let s=el('#v31-print-
 		+fitRules('.v31-paper');
 	if(s.textContent!==css)s.textContent=css}
 apply();
+document.addEventListener('mnahels-print-settings-changed',apply);
 
 /* --------------- blank page ka fix: sheet ka content hold karte hain */
 let hold=null,holdUntil=0;
@@ -200,11 +203,11 @@ function sync(){const w=width(),p=pad(),l=left(),f=font();
 	if(pi&&document.activeElement!==pi)pi.value=String(p);
 	if(li&&document.activeElement!==li)li.value=String(l);
 	const st=el('#v31-status');if(st)st.textContent='Abhi: width '+w+' mm \u00b7 left offset '+l+' mm \u00b7 side margin '+p+' mm \u00b7 font '+f+' px \u00b7 print engine '+BUILD+' (isolation ON)'+(bridgeReady()?' \u00b7 DIRECT PRINT ON (desktop app)':' \u00b7 browser mode (print window khulegi \u2014 niche kiosk shortcut dekhein)')}
-function setWidth(v,quiet){const n=Math.round(parseFloat(v)*2)/2;if(!isFinite(n)||n<40||n>210){say('Set width between 40 and 210 mm.');return}localStorage.setItem(WKEY,String(n));apply();sync();if(!quiet)say('Print width '+n+' mm set ho gayi.')}
-function setPad(v,quiet){const n=Math.round(parseFloat(v)*2)/2;if(!isFinite(n)||n<0||n>8){say('Set side margin between 0 and 8 mm.');return}localStorage.setItem(PKEY,String(n));apply();sync();if(!quiet)say('Side margin '+n+' mm set ho gaya.')}
-function setLeft(v,quiet){const n=Math.round(parseFloat(v)*4)/4;if(!isFinite(n)||n<-8||n>8){say('Set left margin between -8 and +8 mm.');return}localStorage.setItem(LKEY,String(n));apply();sync();if(!quiet)say('Left margin '+n+' mm set ho gaya.')}
-function setFont(v,quiet){const n=parseFloat(v);if(!isFinite(n)||n<8||n>15){say('Set receipt font between 8 and 15 px.');return}localStorage.setItem(FKEY,String(n));apply();sync();if(!quiet)say('Receipt font set to '+n+' px.')}
-function card(){const old=el('#v31-print-card');if(old&&old.dataset.v31===BUILD)return;if(old)old.remove();
+function setWidth(v,quiet){const n=Math.round(parseFloat(v)*2)/2;if(!isFinite(n)||n<40||n>210){say('Set width between 40 and 210 mm.');return}localStorage.setItem(WKEY,String(n));apply();sync();changed();if(!quiet)say('Print width '+n+' mm set ho gayi.')}
+function setPad(v,quiet){const n=Math.round(parseFloat(v)*2)/2;if(!isFinite(n)||n<0||n>8){say('Set side margin between 0 and 8 mm.');return}localStorage.setItem(PKEY,String(n));apply();sync();changed();if(!quiet)say('Side margin '+n+' mm set ho gaya.')}
+function setLeft(v,quiet){const n=Math.round(parseFloat(v)*4)/4;if(!isFinite(n)||n<-8||n>8){say('Set left margin between -8 and +8 mm.');return}localStorage.setItem(LKEY,String(n));apply();sync();changed();if(!quiet)say('Left margin '+n+' mm set ho gaya.')}
+function setFont(v,quiet){const n=parseFloat(v);if(!isFinite(n)||n<8||n>15){say('Set receipt font between 8 and 15 px.');return}localStorage.setItem(FKEY,String(n));apply();sync();changed();if(!quiet)say('Receipt font set to '+n+' px.')}
+function card(){if(typeof state!=='undefined'&&state.user&&state.user.role!=='Admin')return;const old=el('#v31-print-card');if(old&&old.dataset.v31===BUILD)return;if(old)old.remove();
 	const anchor=el('#v28-print-card')||el('#backup-settings-card');const host=el('#screen-settings');if(!anchor&&!host)return;
 	const html='<article id="v31-print-card" class="panel v31-card" data-v31="'+BUILD+'">'
 		+'<h3>80mm receipt preview & print size</h3>'
@@ -250,6 +253,6 @@ function card(){const old=el('#v31-print-card');if(old&&old.dataset.v31===BUILD)
 /* -------------------------------------------------- build ka nishan */
 function chip(){const host=el('.side-bottom');if(!host)return;let n=el('#v31-build');if(!n){n=document.createElement('small');n.id='v31-build';n.className='v31-build';host.appendChild(n)}const t='POS build '+BUILD;if(n.textContent!==t)n.textContent=t}
 
-setInterval(()=>{try{card();if(!probe)apply();chip();if(el('#v31-print-card'))sync()}catch(e){}},900);
+setInterval(()=>{try{card();chip();if(el('#v31-print-card'))sync()}catch(e){}},4000);
 setTimeout(()=>{try{card();chip()}catch(e){}},1200);
 })();

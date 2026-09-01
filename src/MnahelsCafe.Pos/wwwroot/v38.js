@@ -24,7 +24,7 @@ const icons={
  check:svg('<path d="m5 12 4 4L19 6"/>')
 };
 const modeIcon=mode=>mode==='Dine-in'?icons.dine:mode==='Delivery'?icons.delivery:icons.takeaway;
-let resources={riders:[],waiters:[],tables:[]},proposedToken=1000,draft={},editing=false,hooked=false,gridIndex=-1;
+let resources={riders:[],waiters:[],tables:[]},proposedToken=1000,draft={},editing=false,hooked=false,gridIndex=-1,focusedCard=null,columnCache={width:0,count:5};
 const defaultName=token=>`Customer_${token}`;
 const defaultPhone=token=>`0300${String(Number(token)||1000).padStart(7,'0').slice(-7)}`;
 function productById(id){for(const category of state.menu||[]){const found=(category.products||[]).find(x=>Number(x.id)===Number(id));if(found)return found}return null}
@@ -97,11 +97,11 @@ function setVariantIndex(card,index){const rows=qa('[data-v38-variant]',card);if
 function openInlineVariants(id){const p=productById(id),card=q(`.product-card[data-id="${id}"]`);if(!p||!card)return;if(p.variants.length<=1){add(p,p.variants[0]);return}closeVariants(card);card.classList.add('v38-variants-open');setVariantIndex(card,0);setGridFocus(card)}
 function addVariant(card,variantId){const p=productById(card.dataset.id),variant=p?.variants?.find(v=>Number(v.id)===Number(variantId));if(!p||!variant)return;add(p,variant);card.classList.remove('v38-variants-open');try{card.animate([{transform:'scale(.96)'},{transform:'scale(1.035)',offset:.6},{transform:'scale(1)'}],{duration:320,easing:'cubic-bezier(.34,1.56,.44,1)'})}catch(e){}}
 function cards(){return qa('#product-grid .product-card').filter(x=>x.offsetWidth&&x.offsetHeight)}
-function columns(){const grid=q('#product-grid');if(!grid)return 5;return Math.max(1,getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length)}
-function setGridFocus(card){if(!card)return;qa('.product-card.v38-grid-focus').forEach(x=>x.classList.remove('v38-grid-focus'));card.classList.add('v38-grid-focus');const list=cards();gridIndex=Math.max(0,list.indexOf(card));try{card.focus({preventScroll:true})}catch(e){card.focus()}card.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'})}
+function columns(){const grid=q('#product-grid');if(!grid)return 5;const width=Math.round(grid.getBoundingClientRect().width);if(width===columnCache.width)return columnCache.count;columnCache={width,count:Math.max(1,getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length)};return columnCache.count}
+function setGridFocus(card){if(!card)return;if(focusedCard&&focusedCard!==card)focusedCard.classList.remove('v38-grid-focus');card.classList.add('v38-grid-focus');focusedCard=card;const list=cards();gridIndex=Math.max(0,list.indexOf(card));try{card.focus({preventScroll:true})}catch(e){card.focus()}card.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'})}
 function moveGrid(delta){const list=cards();if(!list.length)return;let index=gridIndex>=0?gridIndex:Math.max(0,list.indexOf(document.activeElement));if(index<0)index=0;setGridFocus(list[Math.max(0,Math.min(list.length-1,index+delta))])}
 function hookGlobals(){
- if(hooked)return;hooked=true;choose=openInlineVariants;const oldRender=renderProducts;renderProducts=function(){const out=oldRender.apply(this,arguments);gridIndex=-1;requestAnimationFrame(enhanceCards);return out};const oldComplete=showOrderComplete;showOrderComplete=function(order){oldComplete(order);resetContext()};enhanceCards();
+ if(hooked)return;hooked=true;choose=openInlineVariants;const oldRender=renderProducts;renderProducts=function(){const out=oldRender.apply(this,arguments);gridIndex=-1;focusedCard=null;columnCache.width=0;requestAnimationFrame(enhanceCards);return out};const oldComplete=showOrderComplete;showOrderComplete=function(order){oldComplete(order);resetContext()};enhanceCards();
 }
 function boot(){ensureDialog();hookGlobals();enhanceCards();if(state?.v38SetupDone)renderContext();const legacy=q('#variant-dialog');if(legacy?.open)legacy.close()}
 document.addEventListener('click',event=>{

@@ -416,11 +416,7 @@ function render(el){
     dash('-');
     return;
   }
-  if(has(el,'v43-note')){
-    var note=el.querySelector('span');
-    dash('-'); block('\u0003','ORDER NOTE',COLS,''); if(note){ block('',note.textContent,COLS,'   '); } dash('-');
-    return;
-  }
+  if(has(el,'v43-note')){ return; }
   if(has(el,'v43-due-warning')){
     dash('!'); block('\u0006','PAYMENT DUE',COLS,''); block('\u0004','NOT A PAID RECEIPT',COLS,''); dash('!'); return;
   }
@@ -436,7 +432,7 @@ function render(el){
     for(var j=0;j<fp.length;j++){ block('\u0002',fp[j],COLS,''); }
     return;
   }
-  if(has(el,'tp-note')){ if(text){ block('\u0003','NOTE: '+text,COLS,'      '); } return; }
+  if(has(el,'tp-note')){ return; }
   if(has(el,'tp-addr')){ if(text){ block('',text,COLS,'      '); } return; }
   if(deep(el)){
     for(var k=0;k<el.children.length;k++){ render(el.children[k]); }

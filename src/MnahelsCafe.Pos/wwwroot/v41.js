@@ -181,6 +181,6 @@ document.addEventListener('click',event=>{
 
 installApiBridge();hookSales();observe();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,700));else setTimeout(boot,700);
-setTimeout(boot,1500);setTimeout(()=>{boot();refreshDue(true)},2800);setInterval(()=>{boot();if(state?.user&&document.visibilityState==='visible')refreshDue()},5000);
+setTimeout(boot,1500);setTimeout(()=>{boot();refreshDue(true)},2800);setInterval(()=>{boot();if(state?.user&&document.visibilityState==='visible'&&(state.currentScreen==='pos'||state.currentScreen==='admin'||q('#v41-due-dialog')?.open))refreshDue()},8000);
 window.mnahelsV41={build:BUILD,uiRevision:UI_REVISION,isPaid,openPayment,refreshDue,printCustomerBill,paintSalesMetrics,decorateCards};
 })();
