@@ -1,0 +1,66 @@
+name: Import verified v0.15.26 source
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [sync/v0.15.26-safe]
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out safe branch
+        uses: actions/checkout@v4
+        with:
+          ref: sync/v0.15.26-safe
+          fetch-depth: 0
+
+      - name: Download and verify source bundle
+        env:
+          SOURCE_URL: "file://%7B%22source%22%3A%22attachment%3A880d7cd3-9d6b-4f49-9729-870f5a756ddd%3Amnahels-source-transfer.png%22%2C%22permissionRecord%22%3A%7B%22table%22%3A%22block%22%2C%22id%22%3A%22f151e913-9e2d-4ccf-b825-ea77c47d4158%22%2C%22spaceId%22%3A%22d92a7155-2cc2-8124-b942-0003fcc481eb%22%7D%7D"
+          PAYLOAD_SHA256: "1b17076df9794fd241bde368545dd7bdbebd9ada92fb6de31023e43b991bcff2"
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error "$SOURCE_URL" --output /tmp/source-transfer.png
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, struct
+          data = Path('/tmp/source-transfer.png').read_bytes()
+          marker = b'MNAHELS_PAYLOAD_V1\0'
+          offset = data.rfind(marker)
+          if offset < 0:
+              raise SystemExit('Verified payload marker was not found')
+          pos = offset + len(marker)
+          size = struct.unpack('>Q', data[pos:pos + 8])[0]
+          expected = data[pos + 8:pos + 40]
+          payload = data[pos + 40:pos + 40 + size]
+          if len(payload) != size:
+              raise SystemExit('Payload length mismatch')
+          actual = hashlib.sha256(payload).digest()
+          if actual != expected:
+              raise SystemExit('Embedded payload checksum mismatch')
+          Path('/tmp/changed-source.tar.xz').write_bytes(payload)
+          print(hashlib.sha256(payload).hexdigest())
+          PY
+          echo "$PAYLOAD_SHA256  /tmp/changed-source.tar.xz" | sha256sum --check --strict
+
+      - name: Apply source and commit safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xJf /tmp/changed-source.tar.xz -C .
+          test -f src/MnahelsCafe.Pos/wwwroot/v48.js
+          test -f src/MnahelsCafe.Pos/ReceiptSettingsFeatures.cs
+          test -f installer/MnahelsCafePOS.iss
+          rm -f .github/workflows/import-v0.15.26.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m "feat: sync latest v0.15.26 source and harden installer"
+          git push origin HEAD:sync/v0.15.26-safe
