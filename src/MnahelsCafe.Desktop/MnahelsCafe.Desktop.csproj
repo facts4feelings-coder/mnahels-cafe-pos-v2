@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>MnahelsCafe.Desktop</AssemblyName>
     <RootNamespace>MnahelsCafe.Desktop</RootNamespace>
-    <Version>0.15.26</Version>
+    <Version>0.15.27</Version>
     <ApplicationIcon>Assets\MnahelsCafe.ico</ApplicationIcon>
     <Company>TechMint Software Solutions</Company>
     <Authors>TechMint Software Solutions (techmint.org)</Authors>
