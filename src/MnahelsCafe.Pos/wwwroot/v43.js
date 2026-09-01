@@ -30,7 +30,8 @@ function itemRows(order,kitchen){
   const qty=Math.max(0,Number(item.quantity||0));
   const variant=esc(item.variantName||'Regular');
   const third=kitchen?variant:money(item.lineTotal!=null?item.lineTotal:Number(item.unitPrice||0)*qty);
-  return`<div class="tp-item v43-item-row"><span class="v43-qty">${qty}</span><div class="v43-item-name"><b>${esc(item.productName||'Item')}</b><small>${variant}${kitchen?' · Prep line':item.unitPrice!=null?` · ${money(item.unitPrice)} each`:''}</small></div><strong class="v43-third ${kitchen?'v43-variant':'v43-amount'}">${third}</strong></div>`;
+  const note=String(item.notes||'').trim();
+  return`<div class="tp-item v43-item-row"><span class="v43-qty">${qty}</span><div class="v43-item-name"><b>${esc(item.productName||'Item')}</b><small class="${note?'v51-has-note':''}">${variant}${kitchen?' · Prep line':item.unitPrice!=null?` · ${money(item.unitPrice)} each`:''}${note?` <em class="v51-item-note">· ${esc(note)}</em>`:''}</small></div><strong class="v43-third ${kitchen?'v43-variant':'v43-amount'}">${third}</strong></div>`;
  }).join('')||'<div class="v43-empty">No items</div>';
 }
 function paymentLines(order,kind){
@@ -48,6 +49,8 @@ function receiptHtml(order,requestedKind='customer'){
  const mode=orderMode(order),serviceInfo=service(order,mode),status=seal(kind),kitchen=kind==='kitchen';
  const footerTitle=kind==='kitchen'?'KITCHEN COPY':kind==='waiter'?'WAITER COPY':'THANK YOU!';
  const footerCopy=kind==='kitchen'?'Prepare with care.':kind==='waiter'?'Service order copy.':'We hope to serve you again.';
+ const orderNote=String(order?.notes||'').trim();
+ const kitchenNote=kitchen&&orderNote?`<div class="tp-item v43-item-row v53-kitchen-note"><span class="v43-qty">!</span><div class="v43-item-name"><b>ORDER NOTE</b><small>${esc(orderNote)}</small></div><strong class="v43-third v43-variant">CHECK</strong></div>`:'';
  return`<article class="tp tp-customer v43-receipt ${kind}" data-receipt-kind="${kind}" data-order-mode="${esc(mode)}">
   <header class="tp-head v43-dark-head">
    <div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">${brandLogo}</span><b>MNAHEL'S CAFE</b></div><small>THE WORLD OF TASTE</small></div>
@@ -56,7 +59,7 @@ function receiptHtml(order,requestedKind='customer'){
   </header>
   <div class="v43-body">
    <div class="v43-meta-grid">${metaCell('ORDER',`MC-${order?.tokenNumber??'—'}`)}${metaCell('PLACED AT',placedAt(order))}${metaCell('CUSTOMER',order?.customerName||'Walk-in customer')}${metaCell(serviceInfo.label,serviceInfo.value)}</div>
-   <div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>${kitchen?'VARIANT':'AMOUNT'}</b></div>${itemRows(order,kitchen)}</div>
+   <div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>${kitchen?'VARIANT':'AMOUNT'}</b></div>${itemRows(order,kitchen)}${kitchenNote}</div>
    ${paymentLines(order,kind)}
    <footer class="tp-foot"><b>A product by TechMint Software Solutions</b><strong>${footerTitle}</strong><span>${footerCopy}</span></footer>
   </div>

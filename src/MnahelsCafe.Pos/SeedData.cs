@@ -26,7 +26,8 @@ static class SeedData
         var menuNeedsSync = !db.Categories.Any()
             || !db.Categories.Any(x => x.Name == "Water / Mineral Water")
             || !db.Categories.Any(x => x.Name == "Cold Drinks")
-            || !db.Categories.Any(x => x.Name == "3 Pack")
+            || !db.Categories.Any(x => x.Name == "Tin Pack")
+            || !db.Products.Any(x => x.Name == "Sprite Tin Pack")
             || !db.Products.Any(x => x.Name == "Chicken Lazania");
         if (menuNeedsSync) SyncMenu(db);
 
@@ -44,6 +45,23 @@ static class SeedData
             .Include(x => x.Products)
             .ThenInclude(x => x.Variants)
             .ToList();
+
+        // v0.15.28: the old takeaway-size category is retired without deleting
+        // rows that may be referenced by historical orders. The former 3 Pack
+        // category becomes the real single-can Tin Pack category.
+        var retiredPacking = existingCategories.FirstOrDefault(x =>
+            string.Equals(x.Name, "Tin Pack", StringComparison.OrdinalIgnoreCase) &&
+            x.Products.Any(p => p.Name.StartsWith("Tin Pack ", StringComparison.OrdinalIgnoreCase)));
+        if (retiredPacking is not null)
+        {
+            retiredPacking.Name = "Packaging (Retired)";
+            retiredPacking.SortOrder = 99;
+            foreach (var product in retiredPacking.Products)
+            {
+                product.IsActive = false;
+                product.IsAvailable = false;
+            }
+        }
 
         foreach (var spec in Menu())
         {
@@ -105,6 +123,7 @@ static class SeedData
     static string[] CategoryAliases(string name) => name switch
     {
         "Injected Broast" => ["Injected Broast", "Broast"],
+        "Tin Pack" => ["Tin Pack", "3 Pack"],
         "Russian Salad" => ["Russian Salad", "Salad"],
         _ => [name]
     };
@@ -112,6 +131,10 @@ static class SeedData
     static string[] ProductAliases(string name) => name switch
     {
         "Chicken Lazania" => ["Chicken Lazania", "Chicken Hawaiian"],
+        "Red Bull Tin Pack" => ["Red Bull Tin Pack", "Red Bull"],
+        "Coca Cola Tin Pack" => ["Coca Cola Tin Pack", "Coca Cola 3 Pack"],
+        "Pepsi Tin Pack" => ["Pepsi Tin Pack", "Pepsi 3 Pack"],
+        "7UP Tin Pack" => ["7UP Tin Pack", "7UP 3 Pack"],
         _ => [name]
     };
 
@@ -192,11 +215,6 @@ static class SeedData
             One("Family Deal 1",4200,"2 Tikka Grill Sandwiches, half litre Russian salad, 2.25 litre cold drink, Chocolate Brownie, family fries, full broast"),
             One("Family Deal 2",4850,"1 Extra Large Pizza, 5 Zinger Burgers, 10 hot wings, 2.25 litre cold drink, family fries")),
 
-        Cat("Tin Pack", "🥡", 14,
-            One("Tin Pack Small",20,"Disposable takeaway packing"),
-            One("Tin Pack Medium",30,"Disposable takeaway packing"),
-            One("Tin Pack Large",50,"Disposable takeaway packing")),
-
         Cat("Water / Mineral Water", "💧", 15,
             Item("Mineral Water",
                 ("Small · 250 ML",60m), ("Medium · 500 ML",90m), ("1 Litre · 1 L",130m),
@@ -207,11 +225,12 @@ static class SeedData
             Item("Coca Cola", ("250 ML",120m),("500 ML",150m),("1 Litre",210m),("1.5 Litre",240m),("2.25 Litre",280m)),
             Item("7UP", ("250 ML",120m),("500 ML",150m),("1 Litre",210m),("1.5 Litre",240m),("2.25 Litre",280m))),
 
-        Cat("3 Pack", "📦", 17,
-            One("Red Bull",1630,"3 × 250 ML cans · online retail plus Rs 30"),
-            One("Coca Cola 3 Pack",390,"3 × 250 ML cans · online retail plus Rs 30"),
-            One("Pepsi 3 Pack",390,"3 × 250 ML cans · online retail plus Rs 30"),
-            One("7UP 3 Pack",390,"3 × 250 ML cans · online retail plus Rs 30"))
+        Cat("Tin Pack", "🥫", 14,
+            One("Red Bull Tin Pack",1630,"Chilled tin can"),
+            One("Coca Cola Tin Pack",390,"Chilled tin can"),
+            One("Pepsi Tin Pack",390,"Chilled tin can"),
+            One("7UP Tin Pack",390,"Chilled tin can"),
+            One("Sprite Tin Pack",390,"Chilled tin can"))
     ];
 
     static MenuCategory Cat(string name, string icon, int sortOrder, params Product[] products) =>

@@ -1,0 +1,22 @@
+MNAHEL'S CAFE POS v0.15.31 — COMPLETE SOURCE PACKAGE
+
+ASAN TAREEQA
+1. ZIP ko poora Extract All karein. ZIP ke andar se app na chalayein.
+2. Extracted folder kholen.
+3. START-MNAHELS-POS.cmd par double-click karein.
+4. Windows Administrator permission aaye to Yes karein.
+5. Pehli dafa build mein kuch waqt lag sakta hai.
+
+ZAROORI CHEEZ
+Is source package ko chalane ke liye Windows par .NET 8 SDK installed hona chahiye.
+Download: https://dotnet.microsoft.com/download/dotnet/8.0
+
+Agar app start na ho to black/PowerShell window ki poori error screenshot bhej dein.
+
+VERSION: 0.15.31
+MENU PHOTOS: 91 optimized WebP files
+TIN PACK: Red Bull, Coca Cola, Pepsi, 7UP, Sprite
+
+NEW: Pizza and pizza-deal cart lines show an Extra Topping checkbox between the name and quantity. Price follows pizza size and prints on the receipt.
+
+NEW: Compact order-note/payment ribbons, kitchen order notes, stable sales bars, one-role shift password, formatted Z-report, and animated Mnahel startup branding.
