@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   import-source:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -21,8 +22,8 @@ jobs:
 
       - name: Download and verify source bundle
         env:
-          SOURCE_URL: "https://prod-files-secure.s3.us-west-2.amazonaws.com/d92a7155-2cc2-8124-b942-0003fcc481eb/880d7cd3-9d6b-4f49-9729-870f5a756ddd/mnahels-source-transfer.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB4667SICNHQ2%2F20260901%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260901T061227Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEN3%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQChMINkoKaIIqkW2ws%2B9vjYw5acyVUgTU04f%2FUJ9KqRUgIgCTr16eWxgNXn2UAyzQA0YSEEqchnMEELGM3SkO8P%2FxgqiAQIpv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDAcXqLXOO4t%2F1hmT3ircA%2FkuqWk%2BY4xJosE65d5iOWuI75mWcOscByDD%2BccVKtAYgyg40q%2FeVsQVquCuewQefOGWWcdjIq2VEoqal0l%2By1qO3AXud%2FQiHl5KaHylVrzRkz02NXGlAVUfD2D%2FxHo9XtNe08i8dOwLcxSJiD0Ro4qYjUfUcws4OhxMtGyKLGBKnmaz4n5EVz4nGgR7I7BcrK54k3HXuz1WVghtnP%2B4BoiWhHOO3oNaxF2JUzx4NIN%2FqnlPOh5iwhSDsHtNpfM2O6sOkkB02ppNImR7AYmDGZ0%2FV5%2FNaYEsWo%2Bb44nds1RXcMLz6mVjdcZteeKTihhFIoR5R%2BVp8PUIsWvpJEx0U5FK2IpnGaT7kkpSXoZBpnIcZaai7yvgANbelh5u47LC19v%2Fhcp7FZtcdp3YD231HR8YDmdX39klkzEZuB9QJ%2Bd%2FX8oS6%2Fax4AEaaZDP4PXC0%2BfzS7PjNAJ%2BmNJPoFcRv1I4NYB5s2EKjC8MVzbaI1yZHett%2FQe6YKR5SPDJ6%2FWHbOArIMZtRcL9Wno9CnDNqUNP4%2FM0zHE4zc%2B5BwDdTXRP6x6k4IFUefeZp64%2F6EkbH04AKGS4YXFtrCklOn8tIWWotnr7q9sVoLu1i1210IevTgacKzhprx8nYCO9MLeq2dQGOqUBFKacrx1TiD9l7F7zmnANn%2BFVG2V1xRMFoLVIq5nnBQpZi8FvJPeOxULCxEJNxbuWAAJCtyxf%2F0zixaNJXnjVDT3y3Hfg50Qqa6WvML%2FEBSM5qSAztMvatT%2FghdYVfkeREmmktPXfisV%2BQYlE8I6VY6ZV5ocV%2BOoUQpAGyQnH4FsVDFq%2Byb1goJ8opW82Ul%2BAjxnrBqrdhGi8InjrsvXKkygJiFtq&X-Amz-Signature=ab8746f8b7945c0ccdf5249d410c07bdedf13038ecdaa3252d25aed9df06f0d3&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
-          PAYLOAD_SHA256: "1b17076df9794fd241bde368545dd7bdbebd9ada92fb6de31023e43b991bcff2"
+          SOURCE_URL: "https://prod-files-secure.s3.us-west-2.amazonaws.com/d92a7155-2cc2-8124-b942-0003fcc481eb/e88ca823-afb5-4ae7-9c72-01f262d7f3c8/mnahels-source-transfer-v2.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466QBPIETW7%2F20260901%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260901T061731Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEN3%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJGMEQCIEHWjRlYWiqbsBulUysqTwCTjTC%2Fqeh3Sl1HdaklR2FsAiAw5v3KkqOHEv0%2FuHebhcZWLHyZ0eNhO5G5fP51EDhYriqIBAim%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDYzNzQyMzE4MzgwNSIM%2BbE5pW9XYiC6PA0YKtwDsoU2Ay95N2g102rEeeI0cVM1SXjHklG4tmc%2F9fA%2Bq%2F4zJX8uZUcAgyrQImYDDFq9Z6UPAhawUJnEnrW7Lv3G5aEscg0j9Z6zVeptnQuKV1ulBsLxSsdk%2FkPtbKXtwq%2FLcjJsKQM%2B9AigHC8WJI715xyYChrtX31hb61pkvZsgty96K7vlrBxwW7kWSYewRVqRNmzbNnpj902E1qocbhLCMmfe9VJybpfOSFWx1WAJE02bxsg4JH0X%2BaCJYa44HAMdbnO2WJSSPn6VYMXc26tU79VN%2FoTpMOVHYALO5yAI%2BO5NXch0VwUzXfL1NOo0l9velqaREyqElPtBvefu%2FlekOIdzrkUzkdEo4CCGQR8zgmSbrz9V6YpoWo2YqjTds6CFAMu0faBg4sGwdzWuSdubG24YcFaEKWbMDpR3xvreO%2BYCT%2Fz1EQ0Hjxo7nRV6EU7l8kwn12bWjoxaMs4XcxK4Jxmlj1Lj0NRu3hFRRfl1kg7ORwK0WoW9pVH20Ydc9Mm0Q%2BlbiQnKEviCH6hCaoIRX6QBdue6j0zol7P6eVD%2FYDyrqlP1XLbuLfe9bs4PrQmT7Zyo7iFoeR976NDxTzgEE0nhROQ%2FJLPXHWFSdjkdaq4wwl%2Bb8YyNgCfAgEw7KjZ1AY6pgFJG5nJ8mYEK1tJHrvq74jRdjrDU%2BVh2LQ%2B3341OEeUpzJA5xi4b63ulFtfliGfeb7W9fQWRSdjCNFtcI6Gi651k1zY8JSB58nT4Gn4zqWN3GQaHDMPlPILF%2BSwgoDATWDrCI5jRm9Zlg3%2BMQJhp%2Fj3Pnxutcl7L9R9dHEJciBhYaIYeoq953ZdpBgE1b0onMhharGR6hifhrVN2FmHfT719jUNpAEU&X-Amz-Signature=b3f0a1ff6c38a4804e2fd9398893904c975de4663afbb8c94d873e35423d5cd9&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
+          PAYLOAD_SHA256: "603a21c5088372f7a41d61a7a29f180ac42fec40bf4529ff9bdef8469e96fc06"
         shell: bash
         run: |
           set -euo pipefail
@@ -31,7 +32,7 @@ jobs:
           from pathlib import Path
           import hashlib, struct
           data = Path('/tmp/source-transfer.png').read_bytes()
-          marker = b'MNAHELS_PAYLOAD_V1\0'
+          marker = b'MNAHELS_PAYLOAD_V2\0'
           offset = data.rfind(marker)
           if offset < 0:
               raise SystemExit('Verified payload marker was not found')
@@ -44,23 +45,22 @@ jobs:
           actual = hashlib.sha256(payload).digest()
           if actual != expected:
               raise SystemExit('Embedded payload checksum mismatch')
-          Path('/tmp/changed-source.tar.xz').write_bytes(payload)
+          Path('/tmp/source-only.tar.xz').write_bytes(payload)
           print(hashlib.sha256(payload).hexdigest())
           PY
-          echo "$PAYLOAD_SHA256  /tmp/changed-source.tar.xz" | sha256sum --check --strict
+          echo "$PAYLOAD_SHA256  /tmp/source-only.tar.xz" | sha256sum --check --strict
 
       - name: Apply source and commit safely
         shell: bash
         run: |
           set -euo pipefail
-          tar -xJf /tmp/changed-source.tar.xz -C .
+          tar -xJf /tmp/source-only.tar.xz -C .
           test -f src/MnahelsCafe.Pos/wwwroot/v48.js
           test -f src/MnahelsCafe.Pos/ReceiptSettingsFeatures.cs
           test -f installer/MnahelsCafePOS.iss
-          rm -f .github/workflows/import-v0.15.26.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
           git diff --cached --check
-          git commit -m "feat: sync latest v0.15.26 source and harden installer"
+          git commit -m "feat: sync latest v0.15.26 source"
           git push origin HEAD:sync/v0.15.26-safe
