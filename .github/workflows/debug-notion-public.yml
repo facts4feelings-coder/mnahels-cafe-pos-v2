@@ -1,67 +1,11 @@
-name: Debug public Notion source transfer
+name: Disabled transfer diagnostic
 
 on:
-  push:
-    branches:
-      - release/v0.15.31-final
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  inspect:
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - name: Inspect public page data
-        shell: bash
-        run: |
-          python3 - <<'PY' > .transfer/notion-debug.txt 2>&1
-          import http.cookiejar,json,urllib.parse,urllib.request
-          from pathlib import Path
-          page_url=Path('.transfer/public-page-url.txt').read_text().strip()
-          page_id='8d16e265-09df-4ea7-899d-6172f8e8b206'
-          target='mnahels-cafe-pos-v0.15.31-COMPLETE.zip'
-          jar=http.cookiejar.CookieJar(); opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
-          def fetch(req):
-              with opener.open(req,timeout=45) as response: return response.status,response.read(),response.geturl()
-          def walk(value):
-              if isinstance(value,str): yield value
-              elif isinstance(value,dict):
-                  for child in value.values(): yield from walk(child)
-              elif isinstance(value,list):
-                  for child in value: yield from walk(child)
-          print('page_url_length',len(page_url))
-          try:
-              status,body,final=fetch(urllib.request.Request(page_url,headers={'User-Agent':'Mozilla/5.0'}))
-              text=urllib.parse.unquote(body.decode('utf-8','ignore').replace('\\u0026','&').replace('\\/','/'))
-              print('page',status,'bytes',len(body),'final_host',urllib.parse.urlsplit(final).netloc,'target_in_html',target in text,'attachment_in_html','attachment:' in text)
-              for value in [x for x in walk(text) if isinstance(x,str) and target in x][:3]: print('html_match_length',len(value))
-          except Exception as exc: print('page_error',repr(exc))
-          root='https://www.notion.so/api/v3/'
-          attempts=[('loadPageChunk',{'pageId':page_id,'limit':100,'cursor':{'stack':[]},'chunkNumber':0,'verticalColumns':False}),('loadCachedPageChunk',{'pageId':page_id,'limit':100,'cursor':{'stack':[]}})]
-          for name,payload in attempts:
-              try:
-                  req=urllib.request.Request(root+name,data=json.dumps(payload).encode(),headers={'User-Agent':'Mozilla/5.0','Content-Type':'application/json'},method='POST')
-                  status,body,final=fetch(req); data=json.loads(body)
-                  matches=[]
-                  for value in walk(data):
-                      low=value.lower()
-                      if 'attachment:' in low or '.zip' in low or 'mnahels-cafe-pos-v0.15.31' in low:
-                          if value.startswith('http'):
-                              split=urllib.parse.urlsplit(value); value=split.scheme+'://'+split.netloc+split.path
-                          matches.append(value)
-                  blocks=((data.get('recordMap') or {}).get('block') or {}) if isinstance(data,dict) else {}
-                  print(name,'status',status,'bytes',len(body),'keys',list(data)[:20] if isinstance(data,dict) else type(data).__name__,'blocks',len(blocks),'matches',len(matches))
-                  for value in matches[:20]: print('match',value[:800])
-                  for bid,wrapper in list(blocks.items())[:20]:
-                      val=wrapper.get('value') if isinstance(wrapper,dict) else None
-                      print('block',bid,(val or {}).get('type') if isinstance(val,dict) else type(val).__name__)
-              except Exception as exc: print(name+'_error',repr(exc))
-          PY
-          git add .transfer/notion-debug.txt
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Record public Notion transfer diagnostics'
-          git push origin HEAD
+      - run: echo disabled
