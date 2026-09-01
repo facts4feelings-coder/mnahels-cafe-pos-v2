@@ -1,5 +1,0 @@
-
-
-Error on line 53 in D:\a\mnahels-cafe-pos-v2\mnahels-cafe-pos-v2\installer\MnahelsCafePOS.iss: Parameter "Flags" includes an unknown flag.
-Compile aborted.
-Preprocessing
