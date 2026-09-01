@@ -1,0 +1,653 @@
+{
+  "revision": "20260901-menu-images-28",
+  "imageCount": 91,
+  "coveredProducts": 88,
+  "totalProducts": 88,
+  "missingProducts": [],
+  "productImages": {
+    "Chicken Zinger Burger": "chicken-zinger-burger.webp",
+    "Chicken Patti Burger": "chicken-patti-burger.webp",
+    "Chicken Burger": "chicken-burger.webp",
+    "Chicken Tower Burger": "chicken-tower-burger.webp",
+    "Sp. American Garden Burger": "sp-american-garden-burger.webp",
+    "American Delight": "american-delight.webp",
+    "Chicken Grill Burger": "chicken-grill-burger.webp",
+    "Fish Burger": "fish-burger.webp",
+    "Smart Deal 1": "smart-deal-1.webp",
+    "Smart Deal 4": "smart-deal-4.webp",
+    "Special Deal 3": "special-deal-3.webp",
+    "Special Deal 4": "special-deal-4.webp",
+    "Family Deal 1": "family-deal-1.webp",
+    "Family Deal 2": "family-deal-2.webp",
+    "Molding Lava Cake": "molding-lava-cake.webp",
+    "Doo Cookies": "doo-cookies.webp",
+    "Chocolate Brownie": "chocolate-brownie.webp",
+    "Coffee": "coffee.webp",
+    "Mint Margarita": "mint-margarita.webp",
+    "Oreo Shake": "oreo-shake.webp",
+    "Cold Coffee": "cold-coffee.webp",
+    "Ice Cream Shake": "ice-cream-shake.webp",
+    "Caramilk Shake": "caramilk-shake.webp",
+    "Choclate Ice Shake": "choclate-ice-shake.webp",
+    "Small Fries": "small-fries.webp",
+    "Medium Fries": "medium-fries.webp",
+    "Large Fries": "large-fries.webp",
+    "Cheese Fries": "cheese-fries.webp",
+    "Loaded Fries": "loaded-fries.webp",
+    "Quarter Broast": "quarter-broast.webp",
+    "Half Broast": "half-broast.webp",
+    "Full Broast": "full-broast.webp",
+    "Praido Pasta": "praido-pasta.webp",
+    "Creamy Pasta": "creamy-pasta.webp",
+    "Lasagna Pasta": "lasagna-pasta.webp",
+    "Special Chicken Tikka": "special-chicken-tikka.webp",
+    "Max Chicken Fajita": "max-chicken-fajita.webp",
+    "Chicken Super Supreme": "chicken-super-supreme.webp",
+    "Chicken Bar.b.q": "chicken-barb-q.webp",
+    "Vegetable Lover": "vegetable-lover.webp",
+    "Cheese Lover": "cheese-lover.webp",
+    "Chicken Malai Boti": "chicken-malai-boti.webp",
+    "Chicken Afghani": "chicken-afghani.webp",
+    "Kabab Crust": "kabab-crust.webp",
+    "Chicken Crown Crust": "chicken-crown-crust.webp",
+    "Chicken Force Square": "chicken-force-square.webp",
+    "Chicken Lazania": "chicken-lazania.webp",
+    "Russian Salad Small": "russian-salad-small.webp",
+    "Russian Salad Half": "russian-salad-half.webp",
+    "Russian Salad Full": "russian-salad-full.webp",
+    "Peri Peri Sandwich": "peri-peri-sandwich.webp",
+    "Tikka Grill Sandwich": "tikka-grill-sandwich.webp",
+    "Malai Boti Sandwich": "malai-boti-sandwich.webp",
+    "Chicken Bar.b.q Sandwich": "chicken-barb-q-sandwich.webp",
+    "Garlic Harbel Sandwich": "garlic-harbel-sandwich.webp",
+    "House & Club Sandwich": "house-and-club-sandwich.webp",
+    "Peri Peri Sauce": "peri-peri-sauce.webp",
+    "Afghani Sauce": "afghani-sauce.webp",
+    "Mayo Garlic Sauce": "mayo-garlic-sauce.webp",
+    "Honey Mustard Sauce": "honey-mustard-sauce.webp",
+    "Chicken Hot Wings": "chicken-hot-wings.webp",
+    "Peri Peri Wings": "peri-peri-wings.webp",
+    "Chicken Hot Shot": "chicken-hot-shot.webp",
+    "Chicken Nuggets": "chicken-nuggets.webp",
+    "Bar.b.q Wings": "barb-q-wings.webp",
+    "Chicken Shawarma": "chicken-shawarma.webp",
+    "Chicken Cheese Shawarma": "chicken-cheese-shawarma.webp",
+    "Chicken Paratha": "chicken-paratha.webp",
+    "Zinger Paratha": "zinger-paratha.webp",
+    "Zinger Shawarma": "zinger-shawarma.webp",
+    "Cheese Paratha": "cheese-paratha.webp",
+    "Tortilla Wrap": "tortilla-wrap.webp",
+    "Garlic Herbel Wrap": "garlic-herbel-wrap.webp",
+    "Bar.b.q Wrap": "barb-q-wrap.webp",
+    "Extra Topping": "extra-topping--medium.webp",
+    "Mineral Water": "mineral-water-all.webp",
+    "Pepsi": "pepsi-all.webp",
+    "Coca Cola": "coca-cola-all.webp",
+    "7UP": "7up-all.webp",
+    "Red Bull Tin Pack": "red-bull-tin-pack.webp",
+    "Coca Cola Tin Pack": "coca-cola-tin-pack.webp",
+    "Pepsi Tin Pack": "pepsi-tin-pack.webp",
+    "7UP Tin Pack": "7up-tin-pack.webp",
+    "Sprite Tin Pack": "sprite-tin-pack.webp",
+    "Smart Deal 2": "smart-deal-2.webp",
+    "Smart Deal 3": "smart-deal-3.webp",
+    "Special Deal 1": "special-deal-1.webp",
+    "Special Deal 2": "special-deal-2.webp"
+  },
+  "variantImages": {
+    "Extra Topping": {
+      "Small": "extra-topping--small.webp",
+      "Medium": "extra-topping--medium.webp",
+      "Large": "extra-topping--large.webp",
+      "Extra Large": "extra-topping--extra-large.webp"
+    }
+  },
+  "files": [
+    {
+      "source": "S0_Burger_01_@Chicken_Zinger_Burger.webp",
+      "product": "Chicken Zinger Burger",
+      "variant": null,
+      "filename": "chicken-zinger-burger.webp"
+    },
+    {
+      "source": "S0_Burger_02_@Chicken_Patti_Burger.webp",
+      "product": "Chicken Patti Burger",
+      "variant": null,
+      "filename": "chicken-patti-burger.webp"
+    },
+    {
+      "source": "S0_Burger_03_@Chicken_Burger.webp",
+      "product": "Chicken Burger",
+      "variant": null,
+      "filename": "chicken-burger.webp"
+    },
+    {
+      "source": "S0_Burger_04_@Chicken_Tower_Burger.webp",
+      "product": "Chicken Tower Burger",
+      "variant": null,
+      "filename": "chicken-tower-burger.webp"
+    },
+    {
+      "source": "S0_Burger_05_@Sp_American_Garden_Burger.webp",
+      "product": "Sp. American Garden Burger",
+      "variant": null,
+      "filename": "sp-american-garden-burger.webp"
+    },
+    {
+      "source": "S0_Burger_06_@American_Delight.webp",
+      "product": "American Delight",
+      "variant": null,
+      "filename": "american-delight.webp"
+    },
+    {
+      "source": "S0_Burger_07_@Chicken_Grill_Burger.webp",
+      "product": "Chicken Grill Burger",
+      "variant": null,
+      "filename": "chicken-grill-burger.webp"
+    },
+    {
+      "source": "S0_Burger_08_@Fish_Burger.webp",
+      "product": "Fish Burger",
+      "variant": null,
+      "filename": "fish-burger.webp"
+    },
+    {
+      "source": "S0_Deals_01_@Smart_Deal_1.webp",
+      "product": "Smart Deal 1",
+      "variant": null,
+      "filename": "smart-deal-1.webp"
+    },
+    {
+      "source": "S0_Deals_04_@Smart_Deal_4.webp",
+      "product": "Smart Deal 4",
+      "variant": null,
+      "filename": "smart-deal-4.webp"
+    },
+    {
+      "source": "S0_Deals_07_@Special_Deal_3.webp",
+      "product": "Special Deal 3",
+      "variant": null,
+      "filename": "special-deal-3.webp"
+    },
+    {
+      "source": "S0_Deals_08_@Special_Deal_4.webp",
+      "product": "Special Deal 4",
+      "variant": null,
+      "filename": "special-deal-4.webp"
+    },
+    {
+      "source": "S0_Deals_09_@Family_Deal_1.webp",
+      "product": "Family Deal 1",
+      "variant": null,
+      "filename": "family-deal-1.webp"
+    },
+    {
+      "source": "S0_Deals_10_@Family_Deal_2.webp",
+      "product": "Family Deal 2",
+      "variant": null,
+      "filename": "family-deal-2.webp"
+    },
+    {
+      "source": "S0_Dessert_01_@Molding_Lava_Cake.webp",
+      "product": "Molding Lava Cake",
+      "variant": null,
+      "filename": "molding-lava-cake.webp"
+    },
+    {
+      "source": "S0_Dessert_02_@Doo_Cookies.webp",
+      "product": "Doo Cookies",
+      "variant": null,
+      "filename": "doo-cookies.webp"
+    },
+    {
+      "source": "S0_Dessert_03_@Chocolate_Brownie.webp",
+      "product": "Chocolate Brownie",
+      "variant": null,
+      "filename": "chocolate-brownie.webp"
+    },
+    {
+      "source": "S0_Drinks_And_Shakes_01_@Coffee.webp",
+      "product": "Coffee",
+      "variant": null,
+      "filename": "coffee.webp"
+    },
+    {
+      "source": "S0_Drinks_And_Shakes_02_@Mint_Margarita.webp",
+      "product": "Mint Margarita",
+      "variant": null,
+      "filename": "mint-margarita.webp"
+    },
+    {
+      "source": "S0_Drinks_And_Shakes_03_@Oreo_Shake.webp",
+      "product": "Oreo Shake",
+      "variant": null,
+      "filename": "oreo-shake.webp"
+    },
+    {
+      "source": "S0_Drinks_And_Shakes_04_@Cold_Cofe.webp",
+      "product": "Cold Coffee",
+      "variant": null,
+      "filename": "cold-coffee.webp"
+    },
+    {
+      "source": "S0_Drinks_And_Shakes_05_@Ice_Cream_Shake.webp",
+      "product": "Ice Cream Shake",
+      "variant": null,
+      "filename": "ice-cream-shake.webp"
+    },
+    {
+      "source": "S0_Drinks_And_Shakes_06_@Caramilk_Shake.webp",
+      "product": "Caramilk Shake",
+      "variant": null,
+      "filename": "caramilk-shake.webp"
+    },
+    {
+      "source": "S0_Drinks_And_Shakes_07_@Chocltae_Ice_Shake.webp",
+      "product": "Choclate Ice Shake",
+      "variant": null,
+      "filename": "choclate-ice-shake.webp"
+    },
+    {
+      "source": "S0_Extras_01_@Extra_Topping_Small.webp",
+      "product": "Extra Topping",
+      "variant": "Small",
+      "filename": "extra-topping--small.webp"
+    },
+    {
+      "source": "S0_Extras_02_@Extra_Topping_Medium.webp",
+      "product": "Extra Topping",
+      "variant": "Medium",
+      "filename": "extra-topping--medium.webp"
+    },
+    {
+      "source": "S0_Extras_03_@Extra_Topping_Large.webp",
+      "product": "Extra Topping",
+      "variant": "Large",
+      "filename": "extra-topping--large.webp"
+    },
+    {
+      "source": "S0_Extras_04_@Extra_Topping_Extra_Large.webp",
+      "product": "Extra Topping",
+      "variant": "Extra Large",
+      "filename": "extra-topping--extra-large.webp"
+    },
+    {
+      "source": "S0_Fries_01_@Small_Fries.webp",
+      "product": "Small Fries",
+      "variant": null,
+      "filename": "small-fries.webp"
+    },
+    {
+      "source": "S0_Fries_02_@Medium_Fries.webp",
+      "product": "Medium Fries",
+      "variant": null,
+      "filename": "medium-fries.webp"
+    },
+    {
+      "source": "S0_Fries_03_@Large_Fries.webp",
+      "product": "Large Fries",
+      "variant": null,
+      "filename": "large-fries.webp"
+    },
+    {
+      "source": "S0_Fries_04_@Cheese_Fries.webp",
+      "product": "Cheese Fries",
+      "variant": null,
+      "filename": "cheese-fries.webp"
+    },
+    {
+      "source": "S0_Fries_05_@Loaded_Fries.webp",
+      "product": "Loaded Fries",
+      "variant": null,
+      "filename": "loaded-fries.webp"
+    },
+    {
+      "source": "S0_Injected_Broast_01_@Quarter_Broast.webp",
+      "product": "Quarter Broast",
+      "variant": null,
+      "filename": "quarter-broast.webp"
+    },
+    {
+      "source": "S0_Injected_Broast_02_@Half_Broast.webp",
+      "product": "Half Broast",
+      "variant": null,
+      "filename": "half-broast.webp"
+    },
+    {
+      "source": "S0_Injected_Broast_03_@Full_Broast.webp",
+      "product": "Full Broast",
+      "variant": null,
+      "filename": "full-broast.webp"
+    },
+    {
+      "source": "S0_Pasta_01_@Praido_Pasta.webp",
+      "product": "Praido Pasta",
+      "variant": null,
+      "filename": "praido-pasta.webp"
+    },
+    {
+      "source": "S0_Pasta_02_@Creamy_Pasta.webp",
+      "product": "Creamy Pasta",
+      "variant": null,
+      "filename": "creamy-pasta.webp"
+    },
+    {
+      "source": "S0_Pasta_03_@Lasagna_Pasta.webp",
+      "product": "Lasagna Pasta",
+      "variant": null,
+      "filename": "lasagna-pasta.webp"
+    },
+    {
+      "source": "S0_Pizza_01_@Special_Chicken_Tikka.webp",
+      "product": "Special Chicken Tikka",
+      "variant": null,
+      "filename": "special-chicken-tikka.webp"
+    },
+    {
+      "source": "S0_Pizza_02_@Max_Chicken_Fajita.webp",
+      "product": "Max Chicken Fajita",
+      "variant": null,
+      "filename": "max-chicken-fajita.webp"
+    },
+    {
+      "source": "S0_Pizza_03_@Chicken_Super_Supreme.webp",
+      "product": "Chicken Super Supreme",
+      "variant": null,
+      "filename": "chicken-super-supreme.webp"
+    },
+    {
+      "source": "S0_Pizza_04_@Chicken_Barb_q.webp",
+      "product": "Chicken Bar.b.q",
+      "variant": null,
+      "filename": "chicken-barb-q.webp"
+    },
+    {
+      "source": "S0_Pizza_05_@Vegetable_Lover.webp",
+      "product": "Vegetable Lover",
+      "variant": null,
+      "filename": "vegetable-lover.webp"
+    },
+    {
+      "source": "S0_Pizza_06_@Cheese_Lover.webp",
+      "product": "Cheese Lover",
+      "variant": null,
+      "filename": "cheese-lover.webp"
+    },
+    {
+      "source": "S0_Pizza_07_@Chicken_Malai_Boti.webp",
+      "product": "Chicken Malai Boti",
+      "variant": null,
+      "filename": "chicken-malai-boti.webp"
+    },
+    {
+      "source": "S0_Pizza_08_@Chicken_Afghani.webp",
+      "product": "Chicken Afghani",
+      "variant": null,
+      "filename": "chicken-afghani.webp"
+    },
+    {
+      "source": "S0_Pizza_09_@Kabab_Crust.webp",
+      "product": "Kabab Crust",
+      "variant": null,
+      "filename": "kabab-crust.webp"
+    },
+    {
+      "source": "S0_Pizza_10_@Chicken_Crown_Crust.webp",
+      "product": "Chicken Crown Crust",
+      "variant": null,
+      "filename": "chicken-crown-crust.webp"
+    },
+    {
+      "source": "S0_Pizza_11_@Chicken_Force_Square.webp",
+      "product": "Chicken Force Square",
+      "variant": null,
+      "filename": "chicken-force-square.webp"
+    },
+    {
+      "source": "S0_Pizza_12_@Chicken_Lazania.webp",
+      "product": "Chicken Lazania",
+      "variant": null,
+      "filename": "chicken-lazania.webp"
+    },
+    {
+      "source": "S0_Russian_Salad_01_@Salad_Small.webp",
+      "product": "Russian Salad Small",
+      "variant": null,
+      "filename": "russian-salad-small.webp"
+    },
+    {
+      "source": "S0_Russian_Salad_02_@Salad_Half.webp",
+      "product": "Russian Salad Half",
+      "variant": null,
+      "filename": "russian-salad-half.webp"
+    },
+    {
+      "source": "S0_Russian_Salad_03_@Salam_Full.webp",
+      "product": "Russian Salad Full",
+      "variant": null,
+      "filename": "russian-salad-full.webp"
+    },
+    {
+      "source": "S0_Sandwich_01_@Peri_Peri_Sandwich.webp",
+      "product": "Peri Peri Sandwich",
+      "variant": null,
+      "filename": "peri-peri-sandwich.webp"
+    },
+    {
+      "source": "S0_Sandwich_02_@Tikka_Grill_Sandwich.webp",
+      "product": "Tikka Grill Sandwich",
+      "variant": null,
+      "filename": "tikka-grill-sandwich.webp"
+    },
+    {
+      "source": "S0_Sandwich_03_@Malai_Boti_Sandwich.webp",
+      "product": "Malai Boti Sandwich",
+      "variant": null,
+      "filename": "malai-boti-sandwich.webp"
+    },
+    {
+      "source": "S0_Sandwich_04_@Chicken_Barb_q_Sandwich.webp",
+      "product": "Chicken Bar.b.q Sandwich",
+      "variant": null,
+      "filename": "chicken-barb-q-sandwich.webp"
+    },
+    {
+      "source": "S0_Sandwich_05_@Garlic_Harbel_Sandwich.webp",
+      "product": "Garlic Harbel Sandwich",
+      "variant": null,
+      "filename": "garlic-harbel-sandwich.webp"
+    },
+    {
+      "source": "S0_Sandwich_06_@House_And_Club_Sandwich.webp",
+      "product": "House & Club Sandwich",
+      "variant": null,
+      "filename": "house-and-club-sandwich.webp"
+    },
+    {
+      "source": "S0_Sauces_01_@Peri_Peri_Sauce.webp",
+      "product": "Peri Peri Sauce",
+      "variant": null,
+      "filename": "peri-peri-sauce.webp"
+    },
+    {
+      "source": "S0_Sauces_02_@Afghani_Sauce.webp",
+      "product": "Afghani Sauce",
+      "variant": null,
+      "filename": "afghani-sauce.webp"
+    },
+    {
+      "source": "S0_Sauces_03_@Mayo_Garlic_Sauce.webp",
+      "product": "Mayo Garlic Sauce",
+      "variant": null,
+      "filename": "mayo-garlic-sauce.webp"
+    },
+    {
+      "source": "S0_Sauces_04_@Honey_Mustard_Sauce.webp",
+      "product": "Honey Mustard Sauce",
+      "variant": null,
+      "filename": "honey-mustard-sauce.webp"
+    },
+    {
+      "source": "S0_Wings_And_Nuggets_01_@Chicken_Hot_Wings.webp",
+      "product": "Chicken Hot Wings",
+      "variant": null,
+      "filename": "chicken-hot-wings.webp"
+    },
+    {
+      "source": "S0_Wings_And_Nuggets_02_@Peri_Peri_Wings.webp",
+      "product": "Peri Peri Wings",
+      "variant": null,
+      "filename": "peri-peri-wings.webp"
+    },
+    {
+      "source": "S0_Wings_And_Nuggets_03_@Chicken_Hot_Shot.webp",
+      "product": "Chicken Hot Shot",
+      "variant": null,
+      "filename": "chicken-hot-shot.webp"
+    },
+    {
+      "source": "S0_Wings_And_Nuggets_04_@Chicken_Nuggets.webp",
+      "product": "Chicken Nuggets",
+      "variant": null,
+      "filename": "chicken-nuggets.webp"
+    },
+    {
+      "source": "S0_Wings_And_Nuggets_05_@Barb_q_Wings.webp",
+      "product": "Bar.b.q Wings",
+      "variant": null,
+      "filename": "barb-q-wings.webp"
+    },
+    {
+      "source": "S0_Wraps_01_@Chicken_Shawarma.webp",
+      "product": "Chicken Shawarma",
+      "variant": null,
+      "filename": "chicken-shawarma.webp"
+    },
+    {
+      "source": "S0_Wraps_02_@Chicken_Cheese_Shawarma.webp",
+      "product": "Chicken Cheese Shawarma",
+      "variant": null,
+      "filename": "chicken-cheese-shawarma.webp"
+    },
+    {
+      "source": "S0_Wraps_03_@Chicken_Paratha.webp",
+      "product": "Chicken Paratha",
+      "variant": null,
+      "filename": "chicken-paratha.webp"
+    },
+    {
+      "source": "S0_Wraps_04_@Zinger_Paratha.webp",
+      "product": "Zinger Paratha",
+      "variant": null,
+      "filename": "zinger-paratha.webp"
+    },
+    {
+      "source": "S0_Wraps_05_@Zinger_Shawarma.webp",
+      "product": "Zinger Shawarma",
+      "variant": null,
+      "filename": "zinger-shawarma.webp"
+    },
+    {
+      "source": "S0_Wraps_06_@Cheese_Paratha.webp",
+      "product": "Cheese Paratha",
+      "variant": null,
+      "filename": "cheese-paratha.webp"
+    },
+    {
+      "source": "S0_Wraps_07_@Tortilla_Wrap.webp",
+      "product": "Tortilla Wrap",
+      "variant": null,
+      "filename": "tortilla-wrap.webp"
+    },
+    {
+      "source": "S0_Wraps_08_@Garlic_Herbel_Wrap.webp",
+      "product": "Garlic Herbel Wrap",
+      "variant": null,
+      "filename": "garlic-herbel-wrap.webp"
+    },
+    {
+      "source": "S0_Wraps_09_@Barb_q_Wrap.webp",
+      "product": "Bar.b.q Wrap",
+      "variant": null,
+      "filename": "barb-q-wrap.webp"
+    },
+    {
+      "source": "red-bull-tin-pack.webp",
+      "product": "Red Bull Tin Pack",
+      "variant": null,
+      "filename": "red-bull-tin-pack.webp"
+    },
+    {
+      "source": "coca-cola-tin-pack.webp",
+      "product": "Coca Cola Tin Pack",
+      "variant": null,
+      "filename": "coca-cola-tin-pack.webp"
+    },
+    {
+      "source": "pepsi-tin-pack.webp",
+      "product": "Pepsi Tin Pack",
+      "variant": null,
+      "filename": "pepsi-tin-pack.webp"
+    },
+    {
+      "source": "7up-tin-pack.webp",
+      "product": "7UP Tin Pack",
+      "variant": null,
+      "filename": "7up-tin-pack.webp"
+    },
+    {
+      "source": "sprite-tin-pack.webp",
+      "product": "Sprite Tin Pack",
+      "variant": null,
+      "filename": "sprite-tin-pack.webp"
+    },
+    {
+      "source": "7up-all.webp",
+      "product": "7UP",
+      "variant": null,
+      "filename": "7up-all.webp"
+    },
+    {
+      "source": "pepsi-all.webp",
+      "product": "Pepsi",
+      "variant": null,
+      "filename": "pepsi-all.webp"
+    },
+    {
+      "source": "coca-cola-all.webp",
+      "product": "Coca Cola",
+      "variant": null,
+      "filename": "coca-cola-all.webp"
+    },
+    {
+      "source": "mineral-water-all.webp",
+      "product": "Mineral Water",
+      "variant": null,
+      "filename": "mineral-water-all.webp"
+    },
+    {
+      "source": "smart-deal-2.webp",
+      "product": "Smart Deal 2",
+      "variant": null,
+      "filename": "smart-deal-2.webp"
+    },
+    {
+      "source": "smart-deal-3.webp",
+      "product": "Smart Deal 3",
+      "variant": null,
+      "filename": "smart-deal-3.webp"
+    },
+    {
+      "source": "special-deal-1.webp",
+      "product": "Special Deal 1",
+      "variant": null,
+      "filename": "special-deal-1.webp"
+    },
+    {
+      "source": "special-deal-2.webp",
+      "product": "Special Deal 2",
+      "variant": null,
+      "filename": "special-deal-2.webp"
+    }
+  ]
+}

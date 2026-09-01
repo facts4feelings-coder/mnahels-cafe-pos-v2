@@ -1,0 +1,14 @@
+/* Mnahel's Cafe POS v0.15.30 · visible Extra Topping checkbox */
+#screen-pos.v38-ready .cart-line.v37-cart-line.v52-topping-line{grid-template-columns:35px minmax(0,1fr) 66px 75px!important;gap:5px!important}
+#screen-pos .v52-topping-check{grid-column:3;display:grid!important;place-items:center;align-content:center;gap:3px;width:66px;height:34px;min-height:34px;padding:3px 4px!important;border:1px solid rgba(244,191,36,.48)!important;border-radius:8px!important;background:#282319!important;color:var(--ma-text)!important;cursor:pointer;box-sizing:border-box}
+#screen-pos .v52-topping-check:hover,#screen-pos .v52-topping-check.active{border-color:var(--ma-amber)!important;background:rgba(244,191,36,.17)!important}
+#screen-pos .v52-topping-heading{display:block!important;color:#f8f4e8!important;font-size:6.4px!important;font-weight:900!important;line-height:1!important;letter-spacing:.01em;white-space:nowrap}
+#screen-pos .v52-check-row{display:flex!important;align-items:center;justify-content:center;gap:3px;line-height:1}
+#screen-pos .v52-check-row input{display:block!important;width:13px!important;height:13px!important;min-width:13px!important;margin:0!important;padding:0!important;accent-color:#f4bf24;cursor:pointer;appearance:auto!important;-webkit-appearance:checkbox!important}
+#screen-pos .v52-check-row b{color:var(--ma-amber)!important;font-size:6.2px!important;font-weight:900!important;white-space:nowrap}
+#screen-pos .v52-topping-line>.qty{grid-column:4}
+.v43-item-name small.v51-has-note{display:block!important}.v43-item-name .v51-item-note{display:block!important;margin-top:2px;font-style:normal!important;font-weight:900!important;color:#000!important}
+html[data-theme="light"] #screen-pos .v52-topping-check{background:#fff8e1!important;color:#2c2619!important}html[data-theme="light"] #screen-pos .v52-topping-heading{color:#2c2619!important}
+@media(max-width:1180px){#screen-pos.v38-ready .cart-line.v37-cart-line.v52-topping-line{grid-template-columns:32px minmax(0,1fr) 62px 72px!important;gap:4px!important}#screen-pos .v52-topping-check{width:62px;padding-inline:2px!important}#screen-pos .v52-topping-heading{font-size:5.9px!important}}
+@media(max-width:600px){#screen-pos.v38-ready .cart-line.v37-cart-line.v52-topping-line{grid-template-columns:32px minmax(0,1fr) 61px 72px!important}#screen-pos .v52-topping-check{width:61px}}
+#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.30"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}

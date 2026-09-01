@@ -65,7 +65,7 @@ internal sealed class PosWindow : Form
 {
     private const int ResizeBorder = 7;
 
-    internal const string BuildTag = "0.15.27";
+    internal const string BuildTag = "0.15.31";
 
     private const string BridgeScript =
         "(function(){document.documentElement.classList.add('mnahels-desktop-shell');window.__mnahelsDualPrintBridge=true;window.__mnahelsSilentPrint=true;" +
@@ -82,6 +82,55 @@ internal sealed class PosWindow : Form
         "else if(k==='F9'){e.preventDefault();try{window.chrome.webview.postMessage('mnahels-server-setup')}catch(x){}}" +
         "},true);}})();";
 
+    private sealed class StartupSplash : Panel
+    {
+        private readonly System.Windows.Forms.Timer _timer=new(){Interval=24};
+        private DateTime _started=DateTime.UtcNow;
+
+        internal StartupSplash()
+        {
+            Dock=DockStyle.Fill;
+            BackColor=Color.FromArgb(15,15,14);
+            DoubleBuffered=true;
+            Text="Preparing your cafe...";
+            _timer.Tick+=(_,_)=>{Invalidate();if((DateTime.UtcNow-_started).TotalMilliseconds>=1900)_timer.Stop();};
+        }
+
+        internal void StartAnimation()
+        {
+            _started=DateTime.UtcNow;
+            _timer.Start();
+            Invalidate();
+        }
+
+        protected override void OnTextChanged(EventArgs e){base.OnTextChanged(e);Invalidate();}
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            e.Graphics.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            var elapsed=(DateTime.UtcNow-_started).TotalMilliseconds;
+            double Phase(double begin,double finish){var value=(elapsed-begin)/(finish-begin);value=Math.Clamp(value,0,1);return 1-Math.Pow(1-value,3);}
+            Color Fade(Color target,double amount)=>Color.FromArgb((int)(255*Math.Clamp(amount,0,1)),target);
+            var logoPhase=Phase(0,820);var namePhase=Phase(180,1150);var sloganPhase=Phase(430,1500);
+            var centerX=ClientSize.Width/2f;var centerY=ClientSize.Height/2f-38;
+            var logoSize=(float)(74*(.72+.28*logoPhase));var logoRect=new RectangleF(centerX-logoSize/2,centerY-112-logoSize/2,logoSize,logoSize);
+            using(var logoFill=new SolidBrush(Fade(Color.FromArgb(42,36,20),logoPhase)))e.Graphics.FillEllipse(logoFill,logoRect);
+            using(var logoPen=new Pen(Fade(Color.FromArgb(244,191,36),logoPhase),2.2f))e.Graphics.DrawEllipse(logoPen,logoRect);
+            using(var logoFont=new Font("Georgia",(float)(35*(.76+.24*logoPhase)),FontStyle.Bold))
+            using(var logoBrush=new SolidBrush(Fade(Color.FromArgb(255,205,55),logoPhase)))
+            using(var centered=new StringFormat{Alignment=StringAlignment.Center,LineAlignment=StringAlignment.Center})e.Graphics.DrawString("M",logoFont,logoBrush,logoRect,centered);
+            using(var nameFont=new Font("Segoe UI",(float)(27*(.82+.18*namePhase)),FontStyle.Bold))
+            using(var nameBrush=new SolidBrush(Fade(Color.FromArgb(249,244,232),namePhase)))
+            using(var centered=new StringFormat{Alignment=StringAlignment.Center})e.Graphics.DrawString("Mnahel's Cafe POS",nameFont,nameBrush,new PointF(centerX,centerY-44),centered);
+            using(var sloganFont=new Font("Segoe UI",(float)(10*(.84+.16*sloganPhase)),FontStyle.Bold))
+            using(var sloganBrush=new SolidBrush(Fade(Color.FromArgb(244,191,36),sloganPhase)))
+            using(var centered=new StringFormat{Alignment=StringAlignment.Center})e.Graphics.DrawString("THE WORLD OF TASTE",sloganFont,sloganBrush,new PointF(centerX,centerY+2),centered);
+            using(var statusFont=new Font("Segoe UI",9F,FontStyle.Regular))
+            using(var statusBrush=new SolidBrush(Color.FromArgb(170,158,138)))
+            using(var centered=new StringFormat{Alignment=StringAlignment.Center})e.Graphics.DrawString(Text,statusFont,statusBrush,new RectangleF(centerX-330,centerY+55,660,90),centered);
+        }
+    }
+
     private readonly string _role;
     private readonly ConnectionConfig _config;
     private readonly string _baseUrl;
@@ -93,15 +142,7 @@ internal sealed class PosWindow : Form
     private Label? _titleUserRole;
     private PrinterConfig _printers = PrinterConfig.Load();
     private readonly WebView2 _browser = new() { Dock = DockStyle.Fill, Visible = false };
-    private readonly Label _loading = new()
-    {
-        Dock = DockStyle.Fill,
-        Text = "Mnahel's Cafe POS is starting…",
-        TextAlign = ContentAlignment.MiddleCenter,
-        ForeColor = Color.FromArgb(196, 185, 161),
-        BackColor = Color.FromArgb(24, 23, 21),
-        Font = new Font("Segoe UI", 12F, FontStyle.Bold)
-    };
+    private readonly StartupSplash _loading = new();
 
     internal PosWindow(string role, ConnectionConfig config)
     {
@@ -134,6 +175,7 @@ internal sealed class PosWindow : Form
             MaximizedBounds = Screen.FromHandle(Handle).WorkingArea;
             WindowState = FormWindowState.Maximized;
             EnableRoundedCorners();
+            _loading.StartAnimation();
             await StartBrowserAsync();
         };
         SizeChanged += (_, _) => EnableRoundedCorners();
@@ -353,6 +395,7 @@ internal sealed class PosWindow : Form
 
     private async Task StartBrowserAsync()
     {
+        var minimumSplash = Task.Delay(1850);
         if (!await WaitForServerAsync())
         {
             _loading.Text = _config.IsClient
@@ -374,7 +417,7 @@ internal sealed class PosWindow : Form
             await _browser.EnsureCoreWebView2Async(environment);
 
             var core = _browser.CoreWebView2;
-            var uiRevision = "20260901-receipt-speed-25";
+            var uiRevision = "20260901-operations-splash-31";
             var cacheRevisionPath = Path.Combine(profile, "ui-cache-revision.txt");
             var cachedRevision = string.Empty;
             try { if (File.Exists(cacheRevisionPath)) cachedRevision = File.ReadAllText(cacheRevisionPath).Trim(); } catch { }
@@ -485,10 +528,13 @@ internal sealed class PosWindow : Form
                 }
             };
 
+            var navigationReady = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            core.NavigationCompleted += (_, e) => { if (e.IsSuccess) navigationReady.TrySetResult(true); };
             _browser.Source = new Uri(_role == "admin"
                 ? _baseUrl + "/?screen=admin&ui=" + uiRevision
                 : _baseUrl + "/?ui=" + uiRevision);
             PrinterConfig.Log("UI navigation started · revision " + uiRevision + " · " + _browser.Source);
+            await Task.WhenAll(minimumSplash, Task.WhenAny(navigationReady.Task, Task.Delay(8000)));
             _browser.Visible = true;
             _loading.Visible = false;
         }

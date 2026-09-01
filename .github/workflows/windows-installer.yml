@@ -75,6 +75,15 @@ jobs:
       - name: Install Inno Setup
         shell: pwsh
         run: choco install innosetup --no-progress -y
+      - name: Restore installer icon
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = 'src\MnahelsCafe.Pos\Assets\MnahelsCafe.ico.b64'
+          $target = 'src\MnahelsCafe.Pos\Assets\MnahelsCafe.ico'
+          if (-not (Test-Path $source)) { throw "Installer icon source was not found: $source" }
+          [IO.File]::WriteAllBytes($target, [Convert]::FromBase64String([IO.File]::ReadAllText($source)))
+          if ((Get-Item $target).Length -lt 1024) { throw 'Generated installer icon is unexpectedly small.' }
       - name: Compile installer
         shell: pwsh
         run: |

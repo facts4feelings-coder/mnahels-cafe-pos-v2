@@ -1,0 +1,18 @@
+/* Mnahel's Cafe POS v0.15.29 · deal photos + pizza topping toggle */
+#screen-pos.v38-ready .cart-line.v37-cart-line.v51-pizza-line{grid-template-columns:35px minmax(0,1fr) 74px 75px!important}
+#screen-pos .v51-topping-toggle{grid-column:3;display:flex!important;align-items:center;justify-content:center;gap:4px;width:74px;height:30px;min-height:30px;padding:3px 4px!important;border:1px solid rgba(244,191,36,.28)!important;border-radius:9px!important;background:rgba(244,191,36,.06)!important;color:var(--ma-muted)!important;cursor:pointer;box-shadow:none!important}
+#screen-pos .v51-topping-toggle:hover{border-color:rgba(244,191,36,.62)!important;background:rgba(244,191,36,.12)!important}
+#screen-pos .v51-topping-toggle.active{border-color:var(--ma-amber)!important;background:rgba(244,191,36,.18)!important;color:var(--ma-text)!important}
+#screen-pos .v51-switch{position:relative;display:block;flex:0 0 21px;width:21px;height:12px;border-radius:99px;background:#4d493f;transition:.18s}
+#screen-pos .v51-switch i{position:absolute;top:2px;left:2px;width:8px;height:8px;border-radius:50%;background:#aaa49a;transition:.18s}
+#screen-pos .v51-topping-toggle.active .v51-switch{background:var(--ma-amber)}
+#screen-pos .v51-topping-toggle.active .v51-switch i{left:11px;background:#18140b}
+#screen-pos .v51-topping-copy{display:grid;min-width:0;text-align:left;line-height:1}
+#screen-pos .v51-topping-copy b{font-size:6px!important;white-space:nowrap}
+#screen-pos .v51-topping-copy small{display:block!important;margin:2px 0 0!important;color:var(--ma-amber)!important;font-size:5.7px!important;font-weight:800!important;line-height:1!important}
+#screen-pos .v51-pizza-line>.qty{grid-column:4}
+.v43-item-name small .v51-item-note,.v43-item-name small.v51-has-note{display:block;font-style:normal;font-weight:800;color:#000}
+html[data-theme="light"] #screen-pos .v51-topping-toggle{background:#fff9e8!important;color:#635c4e!important}
+@media(max-width:1180px){#screen-pos.v38-ready .cart-line.v37-cart-line.v51-pizza-line{grid-template-columns:32px minmax(0,1fr) 68px 72px!important;gap:4px!important}#screen-pos .v51-topping-toggle{width:68px}}
+@media(max-width:600px){#screen-pos.v38-ready .cart-line.v37-cart-line.v51-pizza-line{grid-template-columns:32px minmax(0,1fr) 66px 72px!important}#screen-pos .v51-topping-toggle{width:66px}}
+#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.29"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
