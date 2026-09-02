@@ -27,7 +27,7 @@ static class PaymentFeatures
 
         var tableId = type == "Dine-in" ? request.TableId ?? request.TableNumber : null;
         var waiterId = type == "Dine-in" ? request.WaiterId : null;
-        var riderId = type == "Delivery" ? request.RiderId : null;
+        var riderId = type == "Delivery" && request.RiderId.HasValue && request.RiderId.Value > 0 ? request.RiderId : null;
         var name = request.CustomerName?.Trim();
         var phone = CustomerPhone.Normalize(request.CustomerPhone);
         var address = request.DeliveryAddress?.Trim();
@@ -37,9 +37,8 @@ static class PaymentFeatures
 
         if (type == "Delivery" && (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(address)))
             return Results.BadRequest(new { message = "Delivery order ke liye customer name, phone aur address lazmi hain." });
-        if (type == "Delivery")
+        if (type == "Delivery" && riderId.HasValue)
         {
-            if (!riderId.HasValue) return Results.BadRequest(new { message = "Delivery order ke liye available rider select karein." });
             rider = await db.ServicePeople.FirstOrDefaultAsync(x => x.Id == riderId && x.Type == "Rider" && x.IsActive);
             if (rider is null) return Results.BadRequest(new { message = "Selected rider available nahi hai." });
             if (await db.Orders.AnyAsync(x => x.RiderId == riderId && x.Status != "Completed" && x.Status != "Cancelled" && x.Status != "Ready"))
@@ -139,12 +138,26 @@ static class PaymentFeatures
         return Results.Ok(OrderView.From(order));
     }
 
-    private static async Task<IResult> UpdateWorkflowStatus(long id, StatusRequest request, PosDb db, ClaimsPrincipal principal)
+    private static async Task<IResult> UpdateWorkflowStatus(long id, WorkflowStatusRequest request, PosDb db, ClaimsPrincipal principal)
     {
         var order = await db.Orders.Include(x => x.Items).SingleOrDefaultAsync(x => x.Id == id);
         if (order is null) return Results.NotFound(new { message = "Order not found." });
         var allowed = order.OrderType == "Delivery" ? new[] { "New", "Preparing", "Ready", "Completed", "Cancelled" } : new[] { "New", "Ready", "Completed", "Cancelled" };
         if (!allowed.Contains(request.Status)) return Results.BadRequest(new { message = "This status is not valid for the selected order mode." });
+        if (order.OrderType == "Delivery" && new[] { "Preparing", "Ready", "Completed" }.Contains(request.Status) && !order.RiderId.HasValue)
+        {
+            if (request.Status != "Preparing")
+                return Results.BadRequest(new { requiresRider = true, message = "Pehle Prepared select karke available rider assign karein." });
+            if (!request.RiderId.HasValue)
+                return Results.BadRequest(new { requiresRider = true, message = "Prepared order ke liye available rider select karein." });
+            var rider = await db.ServicePeople.FirstOrDefaultAsync(x => x.Id == request.RiderId && x.Type == "Rider" && x.IsActive);
+            if (rider is null) return Results.BadRequest(new { requiresRider = true, message = "Selected rider available nahi hai." });
+            var busy = await db.Orders.AnyAsync(x => x.Id != order.Id && x.RiderId == request.RiderId && x.Status != "Completed" && x.Status != "Cancelled" && x.Status != "Ready");
+            if (busy) return Results.Conflict(new { requiresRider = true, message = $"{rider.Name} already booked hai. Koi aur available rider select karein." });
+            order.RiderId = rider.Id;
+            order.RiderName = rider.Name;
+            AddAudit(db, principal, "RiderAssigned", $"MC-{order.TokenNumber} · {rider.Name}");
+        }
         if (request.Status == "Completed" && order.PaymentStatus != "Paid") return Results.Conflict(new { requiresPayment = true, message = "Payment required before order completion." });
         if (request.Status == "Cancelled" && order.PaymentStatus == "Paid") return Results.Conflict(new { message = "Paid order cancel nahi ho sakta. Refund/Void workflow future update mein hoga." });
         order.Status = request.Status;
@@ -209,6 +222,7 @@ static class PaymentFeatures
     }
 }
 
+record WorkflowStatusRequest(string Status, int? RiderId);
 record BookOrderRequest(List<CreateOrderLine> Items, string OrderType, string? PaymentMethod, decimal Discount,
     string? Notes, string? CustomerName, string? CustomerPhone, string? DeliveryAddress, int? TableNumber,
     int? TableId, int? RiderId, int? WaiterId, decimal? CashReceived, bool PayNow, string? PaymentReference);

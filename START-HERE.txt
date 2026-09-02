@@ -1,4 +1,4 @@
-MNAHEL'S CAFE POS v0.15.33 — COMPLETE SOURCE PACKAGE
+MNAHEL'S CAFE POS v0.15.34 — COMPLETE SOURCE PACKAGE
 
 ASAN TAREEQA
 1. ZIP ko poora Extract All karein. ZIP ke andar se app na chalayein.
@@ -13,7 +13,7 @@ Download: https://dotnet.microsoft.com/download/dotnet/8.0
 
 Agar app start na ho to black/PowerShell window ki poori error screenshot bhej dein.
 
-VERSION: 0.15.33
+VERSION: 0.15.34
 MENU PHOTOS: 91 optimized WebP files
 TIN PACK: Red Bull, Coca Cola, Pepsi, 7UP, Sprite
 

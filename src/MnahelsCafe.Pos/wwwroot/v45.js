@@ -2,7 +2,7 @@
 'use strict';
 /* UI-only support layer. Order, payment, database and licensing logic are untouched. */
 const BUILD='0.15.25',UI_REVISION='20260901-receipt-speed-25';
-const HEADER_KEY='mnahels.receipt-header',AUTO_JPG_KEY='mnahels.receipt-auto-jpg',THEME_KEY='mnahels-theme';
+const HEADER_KEY='mnahels.receipt-header',AUTO_JPG_KEY='mnahels.receipt-auto-jpg',THEME_KEY='mnahels-theme',FONT_FAMILY_KEY='mnahels.receipt-font-family';
 const PX_PER_MM=96/25.4;
 const q=(s,r=document)=>r.querySelector(s);
 const qa=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -12,6 +12,7 @@ function pref(key,fallback){try{return localStorage.getItem(key)??fallback}catch
 function setPref(key,value){try{localStorage.setItem(key,value)}catch{}}
 function headerStyle(){return pref(HEADER_KEY,'black')==='white'?'white':'black'}
 function autoJpgEnabled(){return pref(AUTO_JPG_KEY,'0')!=='0'}
+function receiptFontFamily(){const name=pref(FONT_FAMILY_KEY,'Courier New'),families={'Courier New':'"Courier New", monospace','Lucida Console':'"Lucida Console", monospace','Consolas':'Consolas, monospace','Arial Narrow':'"Arial Narrow", Arial, sans-serif','Arial':'Arial, sans-serif','Tahoma':'Tahoma, sans-serif','Verdana':'Verdana, sans-serif','Segoe UI':'"Segoe UI", sans-serif'};return families[name]||families['Courier New']}
 function appTheme(){return pref(THEME_KEY,document.documentElement.dataset.theme||'dark')==='light'?'light':'dark'}
 function setAppTheme(value){const next=value==='light'?'light':'dark';setPref(THEME_KEY,next);document.documentElement.dataset.theme=next;qa('[data-v45-theme]').forEach(button=>button.classList.toggle('active',button.dataset.v45Theme===next))}
 function applyReceiptPrefs(){
@@ -42,7 +43,7 @@ function textOf(node,selector,fallback=''){return q(selector,node)?.textContent?
 function createPainter(width,fontScale=1){
   const scale=2,scratch=document.createElement('canvas');scratch.width=width*scale;scratch.height=7000;
   const ctx=scratch.getContext('2d',{alpha:false});ctx.scale(scale,scale);ctx.fillStyle='#fff';ctx.fillRect(0,0,width,3500);ctx.textBaseline='top';
-  const family='Arial, "Segoe UI", sans-serif';
+  const family=receiptFontFamily();
   const font=(size,weight=700)=>ctx.font=`${weight} ${Math.max(6,size*fontScale)}px ${family}`;
   function wrap(value,maxWidth){
     const text=String(value??'').replace(/\s+/g,' ').trim();if(!text)return[''];
