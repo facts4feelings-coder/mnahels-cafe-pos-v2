@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$buildVersion = "0.15.32"
+$buildVersion = "0.15.33"
 $uiRevision = "20260901-performance-service-32"
 
 # Relaunch as Administrator when needed.
