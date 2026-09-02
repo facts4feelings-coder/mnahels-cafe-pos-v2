@@ -1,8 +1,8 @@
 /*
  * ============================================================================
  *  Mnahel's Cafe POS · Desktop shell — PROPRIETARY SOFTWARE. DO NOT MODIFY.
- *  Owner    : TechMint Software Solutions · https://techmint.org
- *  Copyright: (c) 2026 TechMint Software Solutions. All rights reserved.
+ *  Owner    : Eastern Cross Technology · https://techmint.org
+ *  Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
  * ============================================================================
  */
 
@@ -108,7 +108,7 @@ internal sealed class SetupForm : Form
 
         var credit = new Label
         {
-            Text = "A product by TechMint Software Solutions",
+            Text = "A product by Eastern Cross Technology",
             AutoSize = true,
             ForeColor = Color.FromArgb(110, 104, 92),
             Location = new Point(26, 425)

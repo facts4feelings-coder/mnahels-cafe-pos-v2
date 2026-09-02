@@ -1,4 +1,4 @@
-MNAHEL'S CAFE POS v0.15.31 — COMPLETE SOURCE PACKAGE
+MNAHEL'S CAFE POS v0.15.32 — COMPLETE SOURCE PACKAGE
 
 ASAN TAREEQA
 1. ZIP ko poora Extract All karein. ZIP ke andar se app na chalayein.
@@ -13,10 +13,12 @@ Download: https://dotnet.microsoft.com/download/dotnet/8.0
 
 Agar app start na ho to black/PowerShell window ki poori error screenshot bhej dein.
 
-VERSION: 0.15.31
+VERSION: 0.15.32
 MENU PHOTOS: 91 optimized WebP files
 TIN PACK: Red Bull, Coca Cola, Pepsi, 7UP, Sprite
 
 NEW: Pizza and pizza-deal cart lines show an Extra Topping checkbox between the name and quantity. Price follows pizza size and prints on the receipt.
 
 NEW: Compact order-note/payment ribbons, kitchen order notes, stable sales bars, one-role shift password, formatted Z-report, and animated Mnahel startup branding.
+
+NEW: Fixed logout viewport, reduced post-order lag, static larger order photos, multi-table waiters, cashier read-only Service Hub, M receipt logo, Eastern Cross Technology branding, and one installer artifact.

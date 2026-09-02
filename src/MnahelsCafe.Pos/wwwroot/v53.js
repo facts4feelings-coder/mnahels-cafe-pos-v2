@@ -1,6 +1,6 @@
 /*
  * Mnahel's Cafe POS · v0.15.31 operations stability and close-shift polish
- * Copyright (c) 2026 TechMint Software Solutions. All rights reserved.
+ * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  */
 (()=>{
 'use strict';
@@ -50,6 +50,6 @@ function scheduleSales(force=false,delay=80){clearTimeout(salesTimer);salesTimer
 function observe(){if(document.documentElement.dataset.v53Observed)return;document.documentElement.dataset.v53Observed='1';new MutationObserver(records=>{let cards=false,sales=false,shift=false;for(const record of records){const target=record.target;if(target.closest?.('#admin-orders')||target.id==='admin-orders')cards=true;if(target.closest?.('#one-chart,#one-metrics')||target.id==='one-chart'||target.id==='one-metrics')sales=true;if(target.closest?.('#v46-close-dialog')||target.id==='v46-close-dialog')shift=true}if(cards)requestAnimationFrame(compactOrderCards);if(sales)scheduleSales(false,120);if(shift)requestAnimationFrame(fixShiftClose)}).observe(document.body,{childList:true,subtree:true})}
 function boot(){document.documentElement.dataset.uiRevision=REV;window.__MNAHELS_UI_REVISION__=REV;compactOrderCards();fixShiftClose();observe();if(state?.currentScreen==='sales')scheduleSales(true,120)}
 document.addEventListener('click',event=>{if(event.target.closest?.('#v46-close'))setTimeout(fixShiftClose,0);if(event.target.closest?.('#report-ranges [data-report-range],#apply-custom-report')){scheduleSales(true,180);setTimeout(()=>scheduleSales(true,0),850)}if(event.target.closest?.('[data-screen="sales"]'))setTimeout(()=>scheduleSales(true,0),350)},true);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,400);setTimeout(boot,1300);setInterval(()=>{if(document.visibilityState==='visible'){compactOrderCards();fixShiftClose();if(state?.currentScreen==='sales')scheduleSales(false,0)}},2200);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,400);setTimeout(boot,1300);setInterval(()=>{if(document.visibilityState!=='visible')return;if(q('#v46-close-dialog')?.open)fixShiftClose();if(state?.currentScreen==='sales')scheduleSales(false,0)},8000);
 window.mnahelsV53={build:BUILD,uiRevision:REV,compactOrderCards,fixShiftClose,stabilizeSales};
 })();

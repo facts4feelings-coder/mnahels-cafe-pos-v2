@@ -4,7 +4,7 @@ const BUILD='0.15.25',UI_REVISION='20260901-receipt-speed-25';
 const esc=value=>String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 const money=value=>Math.round(Number(value||0)).toLocaleString('en-PK');
 const paidStatus=order=>String(order?.paymentStatus||'').toLowerCase()==='paid'||order?.isPaid===true;
-const brandLogo='<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14"/><path d="M9 13h12v7a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5v-7Zm12 2h2a3 3 0 0 1 0 6h-2M12 10c0-2 2-2 2-4m4 4c0-2 2-2 2-4"/></svg>';
+const brandLogo='<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14"/><text x="16" y="22" text-anchor="middle">M</text></svg>';
 const icons={
  'Dine-in':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8m3-8v8M5 3v5c0 2 1 3 3 3s3-1 3-3V3M8 11v10M16 3v18m0-18c2 0 3 2 3 5s-1 5-3 5"/></svg>',
  Takeaway:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 13H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg>',
@@ -61,7 +61,7 @@ function receiptHtml(order,requestedKind='customer'){
    <div class="v43-meta-grid">${metaCell('ORDER',`MC-${order?.tokenNumber??'—'}`)}${metaCell('PLACED AT',placedAt(order))}${metaCell('CUSTOMER',order?.customerName||'Walk-in customer')}${metaCell(serviceInfo.label,serviceInfo.value)}</div>
    <div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>${kitchen?'VARIANT':'AMOUNT'}</b></div>${itemRows(order,kitchen)}${kitchenNote}</div>
    ${paymentLines(order,kind)}
-   <footer class="tp-foot"><b>A product by TechMint Software Solutions</b><strong>${footerTitle}</strong><span>${footerCopy}</span></footer>
+   <footer class="tp-foot"><b>A product by Eastern Cross Technology</b><strong>${footerTitle}</strong><span>${footerCopy}</span></footer>
   </div>
  </article>`;
 }

@@ -1,7 +1,7 @@
 /*
  * Mnahel's Cafe POS · v0.15.11 five-column menu and guided order setup
- * Copyright (c) 2026 TechMint Software Solutions. All rights reserved.
- * A product by TechMint Software Solutions.
+ * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
+ * A product by Eastern Cross Technology.
  */
 window.__v38OrderSetup=true;
 (()=>{
@@ -45,7 +45,7 @@ function renderMode(){
 }
 function resourceRows(kind,rows,selected){
  const icon=kind==='table'?icons.table:kind==='waiter'?icons.waiter:icons.rider;
- return `<div class="v38-resource-grid">${(rows||[]).map((x,i)=>{const busy=!!(x.booked||x.occupied||!x.isActive),on=Number(selected)===Number(x.id);return `<button type="button" class="v38-resource ${on?'selected':''}" data-v38-resource="${kind}" data-id="${x.id}" ${busy&&!on?'disabled':''} style="--resource-i:${i}"><span>${icon}</span><div><strong>${E(x.name||`${kind} ${x.id}`)}</strong><small>${busy&&!on?`Booked${x.tokenNumber?` · MC-${E(x.tokenNumber)}`:''}`:x.phone?E(x.phone):on?'Selected':'Available'}</small></div>${on?icons.check:'<i>○</i>'}</button>`}).join('')||'<p class="v38-none">No available options. Add them in Service Hub.</p>'}</div>`;
+ return `<div class="v38-resource-grid">${(rows||[]).map((x,i)=>{const busy=kind==='waiter'?!x.isActive:!!(x.booked||x.occupied||!x.isActive),on=Number(selected)===Number(x.id),tables=Number(x.tableCount||x.assignments?.length||0),detail=kind==='waiter'&&tables?`Serving ${tables} table${tables===1?'':'s'} · available`:busy&&!on?`Booked${x.tokenNumber?` · MC-${E(x.tokenNumber)}`:''}`:x.phone?E(x.phone):on?'Selected':'Available';return `<button type="button" class="v38-resource ${on?'selected':''}" data-v38-resource="${kind}" data-id="${x.id}" ${busy&&!on?'disabled':''} style="--resource-i:${i}"><span>${icon}</span><div><strong>${E(x.name||`${kind} ${x.id}`)}</strong><small>${detail}</small></div>${on?icons.check:'<i>○</i>'}</button>`}).join('')||'<p class="v38-none">No available options. Add them in Service Hub.</p>'}</div>`;
 }
 function assignmentMarkup(){
  if(draft.mode==='Dine-in')return `<div class="v38-assignment-columns"><section><div class="v38-section-title"><span>${icons.table}</span><div><strong>Select table</strong><small>Required for dine-in</small></div></div>${resourceRows('table',resources.tables,draft.tableId)}</section><section><div class="v38-section-title"><span>${icons.waiter}</span><div><strong>Assign waiter</strong><small>Available floor team</small></div></div>${resourceRows('waiter',resources.waiters,draft.waiterId)}</section></div>`;

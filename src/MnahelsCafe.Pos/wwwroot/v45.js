@@ -11,7 +11,7 @@ let exportQueue=Promise.resolve(),autoTimer=0,lastAutoSignature='',lastAutoAt=0;
 function pref(key,fallback){try{return localStorage.getItem(key)??fallback}catch{return fallback}}
 function setPref(key,value){try{localStorage.setItem(key,value)}catch{}}
 function headerStyle(){return pref(HEADER_KEY,'black')==='white'?'white':'black'}
-function autoJpgEnabled(){return pref(AUTO_JPG_KEY,'1')!=='0'}
+function autoJpgEnabled(){return pref(AUTO_JPG_KEY,'0')!=='0'}
 function appTheme(){return pref(THEME_KEY,document.documentElement.dataset.theme||'dark')==='light'?'light':'dark'}
 function setAppTheme(value){const next=value==='light'?'light':'dark';setPref(THEME_KEY,next);document.documentElement.dataset.theme=next;qa('[data-v45-theme]').forEach(button=>button.classList.toggle('active',button.dataset.v45Theme===next))}
 function applyReceiptPrefs(){
@@ -40,8 +40,8 @@ function queueExport(task){const run=exportQueue.then(task,task);exportQueue=run
 function textOf(node,selector,fallback=''){return q(selector,node)?.textContent?.trim()||fallback}
 
 function createPainter(width,fontScale=1){
-  const scale=3,scratch=document.createElement('canvas');scratch.width=width*scale;scratch.height=18000;
-  const ctx=scratch.getContext('2d',{alpha:false});ctx.scale(scale,scale);ctx.fillStyle='#fff';ctx.fillRect(0,0,width,6000);ctx.textBaseline='top';
+  const scale=2,scratch=document.createElement('canvas');scratch.width=width*scale;scratch.height=7000;
+  const ctx=scratch.getContext('2d',{alpha:false});ctx.scale(scale,scale);ctx.fillStyle='#fff';ctx.fillRect(0,0,width,3500);ctx.textBaseline='top';
   const family='Arial, "Segoe UI", sans-serif';
   const font=(size,weight=700)=>ctx.font=`${weight} ${Math.max(6,size*fontScale)}px ${family}`;
   function wrap(value,maxWidth){
@@ -79,7 +79,7 @@ function drawModeIcon(c,mode,x,y,size,color){
   c.stroke();c.restore();
 }
 function drawCafeLogo(c,x,y,size,color){
-  const l=x-size/2,t=y-size/2;c.save();c.strokeStyle=color;c.fillStyle='transparent';c.lineWidth=1.8;c.lineCap='round';c.lineJoin='round';c.beginPath();c.arc(x,y,size/2-1,0,Math.PI*2);c.stroke();c.beginPath();c.rect(l+7,t+12,size-15,size-11);c.moveTo(l+size-8,t+15);c.quadraticCurveTo(l+size-2,t+15,l+size-3,t+20);c.quadraticCurveTo(l+size-4,t+23,l+size-8,t+22);c.moveTo(l+10,t+9);c.quadraticCurveTo(l+8,t+6,l+11,t+4);c.moveTo(l+16,t+9);c.quadraticCurveTo(l+14,t+6,l+17,t+4);c.stroke();c.restore();
+  c.save();c.strokeStyle=color;c.fillStyle=color;c.lineWidth=1.8;c.beginPath();c.arc(x,y,size/2-1,0,Math.PI*2);c.stroke();c.font=`900 ${Math.round(size*.62)}px Georgia, serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('M',x,y+1);c.textAlign='left';c.textBaseline='top';c.restore();
 }
 function drawV43(receipt,width){
   const settings=printSettings(),p=createPainter(width,settings.fontScale),c=p.ctx,isKitchen=receipt.classList.contains('kitchen'),innerPad=isKitchen?12:8,bodyX=Math.max(0,settings.leftPx)+settings.padPx+innerPad,bodyW=Math.max(100,width-(settings.padPx+innerPad)*2-Math.abs(settings.leftPx));let y=0;
@@ -105,13 +105,13 @@ function drawV43(receipt,width){
   }
   const summary=q('.v43-summary',receipt);if(summary){const rows=qa(':scope > .tp-line,:scope > .tp-total',summary);rows.forEach(row=>{const total=row.classList.contains('tp-total'),h=total?31:23;p.strokeBox(bodyX,y,bodyW,h,total?1.5:1);p.font(total?13:9,total?950:850);c.fillText(textOf(row,'span'),bodyX+6,y+(total?8:7));c.textAlign='right';c.fillText(textOf(row,'b'),bodyX+bodyW-6,y+(total?8:7));c.textAlign='left';y+=h});y+=5}
   const payment=qa(':scope > .v43-body > .v43-payment-grid > .v43-meta-cell',receipt);if(payment.length)y=drawMetaGrid(p,payment,bodyX,y,bodyW)+5;
-  const footer=q('.tp-foot',receipt);if(footer){c.setLineDash([4,3]);c.lineWidth=1;c.beginPath();c.moveTo(bodyX,y+.5);c.lineTo(bodyX+bodyW,y+.5);c.stroke();c.setLineDash([]);p.font(6.5,800);const credit=p.wrap(textOf(footer,'b','A product by TechMint Software Solutions'),bodyW);p.drawLines(credit,bodyX+bodyW/2,y+5,8,'center');let fy=y+7+credit.length*8;p.font(12.5,950);const thanks=p.wrap(textOf(footer,'strong','THANK YOU!'),bodyW);p.drawLines(thanks,bodyX+bodyW/2,fy,13,'center');fy+=thanks.length*13+2;p.font(8.4,850);const copy=p.wrap(textOf(footer,':scope > span',''),bodyW);p.drawLines(copy,bodyX+bodyW/2,fy,10,'center');y=fy+copy.length*10}
+  const footer=q('.tp-foot',receipt);if(footer){c.setLineDash([4,3]);c.lineWidth=1;c.beginPath();c.moveTo(bodyX,y+.5);c.lineTo(bodyX+bodyW,y+.5);c.stroke();c.setLineDash([]);p.font(6.5,800);const credit=p.wrap(textOf(footer,'b','A product by Eastern Cross Technology'),bodyW);p.drawLines(credit,bodyX+bodyW/2,y+5,8,'center');let fy=y+7+credit.length*8;p.font(12.5,950);const thanks=p.wrap(textOf(footer,'strong','THANK YOU!'),bodyW);p.drawLines(thanks,bodyX+bodyW/2,fy,13,'center');fy+=thanks.length*13+2;p.font(8.4,850);const copy=p.wrap(textOf(footer,':scope > span',''),bodyW);p.drawLines(copy,bodyX+bodyW/2,fy,10,'center');y=fy+copy.length*10}
   return p.crop(y+7);
 }
 function drawGeneric(receipt,width){
   const settings=printSettings(),p=createPainter(width,settings.fontScale),c=p.ctx,left=Math.max(0,settings.leftPx)+settings.padPx+8,contentW=Math.max(100,width-(settings.padPx+8)*2-Math.abs(settings.leftPx));let y=0;c.fillStyle='#000';c.fillRect(0,0,width,46);c.fillStyle='#fff';p.font(15,950);p.drawLines([textOf(receipt,'.tp-head b',"MNAHEL'S CAFE")],width/2,9,18,'center');p.font(8,850);p.drawLines([textOf(receipt,'.tp-head small','PRINTABLE SLIP')],width/2,29,10,'center');c.fillStyle='#000';y=54;
   const clone=receipt.cloneNode(true);qa('.tp-head',clone).forEach(x=>x.remove());const text=(clone.innerText||clone.textContent||'').replace(/\s+/g,' ').trim();p.font(10,800);const lineH=Math.max(10,13*settings.fontScale),lines=p.wrap(text,contentW-12),boxH=Math.max(34,lines.length*lineH+14);p.strokeBox(left,y,contentW,boxH,1.2);p.drawLines(lines,left+6,y+7,lineH);y+=boxH+8;
-  p.font(6.5,800);p.drawLines(['A product by TechMint Software Solutions'],width/2,y,8,'center');return p.crop(y+14);
+  p.font(6.5,800);p.drawLines(['A product by Eastern Cross Technology'],width/2,y,8,'center');return p.crop(y+14);
 }
 async function renderJpg(source,name){
   if(!source)throw Error('Slip preview not found.');const receipt=source.matches?.('.v43-receipt,.tp')?source:q('.v43-receipt,.tp',source);
@@ -143,6 +143,6 @@ function enhanceReceiptPreview(){const dialog=q('#receipt-preview');if(!dialog||
 function autoDownloadStaged(){clearTimeout(autoTimer);autoTimer=setTimeout(()=>{if(!autoJpgEnabled())return;const sheet=q('#print-sheet'),receipt=q('.v43-receipt,.tp',sheet);if(!sheet||!receipt||!(receipt.textContent||'').trim())return;const signature=`${sheet.className}|${receipt.outerHTML}`,now=Date.now();if(signature===lastAutoSignature&&now-lastAutoAt<1100)return;lastAutoSignature=signature;lastAutoAt=now;downloadStaged(true)},55)}
 function watchPrintSheet(){const sheet=q('#print-sheet');if(!sheet||sheet.dataset.v45Watching)return;sheet.dataset.v45Watching='1';new MutationObserver(autoDownloadStaged).observe(sheet,{childList:true,subtree:true})}
 function boot(){applyReceiptPrefs();enhanceSettings();enhanceReceiptPreview();watchPrintSheet()}
-let bootQueued=false;const observer=new MutationObserver(()=>{if(bootQueued)return;bootQueued=true;requestAnimationFrame(()=>{bootQueued=false;boot()})});observer.observe(document.body,{childList:true});document.addEventListener('mnahels-shared-print-settings-applied',applyReceiptPrefs);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,900);setInterval(boot,5000);
+let bootQueued=false;const observer=new MutationObserver(records=>{const relevant=records.some(record=>[...record.addedNodes].some(node=>node.nodeType===1&&(node.matches?.('#v31-print-card,#receipt-preview,.tp,.v43-receipt')||node.querySelector?.('#v31-print-card,#receipt-preview,.tp,.v43-receipt'))));if(!relevant||bootQueued)return;bootQueued=true;requestAnimationFrame(()=>{bootQueued=false;boot()})});observer.observe(document.body,{childList:true,subtree:true});document.addEventListener('mnahels-shared-print-settings-applied',applyReceiptPrefs);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,900);setInterval(boot,5000);
 document.documentElement.dataset.uiRevision=UI_REVISION;window.mnahelsV45={build:BUILD,uiRevision:UI_REVISION,downloadElementToJpg:downloadElement,downloadCurrentPreview,downloadStaged,printSettings,setAppTheme};
 })();

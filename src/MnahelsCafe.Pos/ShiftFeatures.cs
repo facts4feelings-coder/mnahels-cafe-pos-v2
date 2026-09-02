@@ -1,6 +1,6 @@
 /* Mnahel's Cafe POS · Shift Closing / Z-Report
- * Owner: TechMint Software Solutions · https://techmint.org
- * A product by TechMint Software Solutions. */
+ * Owner: Eastern Cross Technology · https://techmint.org
+ * A product by Eastern Cross Technology. */
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Routing;
@@ -154,7 +154,7 @@ static class ShiftFeatures
             Text(55,108,8,"This closed shift is read-only and retained for audit.");
 
             Fill(35,35,525,38,"0.08");
-            Text(52,57,8,"A product by TechMint Software Solutions",true,true);
+            Text(52,57,8,"A product by Eastern Cross Technology",true,true);
             Text(399,57,8,"CONFIDENTIAL Z-REPORT",true,true);
             Text(52,43,7,$"Generated {DateTimeOffset.Now.LocalDateTime:dd MMM yyyy, hh:mm:ss tt}",false,true);
             return Make(c.ToString());

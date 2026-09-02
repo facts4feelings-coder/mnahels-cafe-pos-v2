@@ -79,25 +79,29 @@ static class ServiceFeatures
     {
         var active = await db.Orders.AsNoTracking()
             .Where(x => x.Status != "Completed" && x.Status != "Cancelled")
-            .Select(x => new { x.Id, x.TokenNumber, x.OrderType, x.Status, x.RiderId, x.WaiterId, x.TableId })
+            .Select(x => new { x.Id, x.TokenNumber, x.OrderType, x.Status, x.RiderId, x.WaiterId, x.TableId, x.TableName, x.WaiterName, x.RiderName })
             .ToListAsync();
         var people = await db.ServicePeople.AsNoTracking().OrderBy(x => x.Name).ToListAsync();
         var tables = await db.CafeTables.AsNoTracking().OrderBy(x => x.Id).ToListAsync();
         var riders = people.Where(x => x.Type == "Rider").Select(x =>
         {
-            var order = active.FirstOrDefault(o => o.RiderId == x.Id && !(o.OrderType == "Delivery" && o.Status == "Ready"));
-            return new { x.Id, x.Name, x.Phone, x.IsActive, booked = order is not null, tokenNumber = order?.TokenNumber, orderId = order?.Id };
-        });
+            var orders = active.Where(o => o.RiderId == x.Id && !(o.OrderType == "Delivery" && o.Status == "Ready"))
+                .OrderBy(o => o.TokenNumber).Select(o => new { orderId = o.Id, o.TokenNumber, o.Status }).ToList();
+            var first = orders.FirstOrDefault();
+            return new { x.Id, x.Name, x.Phone, x.IsActive, booked = orders.Count > 0, tokenNumber = first?.TokenNumber, orderId = first?.orderId, assignments = orders };
+        }).ToList();
         var waiters = people.Where(x => x.Type == "Waiter").Select(x =>
         {
-            var order = active.FirstOrDefault(o => o.WaiterId == x.Id);
-            return new { x.Id, x.Name, x.Phone, x.IsActive, booked = order is not null, tokenNumber = order?.TokenNumber, orderId = order?.Id };
-        });
+            var orders = active.Where(o => o.WaiterId == x.Id).OrderBy(o => o.TableId).ThenBy(o => o.TokenNumber)
+                .Select(o => new { orderId = o.Id, o.TokenNumber, o.Status, o.TableId, tableName = o.TableName ?? (o.TableId.HasValue ? $"Table {o.TableId}" : "Table") }).ToList();
+            var first = orders.FirstOrDefault();
+            return new { x.Id, x.Name, x.Phone, x.IsActive, booked = orders.Count > 0, tokenNumber = first?.TokenNumber, orderId = first?.orderId, tableCount = orders.Count, assignments = orders };
+        }).ToList();
         var tableRows = tables.Select(x =>
         {
             var order = active.FirstOrDefault(o => o.TableId == x.Id);
-            return new { x.Id, x.Name, x.IsActive, booked = order is not null, occupied = order is not null, tokenNumber = order?.TokenNumber, orderId = order?.Id };
-        });
+            return new { x.Id, x.Name, x.IsActive, booked = order is not null, occupied = order is not null, tokenNumber = order?.TokenNumber, orderId = order?.Id, waiterName = order?.WaiterName, waiterId = order?.WaiterId, status = order?.Status };
+        }).ToList();
         return Results.Ok(new { riders, waiters, tables = tableRows });
     }
 
@@ -105,12 +109,12 @@ static class ServiceFeatures
     {
         var active = await db.Orders.AsNoTracking()
             .Where(x => x.OrderType == "Dine-in" && x.TableId != null && x.Status != "Completed" && x.Status != "Cancelled")
-            .Select(x => new { x.TableId, x.Id, x.TokenNumber }).ToListAsync();
+            .Select(x => new { x.TableId, x.Id, x.TokenNumber, x.WaiterName }).ToListAsync();
         var tables = await db.CafeTables.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.Id).ToListAsync();
         return Results.Ok(tables.Select(x =>
         {
             var order = active.FirstOrDefault(o => o.TableId == x.Id);
-            return new { number = x.Id, id = x.Id, name = x.Name, occupied = order is not null, orderId = order?.Id, tokenNumber = order?.TokenNumber };
+            return new { number = x.Id, id = x.Id, name = x.Name, occupied = order is not null, orderId = order?.Id, tokenNumber = order?.TokenNumber, waiterName = order?.WaiterName };
         }));
     }
 

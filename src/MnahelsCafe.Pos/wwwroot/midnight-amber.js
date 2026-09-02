@@ -62,7 +62,7 @@ function bindNavigation(){
 }
 function bindLogin(){const f=$('#login-form');if(!f||f.dataset.maBound==='1')return;f.dataset.maBound='1'}
 function boot(){relabelNavigation();enhanceToolbar();decorateProducts();decorateReceipts();bindNavigation();bindLogin();translate();const active=$('.screen.active')?.id?.replace('screen-','');if(active)updateHeading(active)}
-let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;later(()=>{queued=false;boot()},35)});observer.observe(document.documentElement,{subtree:true,childList:true});
+let queued=false;const observer=new MutationObserver(records=>{const relevant=records.some(record=>[...record.addedNodes].some(node=>node.nodeType===1&&(node.matches?.('.nav-item,.product-card,.tp,.v36-service-person,#screen-service')||node.querySelector?.('.nav-item,.product-card,.tp,.v36-service-person,#screen-service'))));if(!relevant||queued)return;queued=true;later(()=>{queued=false;boot()},120)});observer.observe(document.body,{subtree:true,childList:true});
 window.midnightAmber={version:VERSION,receiptIcon,refresh:boot};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>later(boot,80));else later(boot,80);later(boot,500);later(boot,1400);
 })();

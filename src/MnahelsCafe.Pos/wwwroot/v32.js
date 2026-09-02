@@ -1,9 +1,9 @@
 (()=>{
 /* ==========================================================================
    Mnahel's Cafe POS - v32 layer - build 0.14.8
-   Owner    : TechMint Software Solutions - https://techmint.org
-   Copyright: (c) 2026 TechMint Software Solutions. All rights reserved.
-   A product by TechMint Software Solutions.
+   Owner    : Eastern Cross Technology - https://techmint.org
+   Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
+   A product by Eastern Cross Technology.
    Is layer me:
      1) Orders list par PLACED ON date/time + discount hisaab + 2 reprint
         buttons - poori row me, card ka layout kharab nahi hota

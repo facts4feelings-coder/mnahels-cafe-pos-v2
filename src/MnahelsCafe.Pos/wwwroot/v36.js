@@ -1,7 +1,7 @@
 /*
  * Mnahel's Cafe POS · v0.15.7 service hub, animated order timeline and cash change
- * Owner: TechMint Software Solutions · https://techmint.org
- * A product by TechMint Software Solutions.
+ * Owner: Eastern Cross Technology · https://techmint.org
+ * A product by Eastern Cross Technology.
  */
 window.__v36Dashboard=true;
 (()=>{
@@ -108,28 +108,35 @@ function serviceScreen(){
 function ensureServiceNav(){
  const nav=q('.sidebar nav');if(!nav)return;
  let b=q('[data-screen="service"]',nav);
- if(!b){b=document.createElement('button');b.className='nav-item admin-only';b.dataset.screen='service';b.title='Service Hub';b.innerHTML=`${icons.waiter}<span class="ma-nav-label">Service Hub</span>`;nav.appendChild(b);b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();openService()});}
- if(state?.user)b.style.display=state.user.role==='Admin'?'flex':'none';serviceScreen();
+ if(!b){b=document.createElement('button');b.className='nav-item';b.dataset.screen='service';b.title='Service Hub';b.innerHTML=`${icons.waiter}<span class="ma-nav-label">Service Hub</span>`;nav.appendChild(b);b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();openService()});}
+ b.classList.remove('admin-only');b.style.display=state?.user?'flex':'none';const screen=serviceScreen();screen?.classList.toggle('v54-readonly',state?.user?.role!=='Admin');
 }
 function openService(){
- if(state?.user?.role!=='Admin')return toast('Admin access required.');state.currentScreen='service';qa('.screen').forEach(x=>x.classList.remove('active'));serviceScreen()?.classList.add('active');qa('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.screen==='service'));const k=q('#page-kicker'),t=q('#page-title');if(k)k.textContent='FLOOR & DELIVERY';if(t)t.textContent='Service Hub';refreshHub(true);
+ if(!state?.user||!['Admin','Cashier'].includes(state.user.role))return;state.currentScreen='service';qa('.screen').forEach(x=>x.classList.remove('active'));const screen=serviceScreen();screen?.classList.add('active');screen?.classList.toggle('v54-readonly',state.user.role!=='Admin');qa('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.screen==='service'));const k=q('#page-kicker'),t=q('#page-title');if(k)k.textContent='FLOOR & DELIVERY';if(t)t.textContent='Service Hub';refreshHub(true);
 }
 function renderServiceList(selector,rows,type){
- const box=q(selector);if(!box)return;
- box.innerHTML=rows.map(x=>`<div class="v36-service-person ${x.booked?'booked':''} ${!x.isActive?'inactive':''}" data-id="${x.id}" data-type="${type}"><span>${type==='Rider'?icons.rider:type==='Waiter'?icons.waiter:icons.table}</span><div><strong>${E(x.name)}</strong>${x.phone?`<small>${E(x.phone)}</small>`:''}</div><em>${x.booked?`Booked · MC-${E(x.tokenNumber)}`:x.isActive?'Available':'Inactive'}</em><button type="button" data-v36-edit="1">Edit</button><button type="button" data-v36-toggle="1" ${x.booked?'disabled':''}>${x.isActive?'Pause':'Activate'}</button></div>`).join('')||`<div class="v36-none">No ${type.toLowerCase()} added yet.</div>`;
+ const box=q(selector);if(!box)return;const canEdit=state?.user?.role==='Admin';
+ box.innerHTML=rows.map(x=>{const assignments=Array.isArray(x.assignments)?x.assignments:[];let detail='';
+  if(type==='Waiter'&&assignments.length)detail=`<div class="v54-service-assignments">${assignments.map(a=>`<span><b>${E(a.tableName||'Table')}</b><small>MC-${E(a.tokenNumber)} · ${E(a.status||'Booked')}</small></span>`).join('')}</div>`;
+  else if(type==='Rider'&&x.booked)detail=`<div class="v54-service-assignments"><span><b>MC-${E(x.tokenNumber)}</b><small>${E(assignments[0]?.status||'Delivery order')}</small></span></div>`;
+  else if(type==='Table'&&x.booked)detail=`<div class="v54-service-assignments"><span><b>MC-${E(x.tokenNumber)}</b><small>${E(x.waiterName||'Waiter not shown')} · ${E(x.status||'Booked')}</small></span></div>`;
+  const status=type==='Waiter'&&assignments.length?`Serving ${assignments.length} table${assignments.length===1?'':'s'}`:x.booked?`Booked · MC-${E(x.tokenNumber)}`:x.isActive?'Available':'Inactive';
+  const actions=canEdit?`<button type="button" data-v36-edit="1">Edit</button><button type="button" data-v36-toggle="1" ${x.booked?'disabled':''}>${x.isActive?'Pause':'Activate'}</button>`:'';
+  return `<div class="v36-service-person ${x.booked?'booked':''} ${!x.isActive?'inactive':''} ${assignments.length>1?'v54-multi':''}" data-id="${x.id}" data-type="${type}"><span>${type==='Rider'?icons.rider:type==='Waiter'?icons.waiter:icons.table}</span><div class="v54-service-identity"><strong>${E(x.name)}</strong>${x.phone?`<small>${E(x.phone)}</small>`:''}</div><div class="v54-service-state"><em>${status}</em>${detail}</div>${actions}</div>`;
+ }).join('')||`<div class="v36-none">No ${type.toLowerCase()} added yet.</div>`;
 }
-function paintService(){renderServiceList('#v36-riders',hub.riders||[],'Rider');renderServiceList('#v36-waiters',hub.waiters||[],'Waiter');renderServiceList('#v36-tables',hub.tables||[],'Table');paintAssignments()}
+function paintService(){const screen=q('#screen-service');screen?.classList.toggle('v54-readonly',state?.user?.role!=='Admin');renderServiceList('#v36-riders',hub.riders||[],'Rider');renderServiceList('#v36-waiters',hub.waiters||[],'Waiter');renderServiceList('#v36-tables',hub.tables||[],'Table');paintAssignments()}
 async function refreshHub(force=false){
  if(hubBusy||!state?.user)return;hubBusy=true;
  try{hub=await api('/api/service-hub');paintService()}catch(e){if(force)toast(e.message||'Service Hub could not be loaded.')}finally{hubBusy=false}
 }
 function bindServiceScreen(screen){
  screen.addEventListener('submit',async e=>{
-  const form=e.target.closest('form[data-v36-add]');if(!form)return;e.preventDefault();const type=form.dataset.v36Add,fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim(),button=q('button',form);button.disabled=true;
+  const form=e.target.closest('form[data-v36-add]');if(!form)return;e.preventDefault();if(state?.user?.role!=='Admin')return;const type=form.dataset.v36Add,fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim(),button=q('button',form);button.disabled=true;
   try{if(type==='Table')await api('/api/service/tables',{method:'POST',body:JSON.stringify({name})});else await api('/api/service/people',{method:'POST',body:JSON.stringify({type,name,phone})});form.reset();await refreshHub(true);toast(`${type} added.`)}catch(err){toast(err.message)}finally{button.disabled=false}
  });
  screen.addEventListener('click',async e=>{
-  const row=e.target.closest('.v36-service-person');if(!row)return;const type=row.dataset.type,id=Number(row.dataset.id),source=(type==='Rider'?hub.riders:type==='Waiter'?hub.waiters:hub.tables).find(x=>Number(x.id)===id);if(!source)return;
+  const row=e.target.closest('.v36-service-person');if(!row||state?.user?.role!=='Admin')return;const type=row.dataset.type,id=Number(row.dataset.id),source=(type==='Rider'?hub.riders:type==='Waiter'?hub.waiters:hub.tables).find(x=>Number(x.id)===id);if(!source)return;
   if(e.target.closest('[data-v36-edit]')){const name=prompt(`${type} name`,source.name);if(name===null)return;let phone=source.phone;if(type!=='Table'){phone=prompt(`${type} phone`,source.phone||'');if(phone===null)return}try{if(type==='Table')await api(`/api/service/tables/${id}`,{method:'PUT',body:JSON.stringify({name,isActive:source.isActive})});else await api(`/api/service/people/${id}`,{method:'PUT',body:JSON.stringify({name,phone,isActive:source.isActive})});await refreshHub(true);toast(`${type} updated.`)}catch(err){toast(err.message)}return}
   if(e.target.closest('[data-v36-toggle]')){try{if(type==='Table')await api(`/api/service/tables/${id}`,{method:'PUT',body:JSON.stringify({name:source.name,isActive:!source.isActive})});else await api(`/api/service/people/${id}`,{method:'PUT',body:JSON.stringify({name:source.name,phone:source.phone,isActive:!source.isActive})});await refreshHub(true);toast(`${type} ${source.isActive?'paused':'activated'}.`)}catch(err){toast(err.message)}}
  });
@@ -145,10 +152,10 @@ function bookingFields(){
  q('#v36-rider').onchange=e=>state.riderId=Number(e.target.value)||null;
  return box;
 }
-function optionRows(rows,label){return `<option value="">${label}</option>`+(rows||[]).map(x=>`<option value="${x.id}" ${x.booked||!x.isActive?'disabled':''}>${E(x.name)}${x.phone?` · ${E(x.phone)}`:''}${x.booked?` · Booked MC-${E(x.tokenNumber)}`:!x.isActive?' · Inactive':''}</option>`).join('')}
+function optionRows(rows,label,kind){return `<option value="">${label}</option>`+(rows||[]).map(x=>{const busy=kind==='waiter'?!x.isActive:(x.booked||!x.isActive),note=kind==='waiter'&&x.booked?` · Serving ${Number(x.tableCount||x.assignments?.length||1)} table(s)`:x.booked?` · Booked MC-${E(x.tokenNumber)}`:!x.isActive?' · Inactive':'';return `<option value="${x.id}" ${busy?'disabled':''}>${E(x.name)}${x.phone?` · ${E(x.phone)}`:''}${note}</option>`}).join('')}
 function setSelect(selector,html,value){const el=q(selector);if(!el)return;el.innerHTML=html;if(value&&qa('option',el).some(x=>Number(x.value)===Number(value)&&!x.disabled))el.value=String(value);else el.value=''}
 function paintAssignments(){
- bookingFields();setSelect('#v36-table',optionRows(hub.tables,'Select table'),state.tableId);setSelect('#v36-waiter',optionRows(hub.waiters,'Assign waiter'),state.waiterId);setSelect('#v36-rider',optionRows(hub.riders,'Assign rider'),state.riderId);syncAssignmentMode(false);
+ bookingFields();setSelect('#v36-table',optionRows(hub.tables,'Select table','table'),state.tableId);setSelect('#v36-waiter',optionRows(hub.waiters,'Assign waiter','waiter'),state.waiterId);setSelect('#v36-rider',optionRows(hub.riders,'Assign rider','rider'),state.riderId);syncAssignmentMode(false);
 }
 function syncAssignmentMode(clear=true){
  const type=state?.orderType||'Takeaway',dine=type==='Dine-in',delivery=type==='Delivery';bookingFields();qa('[data-v36-for]').forEach(x=>x.hidden=(x.dataset.v36For==='table'||x.dataset.v36For==='waiter')?!dine:!delivery);
@@ -189,7 +196,7 @@ function receiptHtml(order,kind='customer'){
  const service=order.orderType==='Dine-in'?`${receiptRow('Table',E(order.tableName||`Table ${order.tableNumber||'—'}`))}${receiptRow('Waiter',E(order.waiterName||'—'))}`:order.orderType==='Delivery'?`${receiptRow('Rider',E(order.riderName||'—'))}${order.deliveryAddress?receiptRow('Address',E(order.deliveryAddress)):''}`:'';
  const note='';
  const money=kind==='kitchen'?'':`<div class="tp-dash"></div>${receiptRow('Subtotal',cash(order.subtotal))}${order.discount?receiptRow('Discount',`- ${cash(order.discount)}`):''}<div class="tp-total"><span>TOTAL</span><b>${cash(order.total)}</b></div>${order.paymentMethod==='Cash'&&order.cashReceived!=null?`${receiptRow('Cash received',cash(order.cashReceived))}${receiptRow('Change',cash(order.changeDue))}`:''}`;
- return `<div class="tp tp-customer v36-receipt"><div class="tp-head"><b>MNAHEL'S CAFE</b><small>${title}</small></div>${receiptMode(order)}<div class="tp-dash"></div>${receiptRow('Order',`MC-${E(order.tokenNumber)}`)}${receiptRow('Customer',E(order.customerName||'Walk-in'))}${service}<div class="tp-dash"></div><div class="tp-th"><span>Item</span><b>${kind==='kitchen'?'Qty':'Amount'}</b></div>${items}${note}${money}<div class="tp-foot"><b>A product by TechMint Software Solutions</b><small>${kind==='waiter'?'Serve and keep with the table.':'Thank you.'}</small></div></div>`;
+ return `<div class="tp tp-customer v36-receipt"><div class="tp-head"><b>MNAHEL'S CAFE</b><small>${title}</small></div>${receiptMode(order)}<div class="tp-dash"></div>${receiptRow('Order',`MC-${E(order.tokenNumber)}`)}${receiptRow('Customer',E(order.customerName||'Walk-in'))}${service}<div class="tp-dash"></div><div class="tp-th"><span>Item</span><b>${kind==='kitchen'?'Qty':'Amount'}</b></div>${items}${note}${money}<div class="tp-foot"><b>A product by Eastern Cross Technology</b><small>${kind==='waiter'?'Serve and keep with the table.':'Thank you.'}</small></div></div>`;
 }
 function bridgePrint(type){return new Promise(resolve=>{if(!(window.__mnahelsDualPrintBridge&&window.chrome?.webview?.postMessage)){try{window.print()}catch(e){}resolve(true);return}let done=false;const h=e=>{const m=String(e.data||'');if(m===`mnahels-print-${type}-done`||m===`mnahels-print-${type}-cancelled`){done=true;try{window.chrome.webview.removeEventListener('message',h)}catch(err){}resolve(m.endsWith('-done'))}};try{window.chrome.webview.addEventListener('message',h);window.chrome.webview.postMessage(`mnahels-print-${type}`)}catch(e){resolve(false)}setTimeout(()=>{if(!done)resolve(true)},20000)})}
 async function printSlip(order,kind='customer',quiet=false){const sheet=q('#print-sheet');if(!sheet)return false;sheet.removeAttribute('style');const printer=kind==='kitchen'?'kitchen':'customer';sheet.className=`print-sheet tp-sheet ${printer}`;sheet.innerHTML=receiptHtml(order,kind);await new Promise(r=>setTimeout(r,140));const ok=await bridgePrint(printer);if(!quiet)toast(ok?`${kind==='waiter'?'Waiter':kind==='kitchen'?'Kitchen':'Customer'} receipt sent to printer.`:'Printing cancelled.');return ok}
@@ -223,7 +230,7 @@ function boot(){
   if(e.target.closest?.('#preview-kitchen')){e.preventDefault();e.stopImmediatePropagation();if(state.lastOrder)previewSlip(state.lastOrder,'kitchen');return}
  },true);
  document.addEventListener('click',e=>{if(e.target.closest?.('#place-order')&&!validateBooking()){e.preventDefault();e.stopImmediatePropagation()}},true);
- setInterval(()=>{ensureServiceNav();if(state?.user?.role==='Admin'&&state.currentScreen==='admin')renderOperations();if(state?.user?.role==='Admin'&&state.currentScreen==='service')refreshHub()},3500);
+ setInterval(()=>{ensureServiceNav();if(state?.user&&state.currentScreen==='service')refreshHub()},10000);
 }
 setTimeout(boot,520);setTimeout(()=>{boot();refreshHub();if(state?.user?.role==='Admin'&&state.currentScreen==='admin')renderOperations(true)},1350);
 window.mnahelsV36={build:BUILD,uiRevision:UI_REVISION,renderOperations,refreshHub,printSlip,openService};

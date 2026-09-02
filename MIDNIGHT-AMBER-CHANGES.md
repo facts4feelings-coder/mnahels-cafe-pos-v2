@@ -4,7 +4,7 @@
 - Removed order notes from every receipt/print route while keeping notes stored with the order for internal operations.
 - Added server-shared receipt print preferences so Cashier uses the Admin-selected width, side margin, left offset, font, header style and JPG option, including future LAN clients.
 - Removed redundant Cashier order polling, reduced passive DOM maintenance frequency, optimized recent-order queries and retained WebView cache between unchanged builds for faster startup and interaction.
-- Preserved the required TechMint Software Solutions ownership attribution.
+- Preserved the required Eastern Cross Technology ownership attribution.
 
 # v0.15.24 — Resource Focus + Receipt Readability
 
@@ -55,7 +55,7 @@
 - Later payment completion still automatically prints the Final Paid receipt.
 - Table, waiter and rider choices are enforced as single-select radio groups, and disabled resources show a prominent `BOOKED` label.
 - The menu search input now resets after every successfully added item, including both single-variant and multi-variant products.
-- Preserved the exact receipt attribution: `A product by TechMint Software Solutions`.
+- Preserved the exact receipt attribution: `A product by Eastern Cross Technology`.
 - Release: `0.15.19`; UI revision: `20260830-receipt-exact-19`.
 
 ## Ledger Seal receipts with torn thermal edges — v0.15.18
@@ -66,7 +66,7 @@
 - Pay Later bookings now automatically print a temporary Payment Due customer slip in Dine-in, Takeaway and Delivery modes.
 - Final Paid receipts automatically print after Pay Now bookings and after a later payment is completed; this also closes the Dine-in Pay Now print gap.
 - ESC/POS raw printing now supports a reverse black header band, while HTML printing includes backgrounds for the approved dark masthead.
-- Preserved the exact receipt attribution: `A product by TechMint Software Solutions`.
+- Preserved the exact receipt attribution: `A product by Eastern Cross Technology`.
 - Release: `0.15.18`; UI revision: `20260830-receipt-ledger-18`.
 
 ## Included
@@ -80,7 +80,7 @@
 - Themed dashboard, orders, sales/reports, customers, menu management and settings screens
 - Redesigned customer/kitchen receipt presentation with distinct Dine-in, Takeaway and Delivery icons
 - English interface copy for the updated workflows
-- Existing TechMint Software Solutions ownership and product attribution preserved
+- Existing Eastern Cross Technology ownership and product attribution preserved
 - Pre-existing JavaScript syntax issue in `v30.js` corrected
 
 ## Added files

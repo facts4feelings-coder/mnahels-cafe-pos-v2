@@ -1,8 +1,8 @@
 /*
  * ============================================================================
  *  Mnahel's Cafe POS · Desktop shell — PROPRIETARY SOFTWARE. DO NOT MODIFY.
- *  Owner    : TechMint Software Solutions · https://techmint.org
- *  Copyright: (c) 2026 TechMint Software Solutions. All rights reserved.
+ *  Owner    : Eastern Cross Technology · https://techmint.org
+ *  Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
  * ============================================================================
  *  Direct thermal printing: receipt Windows spooler ko RAW (ESC/POS) bytes ke
  *  taur par jati hai. Is raste me page size, margins ya browser printing ka

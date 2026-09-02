@@ -1,6 +1,6 @@
 /*
  * Mnahel's Cafe POS · v0.15.29 deal photos and pizza extra-topping workflow
- * Copyright (c) 2026 TechMint Software Solutions. All rights reserved.
+ * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  */
 (()=>{
 'use strict';
