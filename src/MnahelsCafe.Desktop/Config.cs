@@ -141,7 +141,12 @@ internal sealed class PrinterConfig
             {
                 if (!File.Exists(path)) continue;
                 var parsed = JsonSerializer.Deserialize<PrinterConfig>(File.ReadAllText(path), JsonOptions);
-                if (parsed is not null) return parsed;
+                if (parsed is not null)
+                {
+                    parsed.CustomerPrinter = ResolvePrinter(parsed.CustomerPrinter);
+                    parsed.KitchenPrinter = ResolvePrinter(parsed.KitchenPrinter, fallbackToDefault: false);
+                    return parsed;
+                }
             }
             catch
             {
@@ -152,6 +157,8 @@ internal sealed class PrinterConfig
 
     public void Save()
     {
+        CustomerPrinter = ResolvePrinter(CustomerPrinter);
+        KitchenPrinter = ResolvePrinter(KitchenPrinter, fallbackToDefault: false);
         var json = JsonSerializer.Serialize(this, JsonOptions);
         foreach (var path in new[] { PrimaryPath, FallbackPath })
         {
@@ -168,9 +175,28 @@ internal sealed class PrinterConfig
         }
     }
 
-    public string PrinterFor(string type) => string.Equals(type, "kitchen", StringComparison.OrdinalIgnoreCase)
-        ? (string.IsNullOrWhiteSpace(KitchenPrinter) ? CustomerPrinter : KitchenPrinter)
-        : CustomerPrinter;
+    public string PrinterFor(string type)
+    {
+        var requested = string.Equals(type, "kitchen", StringComparison.OrdinalIgnoreCase)
+            ? (string.IsNullOrWhiteSpace(KitchenPrinter) ? CustomerPrinter : KitchenPrinter)
+            : CustomerPrinter;
+        return ResolvePrinter(requested);
+    }
+
+    public static string ResolvePrinter(string? requested, bool fallbackToDefault = true)
+    {
+        var printers = InstalledPrinters();
+        if (!string.IsNullOrWhiteSpace(requested))
+        {
+            var exact = printers.FirstOrDefault(name => string.Equals(name, requested, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(exact)) return exact;
+            Log("saved printer queue unavailable or deleted: " + requested);
+        }
+        if (!fallbackToDefault) return string.Empty;
+        var defaultName = RawPrinter.DefaultPrinterName();
+        var currentDefault = printers.FirstOrDefault(name => string.Equals(name, defaultName, StringComparison.OrdinalIgnoreCase));
+        return !string.IsNullOrWhiteSpace(currentDefault) ? currentDefault : printers.FirstOrDefault() ?? string.Empty;
+    }
 
     public static List<string> InstalledPrinters()
     {
@@ -180,13 +206,22 @@ internal sealed class PrinterConfig
             foreach (var item in PrinterSettings.InstalledPrinters)
             {
                 var name = item as string;
-                if (!string.IsNullOrWhiteSpace(name)) names.Add(name);
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                try
+                {
+                    var settings = new PrinterSettings { PrinterName = name };
+                    if (settings.IsValid) names.Add(name);
+                    else Log("ignored invalid/deleted printer queue: " + name);
+                }
+                catch
+                {
+                }
             }
         }
         catch
         {
         }
-        return names;
+        return names.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
     public static void Log(string message)
