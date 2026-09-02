@@ -22,3 +22,5 @@ NEW: Pizza and pizza-deal cart lines show an Extra Topping checkbox between the 
 NEW: Compact order-note/payment ribbons, kitchen order notes, stable sales bars, one-role shift password, formatted Z-report, and animated Mnahel startup branding.
 
 NEW: Fixed logout viewport, reduced post-order lag, static larger order photos, multi-table waiters, cashier read-only Service Hub, M receipt logo, Eastern Cross Technology branding, and one installer artifact.
+
+HOTFIX: Menu and guided order setup vertical scrolling restored.
