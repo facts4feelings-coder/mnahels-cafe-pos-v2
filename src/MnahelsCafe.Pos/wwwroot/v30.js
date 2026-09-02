@@ -1,9 +1,9 @@
 (()=>{
 /* ==========================================================================
    Mnahel's Cafe POS - v30 layer - build 0.14.8
-   Owner    : TechMint Software Solutions - https://techmint.org
-   Copyright: (c) 2026 TechMint Software Solutions. All rights reserved.
-   A product by TechMint Software Solutions.
+   Owner    : Eastern Cross Technology - https://techmint.org
+   Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
+   A product by Eastern Cross Technology.
    Is layer me (0.14.8 se):
      1) F2 order popup ka reset (v32 me bhi mazbooti se, dono chalte hain)
      2) Toast/error popup ke UPAR dikhta hai (blur ke peechhe nahi chhupta)

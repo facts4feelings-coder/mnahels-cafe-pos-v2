@@ -1,9 +1,9 @@
 (()=>{
 /* ==========================================================================
    Mnahel's Cafe POS - v31 layer - build 0.15.25
-   Owner    : TechMint Software Solutions - https://techmint.org
-   Copyright: (c) 2026 TechMint Software Solutions. All rights reserved.
-   A product by TechMint Software Solutions.
+   Owner    : Eastern Cross Technology - https://techmint.org
+   Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
+   A product by Eastern Cross Technology.
 
    Print control (Settings > Receipt print size):
      - width / left offset / side margin / font size app ke andar se set

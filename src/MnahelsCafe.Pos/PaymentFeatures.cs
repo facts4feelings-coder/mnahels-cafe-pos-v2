@@ -55,8 +55,6 @@ static class PaymentFeatures
             if (!waiterId.HasValue) return Results.BadRequest(new { message = "Dine-in order ke liye available waiter select karein." });
             waiter = await db.ServicePeople.FirstOrDefaultAsync(x => x.Id == waiterId && x.Type == "Waiter" && x.IsActive);
             if (waiter is null) return Results.BadRequest(new { message = "Selected waiter available nahi hai." });
-            if (await db.Orders.AnyAsync(x => x.WaiterId == waiterId && x.Status != "Completed" && x.Status != "Cancelled"))
-                return Results.BadRequest(new { message = $"{waiter.Name} already booked hai." });
         }
 
         var variantIds = request.Items.Select(x => x.VariantId).Distinct().ToList();

@@ -1,7 +1,7 @@
 /*
  * Mnahel's Cafe POS · v0.15.6 inline booking and order operations
- * Owner: TechMint Software Solutions · https://techmint.org
- * A product by TechMint Software Solutions.
+ * Owner: Eastern Cross Technology · https://techmint.org
+ * A product by Eastern Cross Technology.
  */
 (()=>{
 'use strict';

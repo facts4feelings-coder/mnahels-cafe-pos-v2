@@ -1,6 +1,6 @@
 /*
  * Mnahel's Cafe POS · v0.15.30 visible pizza/deal extra-topping checkbox
- * Copyright (c) 2026 TechMint Software Solutions. All rights reserved.
+ * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  */
 (()=>{
 'use strict';
@@ -36,6 +36,6 @@ function expandedItems(items){const topping=toppingProduct(),toppingIds=new Set(
 function hookApi(){const current=window.api;if(typeof current!=='function'||current===apiHook)return;const wrapped=async function(path,options={}){const method=String(options.method||'GET').toUpperCase();if((path==='/api/orders'||path==='/api/orders/book')&&method==='POST'&&options.body){try{const body=JSON.parse(options.body);body.items=expandedItems(body.items);body.discount=discountAmount();options={...options,body:JSON.stringify(body)}}catch(error){console.warn('[v52 topping payload]',error)}}return current(path,options)};wrapped.__v52=true;apiHook=wrapped;window.api=wrapped}
 function boot(){document.documentElement.dataset.uiRevision=REV;window.__MNAHELS_UI_REVISION__=REV;hookTotals();hookCart();hookProducts();hookApi();hideStandaloneTopping();decorateCart();paintTotals()}
 document.addEventListener('click',event=>{if(event.target.closest?.('.product-card,#cart-items button,#clear-cart'))setTimeout(()=>{hideStandaloneTopping();decorateCart()},0)},true);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,250);setTimeout(boot,900);setInterval(()=>{if(document.visibilityState==='visible')boot()},3500);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,250);setTimeout(boot,900);setInterval(()=>{if(document.visibilityState==='visible'&&q('#cart-items'))boot()},10000);
 window.mnahelsV52={build:BUILD,uiRevision:REV,subtotal,discountAmount,toppingFor,modifierContext,expandedItems,decorateCart};
 })();

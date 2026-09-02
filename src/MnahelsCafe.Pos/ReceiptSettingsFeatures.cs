@@ -1,7 +1,7 @@
 /*
  * Mnahel's Cafe POS · shared receipt print settings
- * Owner: TechMint Software Solutions · https://techmint.org
- * A product by TechMint Software Solutions.
+ * Owner: Eastern Cross Technology · https://techmint.org
+ * A product by Eastern Cross Technology.
  */
 using System.Text.Json;
 

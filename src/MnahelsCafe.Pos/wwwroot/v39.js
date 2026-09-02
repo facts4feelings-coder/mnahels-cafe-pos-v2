@@ -1,7 +1,7 @@
 /*
  * Mnahel's Cafe POS · v0.15.12 compact five-item cart, percent discount and menu refresh
- * Copyright (c) 2026 TechMint Software Solutions. All rights reserved.
- * A product by TechMint Software Solutions.
+ * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
+ * A product by Eastern Cross Technology.
  */
 (()=>{
 'use strict';

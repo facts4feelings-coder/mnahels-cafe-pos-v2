@@ -1,8 +1,8 @@
 /*
  * ============================================================================
  *  Mnahel's Cafe POS · Desktop shell — PROPRIETARY SOFTWARE. DO NOT MODIFY.
- *  Owner    : TechMint Software Solutions · https://techmint.org
- *  Copyright: (c) 2026 TechMint Software Solutions. All rights reserved.
+ *  Owner    : Eastern Cross Technology · https://techmint.org
+ *  Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
  * ============================================================================
  */
 

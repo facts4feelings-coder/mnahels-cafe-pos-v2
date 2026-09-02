@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.25 cashier navigation and keyboard menu refinement · A product by TechMint Software Solutions */
+/* Mnahel's Cafe POS v0.15.25 cashier navigation and keyboard menu refinement · A product by Eastern Cross Technology */
 
 /* Cashier gets the current menu plus the same live operations dashboard used by admin. */
 html.v42-cashier .sidebar nav>.nav-item{display:none!important}
