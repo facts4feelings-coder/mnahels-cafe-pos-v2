@@ -17,13 +17,14 @@ function restoreNav(nav){qa(':scope>.nav-item',nav).forEach(button=>{if(button.d
 function trackingTitle(){if(!isCashier()||typeof state==='undefined'||state.currentScreen!=='admin')return;const kicker=q('#page-kicker'),title=q('#page-title');if(kicker)kicker.textContent='LIVE OPERATIONS';if(title)title.textContent='Order Tracking'}
 function syncNavigation(){
  const user=currentUser(),nav=q('.sidebar nav');document.documentElement.classList.toggle('v42-cashier',isCashier());if(!user||!nav)return;
- const dashboard=q('[data-screen="admin"]',nav),menu=q('[data-screen="pos"]',nav),shift=q('[data-screen="shift"]',nav);
+ const dashboard=q('[data-screen="admin"]',nav),menu=q('[data-screen="pos"]',nav),shift=q('[data-screen="shift"]',nav),service=q('[data-screen="service"]',nav);
  restoreNav(nav);
  if(isCashier()){
-  qa(':scope>.nav-item',nav).forEach(button=>{const keep=button===dashboard||button===menu||button===shift;if(!keep){button.dataset.v42Hidden='1';button.style.setProperty('display','none','important')}});
+  qa(':scope>.nav-item',nav).forEach(button=>{const keep=button===dashboard||button===menu||button===shift||button===service;if(!keep){button.dataset.v42Hidden='1';button.style.setProperty('display','none','important')}});
   if(dashboard){dashboard.style.setProperty('display','flex','important');setNavLabel(dashboard,'Order Tracking',trackingIcon)}
   if(menu){menu.style.setProperty('display','flex','important');setNavLabel(menu,'Our Menu')}
   if(shift){shift.style.setProperty('display','flex','important');setNavLabel(shift,'Shift Details')}
+  if(service){service.style.setProperty('display','flex','important');setNavLabel(service,'Service Hub')}
   trackingTitle();
  }else{
   if(dashboard)setNavLabel(dashboard,'Dashboard');if(menu)setNavLabel(menu,'Our Menu');
