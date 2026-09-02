@@ -65,7 +65,7 @@ internal sealed class PosWindow : Form
 {
     private const int ResizeBorder = 7;
 
-    internal const string BuildTag = "0.15.33";
+    internal const string BuildTag = "0.15.34";
 
     private const string BridgeScript =
         "(function(){document.documentElement.classList.add('mnahels-desktop-shell');window.__mnahelsDualPrintBridge=true;window.__mnahelsSilentPrint=true;" +
