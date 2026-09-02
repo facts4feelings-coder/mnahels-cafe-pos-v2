@@ -1,0 +1,25 @@
+/*
+ * Mnahel's Cafe POS · v0.15.36 printer recovery and category rail polish
+ * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
+ * A product by Eastern Cross Technology.
+ */
+
+/* Category rail remains scrollable without showing a permanent scrollbar. */
+html.v55-menu-rail #screen-pos #categories{scrollbar-width:none!important;-ms-overflow-style:none!important}
+html.v55-menu-rail #screen-pos #categories::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+
+/* Keep both navigation rails anchored while only menu content moves. */
+@media(min-width:1101px){
+ #app-shell>.sidebar{position:sticky!important;top:0!important;height:100dvh!important;max-height:100dvh!important}
+ html.v55-menu-rail #screen-pos #categories{position:sticky!important;top:72px!important;align-self:start!important;max-height:calc(100dvh - 88px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+ html.v55-menu-rail #screen-pos #product-grid{align-self:start!important}
+}
+
+/* Automatic exports are intentionally disabled; manual JPG stays available. */
+#v45-auto-jpg:disabled{cursor:not-allowed!important;opacity:.55!important}
+.v56-manual-only{opacity:.82!important}
+.v56-manual-only b{color:#e9dfca!important}
+.v56-manual-only small{color:#9f988a!important}
+.v56-printing{pointer-events:none!important;opacity:.72!important}
+
+#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.36"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
