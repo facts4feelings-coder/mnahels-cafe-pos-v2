@@ -21,7 +21,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>false</InvariantGlobalization>
-    <Version>0.15.34</Version>
+    <Version>0.15.35</Version>
     <ApplicationIcon Condition="'$(OS)' == 'Windows_NT'">Assets\MnahelsCafe.ico</ApplicationIcon>
     <Company>Eastern Cross Technology</Company>
     <Authors>Eastern Cross Technology (techmint.org)</Authors>
