@@ -21,6 +21,7 @@ jobs:
     env:
       BRANCH: release/v0.15.34-delivery-receipts
       GH_TOKEN: ${{ github.token }}
+      PYTHONUTF8: '1'
     steps:
       - name: Checkout release branch
         uses: actions/checkout@v4
