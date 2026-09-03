@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.Runtime.CompilerServices;
 using Microsoft.Web.WebView2.WinForms;
 
@@ -85,10 +86,24 @@ internal static class BrandingPerformanceFeatures
         {
             try
             {
-                using var icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
-                return icon?.ToBitmap();
+                var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "MnahelsCafe.ico");
+                if (File.Exists(iconPath))
+                {
+                    using var fullIcon = new Icon(iconPath, new Size(256, 256));
+                    return fullIcon.ToBitmap();
+                }
+                using var embeddedIcon = new Icon(Application.ExecutablePath, new Size(256, 256));
+                return embeddedIcon.ToBitmap();
             }
-            catch { return null; }
+            catch
+            {
+                try
+                {
+                    using var fallback = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+                    return fallback?.ToBitmap();
+                }
+                catch { return null; }
+            }
         }
 
         private void OnFrame(object? sender, EventArgs e)
@@ -113,15 +128,16 @@ internal static class BrandingPerformanceFeatures
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
             var enter = Math.Clamp(_clock.Elapsed.TotalMilliseconds / 760d, 0d, 1d);
             var eased = 1d - Math.Pow(1d - enter, 3d);
             var fade = _readyAt is null ? 1d : 1d - Math.Clamp((_clock.ElapsedMilliseconds - _readyAt.Value) / 180d, 0d, 1d);
             var alpha = (float)(eased * fade);
             var offset = (float)((1d - eased) * 14d);
-            var logoSize = Math.Min(176, Math.Max(124, Height / 3));
+            var logoSize = Math.Min(220, Math.Max(160, Height / 3));
             var logoX = (Width - logoSize) / 2;
-            var logoY = Math.Max(34, (Height - 360) / 2) + (int)offset;
+            var logoY = Math.Max(28, (Height - 405) / 2) + (int)offset;
 
             if (_logo is not null)
             {
@@ -133,7 +149,7 @@ internal static class BrandingPerformanceFeatures
             _titleBrush.Color = Color.FromArgb((int)(255 * alpha), 255, 255, 255);
             _goldBrush.Color = Color.FromArgb((int)(255 * alpha), 244, 190, 26);
             _statusBrush.Color = Color.FromArgb((int)(230 * alpha), 172, 172, 172);
-            var titleY = logoY + logoSize + 17;
+            var titleY = logoY + logoSize + 14;
             g.DrawString("Mnahel's Cafe POS", _titleFont, _titleBrush, new RectangleF(24, titleY, Width - 48, 44), _center);
             g.DrawString("THE WORLD OF TASTE", _taglineFont, _goldBrush, new RectangleF(24, titleY + 42, Width - 48, 22), _center);
 

@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.39 desktop release label
+ * Mnahel's Cafe POS · v0.15.40 desktop release label
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */
@@ -10,7 +10,7 @@ namespace MnahelsCafe.Desktop;
 internal static class ReleaseDisplayVersion
 {
     private const string Previous = "v0.15.34";
-    private const string Current = "v0.15.39";
+    private const string Current = "v0.15.40";
 
     [ModuleInitializer]
     internal static void Initialize()
