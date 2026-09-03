@@ -1,4 +1,4 @@
-MNAHEL'S CAFE POS v0.15.38 — COMPLETE SOURCE PACKAGE
+MNAHEL'S CAFE POS v0.15.39 — COMPLETE SOURCE PACKAGE
 
 ASAN TAREEQA
 1. ZIP ko poora Extract All karein. ZIP ke andar se app na chalayein.
@@ -13,18 +13,18 @@ Download: https://dotnet.microsoft.com/download/dotnet/8.0
 
 Agar app start na ho to black/PowerShell window ki poori error screenshot bhej dein.
 
-VERSION: 0.15.38
+VERSION: 0.15.39
 MENU PHOTOS: 91 optimized WebP files
 TIN PACK: Red Bull, Coca Cola, Pepsi, 7UP, Sprite
 
-FIX: Edit order now opens the exact standard booking cart on the right. Existing items appear in that cart, menu items can be added or removed, quantities and notes can be changed, and Update order saves the same booked order.
+FIX: Automatic receipt JPG download is restored and enabled. The setting remains user-toggleable, while duplicate-download protection stays active.
+
+NEW: Supplied Mnahel's Cafe logo is used for app, login, sidebar, browser/native icon and the smooth startup screen. Receipt logo and receipt design remain unchanged.
+
+PERFORMANCE: Post-order menu animations are stopped and cleaned, stale fly-to-cart elements are removed, repeated UI work is throttled, and background order polling is reduced and screen-gated.
+
+FIX: Edit order opens the standard booking cart on the right. Existing items appear in that cart, menu items can be added or removed, quantities and notes can be changed, and Update order saves the same booked order.
 
 NEW: Active unpaid booked orders can be opened back in the POS cart and safely updated with an audit entry.
 
-HOTFIX: Automatic JPG downloads are disabled, manual JPG remains available, deleted/stale Windows printer queues recover to a valid installed/default printer, category scrollbar is hidden, and both category/sidebar rails stay sticky.
-
 NEW: Sticky left-side menu categories with larger icons and names, live waiter table/order hover details, red booked-table labels, cashier role gating, and the easterncrosstech.com receipt footer.
-
-NEW: Pizza and pizza-deal cart lines show an Extra Topping checkbox between the name and quantity. Price follows pizza size and prints on the receipt.
-
-NEW: Compact order-note/payment ribbons, kitchen order notes, stable sales bars, one-role shift password, formatted Z-report, and animated Mnahel startup branding.
