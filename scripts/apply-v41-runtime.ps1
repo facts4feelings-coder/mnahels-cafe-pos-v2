@@ -14,7 +14,7 @@ const footer=q('.tp-foot',receipt);if(footer){c.setLineDash([4,3]);c.lineWidth=1
 }
 if ($v45 -notmatch 'v42-address') {
   $v45 = $v45.Replace("c.fillStyle=blackHeader?'#000':'#fff';c.fillRect(0,0,width,90);c.strokeStyle='#000';c.lineWidth=blackHeader?0:2;if(!blackHeader)c.strokeRect(1,1,width-2,88);", "c.fillStyle=blackHeader?'#000':'#fff';c.fillRect(0,0,width,110);c.strokeStyle='#000';c.lineWidth=blackHeader?0:2;if(!blackHeader)c.strokeRect(1,1,width-2,108);")
-  $v45 = $v45.Replace("const brand=textOf(receipt,'.v43-brand b',\"MNAHEL'S CAFE\"),sub=textOf(receipt,'.v43-brand small','THE WORLD OF TASTE'),mode=", "const brand=textOf(receipt,'.v43-brand b',\"MNAHEL'S CAFE\"),sub=textOf(receipt,'.v43-brand small','THE WORLD OF TASTE'),address=textOf(receipt,'.v57-address','Ada 25/85 Gaggoo Mandi, Lahore Road'),mode=")
+  $v45 = $v45.Replace("const brand=textOf(receipt,'.v43-brand b',\"MNAHEL'S CAFE\"),sub=textOf(receipt,'.v43-brand small','THE WORLD OF TASTE'),mode=", "const brand=textOf(receipt,'.v43-brand b',\"MNAHEL'S CAFE\"),sub=textOf(receipt,'.v43-brand small','THE WORLD OF TASTE'),address=textOf(receipt,'.v57-address','Ada  25/85 Gaggoo Mandi, Lahore Road'),mode=")
   $v45 = $v45.Replace("const brandSize=Math.min(18.5,Math.max(15,width/18));", "const brandSize=Math.min(20,Math.max(16,width/17));")
   $v45 = $v45.Replace("p.font(8.2,900);p.drawLines([sub],width/2,37,9,'center');", "p.font(9.2,900);p.drawLines([sub],width/2,37,10,'center');p.font(8.2,900);p.drawLines([address],width/2,49,9,'center');/*v42-address*/")
   $v45 = $v45.Replace("drawModeIcon(c,modeKey,8,58,25,headInk);c.fillStyle=headInk;p.font(10.8,950);c.fillText(mode,39,64);", "drawModeIcon(c,modeKey,8,78,25,headInk);c.fillStyle=headInk;p.font(10.8,950);c.fillText(mode,39,84);")
