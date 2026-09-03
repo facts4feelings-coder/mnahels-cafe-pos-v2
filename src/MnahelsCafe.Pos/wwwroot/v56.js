@@ -1,11 +1,11 @@
 /*
- * Mnahel's Cafe POS · v0.15.37 booked-order cart editing and printer recovery
+ * Mnahel's Cafe POS · v0.15.38 booked-order cart editing and printer recovery
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */
 (()=>{
 'use strict';
-const BUILD='0.15.37',REV='20260903-order-editing-37',AUTO_KEY='mnahels.receipt-auto-jpg';
+const BUILD='0.15.38',REV='20260903-order-edit-cart-38',AUTO_KEY='mnahels.receipt-auto-jpg';
 const q=(selector,root=document)=>root.querySelector(selector),qa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const E=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 let manualDownloadUntil=0,editingOrder=null,updateBusy=false,ordersBusy=false,ordersLoadedAt=0;
@@ -54,7 +54,7 @@ async function loadEditableOrders(force=false){
  if(!force&&Date.now()-ordersLoadedAt<4000){decorateOrderCards();return}
  ordersBusy=true;
  try{const rows=await api('/api/orders?take=200');if(Array.isArray(rows)){rows.forEach(order=>orderCache.set(String(order.id),order));ordersLoadedAt=Date.now();decorateOrderCards()}}
- catch(error){console.warn('[v0.15.37 orders]',error?.message||error)}finally{ordersBusy=false}
+ catch(error){console.warn('[v0.15.38 orders]',error?.message||error)}finally{ordersBusy=false}
 }
 function decorateOrderCards(){
  qa('#admin-orders .v36-order-card').forEach(card=>{
@@ -106,15 +106,16 @@ async function beginEdit(id){
   const mapped=cartFromOrder(order);if(mapped.missing.length)throw Error(`Ye item current menu mein available nahi: ${mapped.missing.join(', ')}`);
   try{navigate('pos')}catch{q('[data-screen="pos"]')?.click()}
   editingOrder=order;orderCache.set(String(order.id),order);state.cart=mapped.cart;state.orderType=order.orderType;state.tableId=order.tableId||order.tableNumber||null;state.tableNumber=state.tableId;state.waiterId=order.waiterId||null;state.riderId=order.riderId||null;state.v38ProposedToken=order.tokenNumber;state.v38SetupDone=true;state.v56EditingOrderId=order.id;
+  const screen=q('#screen-pos');screen?.classList.add('v35-booking-open','v38-ready','v56-editing-order');document.documentElement.classList.add('v35-booking-active','v56-editing-order');
   setValue('#customer-name',order.customerName||'');setValue('#customer-phone',order.customerPhone||'');setValue('#delivery-address',order.deliveryAddress||'');setValue('#order-note',order.notes||'');setDiscount(order);setOrderMode(order.orderType);
   q('#v38-order-context')?.remove();const toolbar=q('#screen-pos .catalog-panel .toolbar');if(toolbar){const bar=document.createElement('section');bar.id='v38-order-context';bar.className='v56-edit-context';bar.innerHTML=contextMarkup(order);toolbar.after(bar)}
-  renderCart();window.totals?.();syncEditUi();q('#search')?.focus();say(`MC-${order.tokenNumber} cart mein open ho gaya. Items add/remove karke Update order karein.`);
+  renderCart();window.totals?.();syncEditUi();q('#search')?.focus();say(`MC-${order.tokenNumber} proper cart mein open ho gaya. Items add/remove karke Update order karein.`);
  }catch(error){say(error.message||'Order edit ke liye load nahi hua.')}
 }
 function clearEditForm(){
  const old=editingOrder;editingOrder=null;if(typeof state!=='undefined'){state.cart=[];state.v38SetupDone=false;state.v56EditingOrderId=null;state.tableId=null;state.tableNumber=null;state.waiterId=null;state.riderId=null}
  q('#v38-order-context')?.remove();const discount=q('#discount');if(discount){discount.value='';discount.dataset.v39Percent='0'}setValue('#order-note','');setValue('#customer-name','');setValue('#customer-phone','');setValue('#delivery-address','');
- document.documentElement.classList.remove('v56-editing-order');q('#screen-pos')?.classList.remove('v56-editing-order');syncEditUi();const button=q('#place-order');if(button)button.innerHTML='<span>Book order</span><b id="button-total">Rs 0</b>';renderCart();window.totals?.();
+ document.documentElement.classList.remove('v35-booking-active','v56-editing-order');const screen=q('#screen-pos');screen?.classList.remove('v35-booking-open','v38-ready','v56-editing-order');syncEditUi();const button=q('#place-order');if(button)button.innerHTML='<span>Book order</span><b id="button-total">Rs 0</b>';renderCart();window.totals?.();
  const head=q('#screen-pos .cart-head h3'),eyebrow=q('#screen-pos .cart-head .eyebrow');if(head){head.textContent='Current order';delete head.dataset.v38Locked}if(eyebrow)eyebrow.textContent='CURRENT ORDER';return old;
 }
 function cancelEdit(){if(!editingOrder)return;if(confirm(`MC-${editingOrder.tokenNumber} ki unsaved changes discard karni hain?`)){const order=clearEditForm();say(`MC-${order?.tokenNumber||''} edit cancelled.`)}}

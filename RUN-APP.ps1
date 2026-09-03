@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
-$buildVersion = "0.15.37"
-$uiRevision = "20260903-order-editing-37"
+$buildVersion = "0.15.38"
+$uiRevision = "20260903-order-edit-cart-38"
 
 # Relaunch as Administrator when needed.
 $currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
