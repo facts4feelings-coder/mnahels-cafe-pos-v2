@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
-$buildVersion = "0.15.38"
-$uiRevision = "20260903-order-edit-cart-38"
+$buildVersion = "0.15.39"
+$uiRevision = "20260903-logo-auto-jpg-performance-39"
 
 # Relaunch as Administrator when needed.
 $currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -35,18 +35,13 @@ if (-not (dotnet --list-sdks | Select-String "^8\.")) {
     throw ".NET 8 SDK is required."
 }
 
-# Stop the old installed server so it cannot serve the legacy UI on port 5055.
 Stop-Service -Name "MnahelsCafePOS" -Force -ErrorAction SilentlyContinue
 Get-Process -Name "MnahelsCafe.Pos" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Get-Process -Name "MnahelsCafe.Desktop" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
-$portProcessIds = Get-NetTCPConnection -LocalPort 5055 -State Listen -ErrorAction SilentlyContinue |
-    Select-Object -ExpandProperty OwningProcess -Unique
-
+$portProcessIds = Get-NetTCPConnection -LocalPort 5055 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
 foreach ($processId in $portProcessIds) {
-    if ($processId -gt 4) {
-        Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
-    }
+    if ($processId -gt 4) { Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue }
 }
 
 Remove-Item "$env:LOCALAPPDATA\MnahelsCafePOS\WebView2-Cashier" -Recurse -Force -ErrorAction SilentlyContinue
@@ -62,16 +57,11 @@ if ($LASTEXITCODE -ne 0) { throw "Server build failed." }
 & dotnet build $desktopProject --configuration Release --no-restore
 if ($LASTEXITCODE -ne 0) { throw "Desktop build failed." }
 
-$serverDll = Get-ChildItem (Join-Path $root "src\MnahelsCafe.Pos\bin\Release") -Recurse -Filter "MnahelsCafe.Pos.dll" |
-    Select-Object -First 1 -ExpandProperty FullName
-$desktopDll = Get-ChildItem (Join-Path $root "src\MnahelsCafe.Desktop\bin\Release") -Recurse -Filter "MnahelsCafe.Desktop.dll" |
-    Select-Object -First 1 -ExpandProperty FullName
-$desktopExe = Get-ChildItem (Join-Path $root "src\MnahelsCafe.Desktop\bin\Release") -Recurse -Filter "MnahelsCafe.Desktop.exe" |
-    Select-Object -First 1 -ExpandProperty FullName
+$serverDll = Get-ChildItem (Join-Path $root "src\MnahelsCafe.Pos\bin\Release") -Recurse -Filter "MnahelsCafe.Pos.dll" | Select-Object -First 1 -ExpandProperty FullName
+$desktopDll = Get-ChildItem (Join-Path $root "src\MnahelsCafe.Desktop\bin\Release") -Recurse -Filter "MnahelsCafe.Desktop.dll" | Select-Object -First 1 -ExpandProperty FullName
+$desktopExe = Get-ChildItem (Join-Path $root "src\MnahelsCafe.Desktop\bin\Release") -Recurse -Filter "MnahelsCafe.Desktop.exe" | Select-Object -First 1 -ExpandProperty FullName
 
-if (-not $serverDll -or (-not $desktopExe -and -not $desktopDll)) {
-    throw "Build output was not found."
-}
+if (-not $serverDll -or (-not $desktopExe -and -not $desktopDll)) { throw "Build output was not found." }
 
 Write-Host "Starting new local server..." -ForegroundColor Cyan
 $serverProcess = Start-Process dotnet -ArgumentList @("`"$serverDll`"", "--urls", "http://localhost:5055", "--contentRoot", "`"$serverDirectory`"") -WorkingDirectory $serverDirectory -WindowStyle Hidden -PassThru
@@ -81,7 +71,7 @@ for ($attempt = 1; $attempt -le 30; $attempt++) {
     Start-Sleep -Seconds 1
     try {
         $response = Invoke-WebRequest "http://localhost:5055/v56.js?v=$uiRevision" -UseBasicParsing -TimeoutSec 2
-        $expectedBuild = [regex]::Escape("const BUILD='$buildVersion'")
+        $expectedBuild = [regex]::Escape("const RELEASE = '$buildVersion'")
         $expectedRevision = [regex]::Escape($uiRevision)
         if ($response.StatusCode -eq 200 -and $response.Content -match $expectedBuild -and $response.Content -match $expectedRevision) {
             $ready = $true
@@ -97,21 +87,16 @@ if (-not $ready) {
 }
 
 Write-Host "Mnahel's Cafe POS v$buildVersion verified. Starting app..." -ForegroundColor Green
-
 $desktopProcess = $null
 try {
     $desktopDirectory = if ($desktopExe) { Split-Path $desktopExe -Parent } else { Split-Path $desktopDll -Parent }
-    if ($desktopExe) {
-        $desktopProcess = Start-Process $desktopExe -WorkingDirectory $desktopDirectory -PassThru
-    } else {
-        $desktopProcess = Start-Process dotnet -ArgumentList @("`"$desktopDll`"") -WorkingDirectory $desktopDirectory -PassThru
-    }
+    if ($desktopExe) { $desktopProcess = Start-Process $desktopExe -WorkingDirectory $desktopDirectory -PassThru }
+    else { $desktopProcess = Start-Process dotnet -ArgumentList @("`"$desktopDll`"") -WorkingDirectory $desktopDirectory -PassThru }
 
     Start-Sleep -Seconds 3
     if ($desktopProcess.HasExited) {
         throw "Desktop app immediately close ho gayi. Microsoft Edge WebView2 Runtime install/repair karke dobara RUN-APP.ps1 chalayein."
     }
-
     Write-Host "Desktop app window started. Is PowerShell window ko app band hone tak close na karein." -ForegroundColor Green
     Wait-Process -Id $desktopProcess.Id
 } finally {

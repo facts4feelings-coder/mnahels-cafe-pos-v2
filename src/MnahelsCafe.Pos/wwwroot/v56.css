@@ -1,43 +1,42 @@
-/*
- * Mnahel's Cafe POS · v0.15.38 booked-order cart editing and printer recovery
- * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
- * A product by Eastern Cross Technology.
- */
+/* v0.15.39 — supplied branding, automatic receipt JPG recovery, and stable post-order rendering */
+:root{--mnahels-brand-logo:none}
 
-/* Category rail remains scrollable without showing a permanent scrollbar. */
-html.v55-menu-rail #screen-pos #categories{scrollbar-width:none!important;-ms-overflow-style:none!important}
-html.v55-menu-rail #screen-pos #categories::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
-
-/* Keep both navigation rails anchored while only menu content moves. */
-@media(min-width:1101px){
- #app-shell>.sidebar{position:sticky!important;top:0!important;height:100dvh!important;max-height:100dvh!important}
- html.v55-menu-rail #screen-pos #categories{position:sticky!important;top:72px!important;align-self:start!important;max-height:calc(100dvh - 88px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
- html.v55-menu-rail #screen-pos #product-grid{align-self:start!important}
+.v56-logo-ready .brand-mark,
+.v56-logo-ready .v46-mark,
+.v56-logo-ready .v38-setup-brand>span{
+  background:#050505 var(--mnahels-brand-logo) center/cover no-repeat!important;
+  color:transparent!important;
+  overflow:hidden!important;
+  border-color:rgba(255,199,23,.65)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.24)!important;
 }
+.v56-logo-ready .brand-mark>*,
+.v56-logo-ready .v46-mark>*,
+.v56-logo-ready .v38-setup-brand>span>*{opacity:0!important}
+.v56-logo-ready .brand-mark{border-radius:50%!important;background-size:108%!important}
+.v56-logo-ready .brand-mark.tiny{background-size:112%!important}
+.v56-logo-ready .ma-login-content .brand-mark{width:104px!important;height:104px!important;border:2px solid rgba(255,199,23,.7)!important}
 
-/* Automatic exports are intentionally disabled; manual JPG stays available. */
-#v45-auto-jpg:disabled{cursor:not-allowed!important;opacity:.55!important}
-.v56-manual-only{opacity:.82!important}
-.v56-manual-only b{color:#e9dfca!important}
-.v56-manual-only small{color:#9f988a!important}
-.v56-printing{pointer-events:none!important;opacity:.72!important}
+#v45-auto-jpg:disabled{opacity:1!important;cursor:pointer!important}
+#v45-auto-jpg:disabled+span{opacity:1!important;color:inherit!important}
 
-/* Booked-order editing reuses the exact standard booking cart on the right. */
-.v56-edit-order{border:1px solid rgba(244,191,36,.62)!important;background:rgba(244,191,36,.12)!important;color:#f4bf24!important;border-radius:10px!important;padding:8px 12px!important;font-weight:800!important;white-space:nowrap!important}
-.v56-edit-order:hover{background:#f4bf24!important;color:#18140a!important}
-.v56-edit-context{display:grid!important;grid-template-columns:auto minmax(190px,1fr) minmax(160px,.7fr) auto!important;gap:14px!important;align-items:center!important;border:1px solid rgba(244,191,36,.45)!important;background:linear-gradient(120deg,rgba(244,191,36,.16),rgba(244,191,36,.05))!important;box-shadow:0 16px 38px rgba(0,0,0,.2)!important}
-.v56-edit-context>span{display:grid;gap:2px;min-width:0}.v56-edit-context small{font-size:10px;letter-spacing:.12em;color:#b9af9a}.v56-edit-context b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.v56-edit-token{display:grid!important;place-items:center!important;min-height:44px!important;padding:0 14px!important;border-radius:10px!important;background:#f4bf24!important;color:#18140a!important;font-weight:950!important}
-.v56-edit-context button{border:1px solid rgba(255,255,255,.18)!important;background:rgba(255,255,255,.06)!important;color:inherit!important;border-radius:10px!important;padding:10px 13px!important;font-weight:800!important}
-html.v56-editing-order #screen-pos .pos-grid{grid-template-columns:minmax(0,1fr) 332px!important;gap:12px!important}
-html.v56-editing-order #screen-pos .cart-panel{display:flex!important;visibility:visible!important;opacity:1!important;position:relative!important;inset:auto!important;transform:none!important;flex-direction:column!important;min-width:0!important;border-radius:22px!important}
-html.v56-editing-order #screen-pos .product-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
-html.v56-editing-order #screen-pos .segment,html.v56-editing-order #v36-assignment-fields,html.v56-editing-order #v41-book-actions,html.v56-editing-order #screen-pos .pay-row,html.v56-editing-order #v36-cash-box,html.v56-editing-order #v41-book-reference{display:none!important}
-html.v56-editing-order #screen-pos .cart-items{min-height:180px!important;max-height:calc(100dvh - 430px)!important}
-html.v56-editing-order #place-order{background:linear-gradient(135deg,#f4bf24,#d99b00)!important;color:#18140a!important;box-shadow:0 14px 34px rgba(244,191,36,.22)!important}
-html.v56-editing-order #screen-pos .cart-head{border-color:rgba(244,191,36,.45)!important}
-html.v56-editing-order #customer-name,html.v56-editing-order #customer-phone,html.v56-editing-order #delivery-address{opacity:.72!important;cursor:not-allowed!important}
-@media(min-width:1101px) and (max-width:1260px){html.v56-editing-order #screen-pos .pos-grid{grid-template-columns:minmax(0,1fr) 320px!important}html.v56-editing-order #screen-pos .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
-@media(max-width:900px){.v56-edit-context{grid-template-columns:1fr!important}.v56-edit-token{justify-self:start}.v56-edit-context button{width:100%}html.v56-editing-order #screen-pos .cart-panel{position:fixed!important;z-index:120!important;top:58px!important;right:0!important;bottom:0!important;width:min(392px,100vw)!important;border-radius:22px 0 0 22px!important;box-shadow:-24px 0 60px rgba(0,0,0,.5)!important}}
+.v56-edit-banner{margin:0 0 10px;padding:10px 12px;border:1px solid rgba(255,198,18,.52);border-radius:12px;background:linear-gradient(135deg,rgba(255,198,18,.18),rgba(255,255,255,.04));display:flex;align-items:center;justify-content:space-between;gap:12px}
+.v56-edit-banner div{display:grid;gap:2px}.v56-edit-banner small{font-size:10px;letter-spacing:.12em;color:#ffd65f}.v56-edit-banner strong{font-size:13px}.v56-edit-banner button{border:1px solid rgba(255,255,255,.2);border-radius:9px;background:#222;color:#fff;padding:7px 10px;cursor:pointer}
+.v56-editing-order .cart-head h3{color:#ffd65f}
 
-#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.38"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
+.v56-operation-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 2px}
+.v56-operation-actions button{border:1px solid rgba(255,255,255,.13);border-radius:8px;background:#232323;color:#f5f5f5;padding:6px 9px;font:700 11px/1.1 inherit;cursor:pointer}
+.v56-operation-actions button:hover{border-color:#f2bd16;color:#ffd84d}.v56-operation-actions .danger:hover{border-color:#f87171;color:#fecaca}
+.v56-last-operation{outline:1px solid rgba(242,189,22,.35);outline-offset:2px}
+
+.v56-printer-recovery{margin-top:12px;padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.035)}
+.v56-printer-recovery h4{margin:0 0 4px}.v56-printer-recovery p{margin:0 0 10px;color:#a9a9a9;font-size:12px}.v56-printer-recovery div{display:flex;flex-wrap:wrap;gap:8px}.v56-printer-recovery button{border:1px solid rgba(255,255,255,.15);border-radius:9px;background:#202020;color:#fff;padding:8px 10px;cursor:pointer}
+
+html.v56-performance #screen-pos .product-grid{contain:layout style paint}
+html.v56-performance #screen-pos .product-card{contain:layout style paint;will-change:auto!important}
+html.v56-post-order-stable #screen-pos .product-card,
+html.v56-post-order-stable #screen-pos .product-card *{animation:none!important;transition-duration:.12s!important}
+html.v56-post-order-stable .v40-fly-ghost{display:none!important}
+
+@media(max-width:900px){.v56-logo-ready .ma-login-content .brand-mark{width:82px!important;height:82px!important}.v56-edit-banner{align-items:flex-start}.v56-operation-actions{gap:5px}}
+@media(prefers-reduced-motion:reduce){html.v56-performance *,html.v56-performance *::before,html.v56-performance *::after{scroll-behavior:auto!important}}
