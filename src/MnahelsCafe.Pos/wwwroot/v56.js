@@ -95,7 +95,7 @@ function syncEditUi(){
  const active=!!editingOrder;document.documentElement.classList.toggle('v56-editing-order',active);q('#screen-pos')?.classList.toggle('v56-editing-order',active);
  qa('#screen-pos [data-order-type],#screen-pos [data-payment],#v36-table,#v36-waiter,#v36-rider,#v41-pay-now').forEach(node=>lockControl(node,active));
  qa('#customer-name,#customer-phone,#delivery-address').forEach(node=>{if(active){if(node.dataset.v56WasReadOnly==null)node.dataset.v56WasReadOnly=node.readOnly?'1':'0';node.readOnly=true}else{node.readOnly=node.dataset.v56WasReadOnly==='1';delete node.dataset.v56WasReadOnly}});
- const place=q('#place-order'),label=q('#place-order span');if(place)place.dataset.v56Editing=active?'1':'0';if(label&&active)label.textContent='Update order';
+ const place=q('#place-order'),label=q('#place-order span'),wasActive=place?.dataset.v56Editing==='1';if(place)place.dataset.v56Editing=active?'1':'0';if(label){if(active)label.textContent='Update order';else if(wasActive)label.textContent='Book order'}
  const head=q('#screen-pos .cart-head h3'),eyebrow=q('#screen-pos .cart-head .eyebrow');if(active&&editingOrder){if(head){head.textContent=`MC-${editingOrder.tokenNumber}`;head.dataset.v38Locked='1'}if(eyebrow)eyebrow.textContent='EDIT BOOKED ORDER'}
 }
 async function beginEdit(id){
@@ -114,7 +114,7 @@ async function beginEdit(id){
 function clearEditForm(){
  const old=editingOrder;editingOrder=null;if(typeof state!=='undefined'){state.cart=[];state.v38SetupDone=false;state.v56EditingOrderId=null;state.tableId=null;state.tableNumber=null;state.waiterId=null;state.riderId=null}
  q('#v38-order-context')?.remove();const discount=q('#discount');if(discount){discount.value='';discount.dataset.v39Percent='0'}setValue('#order-note','');setValue('#customer-name','');setValue('#customer-phone','');setValue('#delivery-address','');
- document.documentElement.classList.remove('v56-editing-order');q('#screen-pos')?.classList.remove('v56-editing-order');syncEditUi();renderCart();window.totals?.();
+ document.documentElement.classList.remove('v56-editing-order');q('#screen-pos')?.classList.remove('v56-editing-order');syncEditUi();const button=q('#place-order');if(button)button.innerHTML='<span>Book order</span><b id="button-total">Rs 0</b>';renderCart();window.totals?.();
  const head=q('#screen-pos .cart-head h3'),eyebrow=q('#screen-pos .cart-head .eyebrow');if(head){head.textContent='Current order';delete head.dataset.v38Locked}if(eyebrow)eyebrow.textContent='CURRENT ORDER';return old;
 }
 function cancelEdit(){if(!editingOrder)return;if(confirm(`MC-${editingOrder.tokenNumber} ki unsaved changes discard karni hain?`)){const order=clearEditForm();say(`MC-${order?.tokenNumber||''} edit cancelled.`)}}
@@ -127,7 +127,7 @@ async function submitUpdate(){
   const updated=await api(`/api/orders/${editingOrder.id}`,{method:'PUT',body:JSON.stringify({items,discount,notes:q('#order-note')?.value.trim()||null})});
   orderCache.set(String(updated.id),updated);state.lastOrder=updated;const token=updated.tokenNumber;clearEditForm();state.dashboardSignature='';state.salesSignature='';state.orderSignature='';ordersLoadedAt=0;
   await Promise.allSettled([window.mnahelsV36?.renderOperations?.(true),window.mnahelsV36?.refreshHub?.(true),window.mnahelsV41?.refreshDue?.(true)]);q('.sidebar [data-screen="admin"]')?.click();say(`MC-${token} update ho gaya aur timeline Booked par reset ho gayi.`);
- }catch(error){say(error.message||'Order update nahi hua.')}finally{updateBusy=false;if(button){button.disabled=false;button.innerHTML=old||'<span>Update order</span><b id="button-total">Rs 0</b>'}syncEditUi();window.totals?.()}
+ }catch(error){say(error.message||'Order update nahi hua.')}finally{updateBusy=false;if(button){button.disabled=false;if(editingOrder)button.innerHTML=old||'<span>Update order</span><b id="button-total">Rs 0</b>'}syncEditUi();window.totals?.()}
 }
 function observeCards(){const box=q('#admin-orders');if(!box||box.dataset.v56EditWatch)return;box.dataset.v56EditWatch='1';new MutationObserver(()=>queueMicrotask(decorateOrderCards)).observe(box,{childList:true,subtree:true});decorateOrderCards()}
 function boot(){
