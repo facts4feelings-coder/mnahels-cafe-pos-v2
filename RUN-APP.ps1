@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
-$buildVersion = "0.15.36"
-$uiRevision = "20260903-printer-recovery-36"
+$buildVersion = "0.15.37"
+$uiRevision = "20260903-order-editing-37"
 
 # Relaunch as Administrator when needed.
 $currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
