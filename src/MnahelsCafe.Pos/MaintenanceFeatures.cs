@@ -7,6 +7,8 @@ static class MaintenanceFeatures
 
     public static void MapApi(RouteGroupBuilder api)
     {
+        OrderEditingFeatures.MapApi(api);
+
         api.MapPost("/admin/database/wipe", async (DatabaseWipeRequest request, PosDb db) =>
         {
             if (!string.Equals(request.Confirmation?.Trim(), DatabaseWipePhrase, StringComparison.Ordinal))

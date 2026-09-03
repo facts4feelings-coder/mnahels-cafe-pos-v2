@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.36 printer recovery and category rail polish
+ * Mnahel's Cafe POS · v0.15.37 booked-order cart editing and printer recovery
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */
@@ -22,4 +22,17 @@ html.v55-menu-rail #screen-pos #categories::-webkit-scrollbar{display:none!impor
 .v56-manual-only small{color:#9f988a!important}
 .v56-printing{pointer-events:none!important;opacity:.72!important}
 
-#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.36"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
+/* Booked-order editing uses the existing menu and cart instead of a new workflow. */
+.v56-edit-order{border:1px solid rgba(244,191,36,.62)!important;background:rgba(244,191,36,.12)!important;color:#f4bf24!important;border-radius:10px!important;padding:8px 12px!important;font-weight:800!important;white-space:nowrap!important}
+.v56-edit-order:hover{background:#f4bf24!important;color:#18140a!important}
+.v56-edit-context{display:grid!important;grid-template-columns:auto minmax(190px,1fr) minmax(160px,.7fr) auto!important;gap:14px!important;align-items:center!important;border:1px solid rgba(244,191,36,.45)!important;background:linear-gradient(120deg,rgba(244,191,36,.16),rgba(244,191,36,.05))!important;box-shadow:0 16px 38px rgba(0,0,0,.2)!important}
+.v56-edit-context>span{display:grid;gap:2px;min-width:0}.v56-edit-context small{font-size:10px;letter-spacing:.12em;color:#b9af9a}.v56-edit-context b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v56-edit-token{display:grid!important;place-items:center!important;min-height:44px!important;padding:0 14px!important;border-radius:10px!important;background:#f4bf24!important;color:#18140a!important;font-weight:950!important}
+.v56-edit-context button{border:1px solid rgba(255,255,255,.18)!important;background:rgba(255,255,255,.06)!important;color:inherit!important;border-radius:10px!important;padding:10px 13px!important;font-weight:800!important}
+html.v56-editing-order #screen-pos .segment,html.v56-editing-order #v36-assignment-fields,html.v56-editing-order #v41-book-actions,html.v56-editing-order #screen-pos .pay-row,html.v56-editing-order #v36-cash-box,html.v56-editing-order #v41-book-reference{display:none!important}
+html.v56-editing-order #place-order{background:linear-gradient(135deg,#f4bf24,#d99b00)!important;color:#18140a!important;box-shadow:0 14px 34px rgba(244,191,36,.22)!important}
+html.v56-editing-order #screen-pos .cart-head{border-color:rgba(244,191,36,.45)!important}
+html.v56-editing-order #customer-name,html.v56-editing-order #customer-phone,html.v56-editing-order #delivery-address{opacity:.72!important;cursor:not-allowed!important}
+@media(max-width:900px){.v56-edit-context{grid-template-columns:1fr!important}.v56-edit-token{justify-self:start}.v56-edit-context button{width:100%}}
+
+#v30-build,#v31-build,#v32-build{display:none!important}.side-bottom:before{content:"POS BUILD\A 0.15.37"!important;white-space:pre!important}.side-bottom:after{content:none!important;display:none!important}
