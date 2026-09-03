@@ -28,12 +28,12 @@ $v56 = [IO.File]::ReadAllText($v56Path)
 $v56 = [regex]::Replace($v56, "const RELEASE = '[^']+'", "const RELEASE = '0.15.42'", 1)
 $v56 = [regex]::Replace($v56, "const LOGO_URL = '[^']+'", "const LOGO_URL = '/assets/brand/mnahels-logo.b64?v=20260904-hd-original-42'", 1)
 [IO.File]::WriteAllText($v56Path, $v56)
-$seedPath = Join-Path $root 'src\MnahelsCafe.Pos\SeedData.cs'
-$seed = [IO.File]::ReadAllText($seedPath)
-if ($seed -notmatch 'V42MenuMigration\.Apply') {
-  $seed = [regex]::Replace($seed, 'db\.SaveChanges\(\);\r?\n    \}\r?\n\r?\n    static void SyncHotDrinksV41', "db.SaveChanges();`r`n        V42MenuMigration.Apply(db);`r`n    }`r`n`r`n    static void SyncHotDrinksV41", 1)
-  if ($seed -notmatch 'V42MenuMigration\.Apply') { throw 'Coffee & Tea migration hook did not match.' }
-  [IO.File]::WriteAllText($seedPath, $seed)
+$programPath = Join-Path $root 'src\MnahelsCafe.Pos\Program.cs'
+$program = [IO.File]::ReadAllText($programPath)
+if ($program -notmatch 'SeedData\.Apply\(db\);V42MenuMigration\.Apply\(db\);') {
+  $program = $program.Replace('SchemaUpgrade.Apply(db);SeedData.Apply(db);', 'SchemaUpgrade.Apply(db);SeedData.Apply(db);V42MenuMigration.Apply(db);')
+  if ($program -notmatch 'V42MenuMigration\.Apply\(db\);') { throw 'Coffee & Tea startup migration hook did not match.' }
+  [IO.File]::WriteAllText($programPath, $program)
 }
 $indexPath = Join-Path $root 'src\MnahelsCafe.Pos\wwwroot\index.html'
 $index = [IO.File]::ReadAllText($indexPath)

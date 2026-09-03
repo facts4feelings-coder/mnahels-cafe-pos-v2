@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 static class V42MenuMigration
 {
-    private static readonly string[] Names = ["Coffee", "Cardamom Tea", "Karrak Tea", "Black Coffee", "Green Tea"];
+    private static readonly string[] Names = new[] { "Coffee", "Cardamom Tea", "Karrak Tea", "Black Coffee", "Green Tea" };
 
     public static void Apply(PosDb db)
     {
@@ -16,7 +16,6 @@ static class V42MenuMigration
             var product = categories.SelectMany(x => x.Products).FirstOrDefault(x => x.Name == name);
             if (product is null) continue;
             product.Category = target;
-            target.Products.Add(product);
         }
         db.SaveChanges();
     }
