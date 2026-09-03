@@ -1,10 +1,14 @@
-/* v0.15.39 — supplied branding, automatic receipt JPG recovery, and stable post-order rendering */
+/* v0.15.40 — sharp supplied branding, automatic receipt JPG recovery, and stable post-order rendering */
 :root{--mnahels-brand-logo:none}
 
 .v56-logo-ready .brand-mark,
 .v56-logo-ready .v46-mark,
 .v56-logo-ready .v38-setup-brand>span{
-  background:#050505 var(--mnahels-brand-logo) center/cover no-repeat!important;
+  background-color:#050505!important;
+  background-image:var(--mnahels-brand-logo)!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:contain!important;
   color:transparent!important;
   overflow:hidden!important;
   border-color:rgba(255,199,23,.65)!important;
@@ -13,8 +17,8 @@
 .v56-logo-ready .brand-mark>*,
 .v56-logo-ready .v46-mark>*,
 .v56-logo-ready .v38-setup-brand>span>*{opacity:0!important}
-.v56-logo-ready .brand-mark{border-radius:50%!important;background-size:108%!important}
-.v56-logo-ready .brand-mark.tiny{background-size:112%!important}
+.v56-logo-ready .brand-mark{border-radius:50%!important;background-size:contain!important}
+.v56-logo-ready .brand-mark.tiny{background-size:contain!important}
 .v56-logo-ready .ma-login-content .brand-mark{width:104px!important;height:104px!important;border:2px solid rgba(255,199,23,.7)!important}
 
 #v45-auto-jpg:disabled{opacity:1!important;cursor:pointer!important}
