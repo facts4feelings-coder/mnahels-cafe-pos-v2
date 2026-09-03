@@ -1,147 +1,313 @@
-/*
- * Mnahel's Cafe POS · v0.15.38 booked-order cart editing and printer recovery
- * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
- * A product by Eastern Cross Technology.
- */
-(()=>{
-'use strict';
-const BUILD='0.15.38',REV='20260903-order-edit-cart-38',AUTO_KEY='mnahels.receipt-auto-jpg';
-const q=(selector,root=document)=>root.querySelector(selector),qa=(selector,root=document)=>[...root.querySelectorAll(selector)];
-const E=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-let manualDownloadUntil=0,editingOrder=null,updateBusy=false,ordersBusy=false,ordersLoadedAt=0;
-const orderCache=new Map();
+/* Mnahel's Cafe POS v0.15.39 — app logo, automatic receipt JPG, smooth post-order performance, booked-order cart editing */
+(() => {
+  'use strict';
 
-function say(message){try{if(typeof toast==='function')toast(message)}catch{}}
-function forceManualJpgOnly(){
- try{localStorage.setItem(AUTO_KEY,'0')}catch{}
- const toggle=q('#v45-auto-jpg');
- if(toggle){toggle.checked=false;toggle.disabled=true;const label=toggle.closest('label');if(label){label.classList.add('v56-manual-only');const title=q('b',label),note=q('small',label);if(title)title.textContent='Automatic JPG download off';if(note)note.textContent='Use Download JPG slip only when needed'}}
-}
-function lockAutoJpgPreference(){
- const proto=window.Storage?.prototype;if(!proto||proto.setItem.__v56ManualOnly)return;
- const original=proto.setItem;
- const wrapped=function(key,value){return original.call(this,key,String(key)===AUTO_KEY?'0':value)};
- wrapped.__v56ManualOnly=true;proto.setItem=wrapped;forceManualJpgOnly();
-}
-function installSlipDownloadGate(){
- const proto=window.HTMLAnchorElement?.prototype;if(!proto||proto.click.__v56SlipGate)return;
- const previous=proto.click;
- const guarded=function(){
-  const name=String(this.download||''),isSlip=/mnahels-.*-slip\.jpe?g$/i.test(name)&&String(this.href||'').startsWith('blob:');
-  if(isSlip&&Date.now()>manualDownloadUntil){try{URL.revokeObjectURL(this.href)}catch{}return}
-  return previous.apply(this,arguments);
- };
- guarded.__v56SlipGate=true;proto.click=guarded;
-}
-function markManualDownload(event){
- const button=event.target.closest?.('#v45-preview-download,#v45-v31-download,#v45-settings-download,.v45-download');
- if(button)manualDownloadUntil=Date.now()+5000;
- const autoToggle=event.target.closest?.('#v45-auto-jpg');
- if(autoToggle){event.preventDefault();event.stopImmediatePropagation();forceManualJpgOnly();say('Automatic JPG download off hai. Manual Download JPG button use karein.')}
-}
-function decoratePrintButton(event){
- const button=event.target.closest?.('#v31-preview [data-pv="print"],#v31-now');if(!button)return;
- forceManualJpgOnly();
- if(button.dataset.v56Printing==='1'){event.preventDefault();event.stopImmediatePropagation();return}
- button.dataset.v56Printing='1';button.classList.add('v56-printing');
- const old=button.textContent;button.textContent='Printing…';
- setTimeout(()=>{button.dataset.v56Printing='0';button.classList.remove('v56-printing');button.textContent=old},2400);
-}
+  const RELEASE = '0.15.39';
+  const AUTO_JPG_KEY = 'mnahels.receipt-auto-jpg';
+  const AUTO_JPG_MIGRATION = 'mnahels.receipt-auto-jpg-restored-v39';
+  const LOGO_URL = '/assets/brand/mnahels-logo.b64?v=20260903-logo-auto-jpg-performance-39';
+  const activeStates = new Set(['New', 'Confirmed', 'Preparing', 'Ready']);
+  const state = window.state || {};
+  let bootTimer = 0;
+  let logoPromise = null;
+  let lastOpsFetch = 0;
+  let opsBusy = false;
+  let lastFocusId = 0;
+  let lastOperationRow = null;
 
-function isEditable(order){return order&&order.status!=='Completed'&&order.status!=='Cancelled'&&String(order.paymentStatus||'').toLowerCase()!=='paid'}
-async function loadEditableOrders(force=false){
- if(ordersBusy||typeof state==='undefined'||!state?.user||typeof api!=='function')return;
- if(!force&&Date.now()-ordersLoadedAt<4000){decorateOrderCards();return}
- ordersBusy=true;
- try{const rows=await api('/api/orders?take=200');if(Array.isArray(rows)){rows.forEach(order=>orderCache.set(String(order.id),order));ordersLoadedAt=Date.now();decorateOrderCards()}}
- catch(error){console.warn('[v0.15.38 orders]',error?.message||error)}finally{ordersBusy=false}
-}
-function decorateOrderCards(){
- qa('#admin-orders .v36-order-card').forEach(card=>{
-  const order=orderCache.get(String(card.dataset.id)),actions=q('.v36-card-actions',card),existing=q('[data-v56-edit-order]',card);
-  if(!actions||!isEditable(order)){existing?.remove();return}
-  if(existing)return;
-  const button=document.createElement('button');button.type='button';button.className='v56-edit-order';button.dataset.v56EditOrder=String(order.id);button.textContent='Edit order';button.title='Open this booked order in the cart';
-  const cancel=q('.v36-cancel',actions);cancel?actions.insertBefore(button,cancel):actions.appendChild(button);
- });
-}
-function menuMatch(line){
- const wantedProduct=String(line.productName||'').trim().toLowerCase(),wantedVariant=String(line.variantName||'Regular').trim().toLowerCase();
- for(const category of state?.menu||[]){for(const product of category.products||[]){if(String(product.name||'').trim().toLowerCase()!==wantedProduct)continue;const variant=(product.variants||[]).find(item=>String(item.name||'Regular').trim().toLowerCase()===wantedVariant);if(variant)return{variantId:Number(variant.id),name:product.name,variant:variant.name,price:Number(variant.price||0),quantity:Math.max(1,Number(line.quantity||1)),notes:line.notes||null}}}
- return null;
-}
-function cartFromOrder(order){
- const cart=[],missing=[];
- for(const line of order.items||[]){
-  if(String(line.productName||'').trim().toLowerCase()==='extra topping'&&cart.length){cart[cart.length-1].extraTopping=true;continue}
-  const item=menuMatch(line);if(item)cart.push(item);else missing.push(`${line.productName} (${line.variantName||'Regular'})`);
- }
- return{cart,missing};
-}
-function setValue(selector,value){const node=q(selector);if(node)node.value=value??''}
-function setOrderMode(mode){qa('#screen-pos [data-order-type]').forEach(button=>button.classList.toggle('active',button.dataset.orderType===mode))}
-function setDiscount(order){
- const input=q('#discount');if(!input)return;const percent=Number(order.subtotal||0)>0?Math.max(0,Math.min(100,Number(order.discount||0)/Number(order.subtotal)*100)):0;
- input.dataset.v39Percent=String(Math.round(percent*100)/100);input.value=percent?String(Math.round(percent*100)/100):'';
-}
-function contextMarkup(order){
- const service=order.orderType==='Dine-in'?`${order.tableName||`Table ${order.tableNumber||'—'}`} · ${order.waiterName||'Waiter'}`:order.orderType==='Delivery'?(order.riderName||'Rider after preparation'):'Counter pickup';
- return `<span class="v56-edit-token">MC-${E(order.tokenNumber)}</span><span><small>EDITING BOOKED ORDER</small><b>${E(order.orderType)} · ${E(service)}</b></span><span><small>CUSTOMER</small><b>${E(order.customerName||'Walk-in customer')}</b></span><button type="button" data-v56-cancel-edit>Cancel edit</button>`;
-}
-function lockControl(node,locked){
- if(!node)return;if(locked){if(node.dataset.v56WasDisabled==null)node.dataset.v56WasDisabled=node.disabled?'1':'0';node.disabled=true}else{node.disabled=node.dataset.v56WasDisabled==='1';delete node.dataset.v56WasDisabled}
-}
-function syncEditUi(){
- const active=!!editingOrder;document.documentElement.classList.toggle('v56-editing-order',active);q('#screen-pos')?.classList.toggle('v56-editing-order',active);
- qa('#screen-pos [data-order-type],#screen-pos [data-payment],#v36-table,#v36-waiter,#v36-rider,#v41-pay-now').forEach(node=>lockControl(node,active));
- qa('#customer-name,#customer-phone,#delivery-address').forEach(node=>{if(active){if(node.dataset.v56WasReadOnly==null)node.dataset.v56WasReadOnly=node.readOnly?'1':'0';node.readOnly=true}else{node.readOnly=node.dataset.v56WasReadOnly==='1';delete node.dataset.v56WasReadOnly}});
- const place=q('#place-order'),label=q('#place-order span'),wasActive=place?.dataset.v56Editing==='1';if(place)place.dataset.v56Editing=active?'1':'0';if(label){if(active)label.textContent='Update order';else if(wasActive)label.textContent='Book order'}
- const head=q('#screen-pos .cart-head h3'),eyebrow=q('#screen-pos .cart-head .eyebrow');if(active&&editingOrder){if(head){head.textContent=`MC-${editingOrder.tokenNumber}`;head.dataset.v38Locked='1'}if(eyebrow)eyebrow.textContent='EDIT BOOKED ORDER'}
-}
-async function beginEdit(id){
- if(updateBusy||typeof api!=='function')return;
- if((state?.cart?.length||state?.v38SetupDone)&&!confirm('Current cart replace karke booked order edit karna hai?'))return;
- try{
-  const order=await api(`/api/orders/${id}/edit`);if(!isEditable(order))throw Error(String(order.paymentStatus||'').toLowerCase()==='paid'?'Paid order edit nahi ho sakta. Pehle refund/void workflow required hai.':'Completed ya cancelled order edit nahi ho sakta.');
-  const mapped=cartFromOrder(order);if(mapped.missing.length)throw Error(`Ye item current menu mein available nahi: ${mapped.missing.join(', ')}`);
-  try{navigate('pos')}catch{q('[data-screen="pos"]')?.click()}
-  editingOrder=order;orderCache.set(String(order.id),order);state.cart=mapped.cart;state.orderType=order.orderType;state.tableId=order.tableId||order.tableNumber||null;state.tableNumber=state.tableId;state.waiterId=order.waiterId||null;state.riderId=order.riderId||null;state.v38ProposedToken=order.tokenNumber;state.v38SetupDone=true;state.v56EditingOrderId=order.id;
-  const screen=q('#screen-pos');screen?.classList.add('v35-booking-open','v38-ready','v56-editing-order');document.documentElement.classList.add('v35-booking-active','v56-editing-order');
-  setValue('#customer-name',order.customerName||'');setValue('#customer-phone',order.customerPhone||'');setValue('#delivery-address',order.deliveryAddress||'');setValue('#order-note',order.notes||'');setDiscount(order);setOrderMode(order.orderType);
-  q('#v38-order-context')?.remove();const toolbar=q('#screen-pos .catalog-panel .toolbar');if(toolbar){const bar=document.createElement('section');bar.id='v38-order-context';bar.className='v56-edit-context';bar.innerHTML=contextMarkup(order);toolbar.after(bar)}
-  renderCart();window.totals?.();syncEditUi();q('#search')?.focus();say(`MC-${order.tokenNumber} proper cart mein open ho gaya. Items add/remove karke Update order karein.`);
- }catch(error){say(error.message||'Order edit ke liye load nahi hua.')}
-}
-function clearEditForm(){
- const old=editingOrder;editingOrder=null;if(typeof state!=='undefined'){state.cart=[];state.v38SetupDone=false;state.v56EditingOrderId=null;state.tableId=null;state.tableNumber=null;state.waiterId=null;state.riderId=null}
- q('#v38-order-context')?.remove();const discount=q('#discount');if(discount){discount.value='';discount.dataset.v39Percent='0'}setValue('#order-note','');setValue('#customer-name','');setValue('#customer-phone','');setValue('#delivery-address','');
- document.documentElement.classList.remove('v35-booking-active','v56-editing-order');const screen=q('#screen-pos');screen?.classList.remove('v35-booking-open','v38-ready','v56-editing-order');syncEditUi();const button=q('#place-order');if(button)button.innerHTML='<span>Book order</span><b id="button-total">Rs 0</b>';renderCart();window.totals?.();
- const head=q('#screen-pos .cart-head h3'),eyebrow=q('#screen-pos .cart-head .eyebrow');if(head){head.textContent='Current order';delete head.dataset.v38Locked}if(eyebrow)eyebrow.textContent='CURRENT ORDER';return old;
-}
-function cancelEdit(){if(!editingOrder)return;if(confirm(`MC-${editingOrder.tokenNumber} ki unsaved changes discard karni hain?`)){const order=clearEditForm();say(`MC-${order?.tokenNumber||''} edit cancelled.`)}}
-async function submitUpdate(){
- if(!editingOrder||updateBusy)return;if(!state?.cart?.length)return say('Updated cart empty nahi ho sakta. Kam az kam ek item rakhein.');
- const button=q('#place-order'),old=button?.innerHTML;updateBusy=true;if(button){button.disabled=true;button.innerHTML='<span>Updating order…</span><b>•••</b>'}
- try{
-  let items=state.cart.map(item=>({variantId:item.variantId,quantity:item.quantity,notes:item.notes||null}));if(window.mnahelsV52?.expandedItems)items=window.mnahelsV52.expandedItems(items);
-  const discount=window.mnahelsV52?.discountAmount?.()??window.mnahelsV39?.discountAmount?.()??0;
-  const updated=await api(`/api/orders/${editingOrder.id}`,{method:'PUT',body:JSON.stringify({items,discount,notes:q('#order-note')?.value.trim()||null})});
-  orderCache.set(String(updated.id),updated);state.lastOrder=updated;const token=updated.tokenNumber;clearEditForm();state.dashboardSignature='';state.salesSignature='';state.orderSignature='';ordersLoadedAt=0;
-  await Promise.allSettled([window.mnahelsV36?.renderOperations?.(true),window.mnahelsV36?.refreshHub?.(true),window.mnahelsV41?.refreshDue?.(true)]);q('.sidebar [data-screen="admin"]')?.click();say(`MC-${token} update ho gaya aur timeline Booked par reset ho gayi.`);
- }catch(error){say(error.message||'Order update nahi hua.')}finally{updateBusy=false;if(button){button.disabled=false;if(editingOrder)button.innerHTML=old||'<span>Update order</span><b id="button-total">Rs 0</b>'}syncEditUi();window.totals?.()}
-}
-function observeCards(){const box=q('#admin-orders');if(!box||box.dataset.v56EditWatch)return;box.dataset.v56EditWatch='1';new MutationObserver(()=>queueMicrotask(decorateOrderCards)).observe(box,{childList:true,subtree:true});decorateOrderCards()}
-function boot(){
- document.documentElement.dataset.uiRevision=REV;window.__MNAHELS_UI_REVISION__=REV;document.documentElement.classList.add('v56-manual-jpg');q('meta[name="application-version"]')?.setAttribute('content',BUILD);
- lockAutoJpgPreference();installSlipDownloadGate();forceManualJpgOnly();observeCards();syncEditUi();if(typeof state!=='undefined'&&state?.user&&state.currentScreen==='admin')loadEditableOrders();
-}
-document.addEventListener('click',markManualDownload,true);
-document.addEventListener('click',decoratePrintButton,true);
-document.addEventListener('click',event=>{const edit=event.target.closest?.('[data-v56-edit-order]');if(edit){event.preventDefault();event.stopImmediatePropagation();beginEdit(edit.dataset.v56EditOrder);return}if(event.target.closest?.('[data-v56-cancel-edit]')){event.preventDefault();cancelEdit()}if(event.target.closest?.('[data-screen="admin"]'))setTimeout(()=>loadEditableOrders(true),250)},true);
-window.addEventListener('click',event=>{if(!editingOrder)return;if(event.target.closest?.('#place-order')){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();submitUpdate();return}if(event.target.closest?.('#ma-new-order')){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();cancelEdit()}},true);
-window.addEventListener('keydown',event=>{if(editingOrder&&event.key==='F2'){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();say('Pehle current booked order update ya Cancel edit karein.')}},true);
-document.addEventListener('mnahels-shared-print-settings-applied',forceManualJpgOnly);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();setTimeout(boot,250);setTimeout(boot,1000);setTimeout(forceManualJpgOnly,2200);
-setInterval(()=>{if(document.visibilityState!=='visible')return;observeCards();if(typeof state!=='undefined'&&state?.user&&state.currentScreen==='admin')loadEditableOrders();if(editingOrder)syncEditUi()},2500);
-window.mnahelsV56={build:BUILD,uiRevision:REV,forceManualJpgOnly,beginEdit,cancelEdit,submitUpdate,loadEditableOrders};
+  const q = (selector, root = document) => root.querySelector(selector);
+  const qa = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const esc = value => String(value ?? '').replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
+  const pref = (key, fallback = '') => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
+  const setPref = (key, value) => { try { localStorage.setItem(key, String(value)); } catch { } };
+  const toast = message => { if (typeof window.toast === 'function') window.toast(message); };
+
+  async function apiRequest(path, options = {}) {
+    if (typeof window.api === 'function') return window.api(path, options);
+    const response = await fetch(`/api${path}`, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+    });
+    if (!response.ok) {
+      let message = `${response.status} ${response.statusText}`;
+      try { message = (await response.json()).message || message; } catch { }
+      throw new Error(message);
+    }
+    return response.status === 204 ? null : response.json();
+  }
+
+  function releaseLabel() {
+    document.documentElement.dataset.v56Release = RELEASE;
+    const meta = q('meta[name="application-version"]');
+    if (meta) meta.content = RELEASE;
+    document.title = `Mnahel's Cafe POS v${RELEASE}`;
+  }
+
+  function restoreAutoJpg() {
+    if (pref(AUTO_JPG_MIGRATION, '0') !== '1') {
+      setPref(AUTO_JPG_KEY, '1');
+      setPref(AUTO_JPG_MIGRATION, '1');
+    }
+    const input = q('#v45-auto-jpg');
+    if (!input) return;
+    input.disabled = false;
+    input.removeAttribute('aria-disabled');
+    input.checked = pref(AUTO_JPG_KEY, '1') === '1';
+    const label = input.closest('label');
+    const text = label?.querySelector('span');
+    if (text) text.textContent = 'Auto-download receipt as JPG';
+    if (!input.dataset.v56Bound) {
+      input.dataset.v56Bound = '1';
+      input.addEventListener('change', () => setPref(AUTO_JPG_KEY, input.checked ? '1' : '0'));
+    }
+  }
+
+  function loadBrandLogo() {
+    if (document.documentElement.style.getPropertyValue('--mnahels-brand-logo')) return Promise.resolve();
+    if (logoPromise) return logoPromise;
+    logoPromise = fetch(LOGO_URL, { cache: 'force-cache' })
+      .then(response => { if (!response.ok) throw new Error('Logo asset unavailable'); return response.text(); })
+      .then(text => {
+        const data = `data:image/webp;base64,${text.replace(/\s+/g, '')}`;
+        document.documentElement.style.setProperty('--mnahels-brand-logo', `url("${data}")`);
+        document.documentElement.classList.add('v56-logo-ready');
+        let icon = q('link[rel~="icon"]');
+        if (!icon) { icon = document.createElement('link'); icon.rel = 'icon'; document.head.append(icon); }
+        icon.href = data;
+      })
+      .catch(() => { logoPromise = null; });
+    return logoPromise;
+  }
+
+  function mapCart(order) {
+    const variants = state.variants || [];
+    const products = state.products || [];
+    return (order.items || []).map(item => {
+      const variant = variants.find(v => Number(v.id) === Number(item.variantId));
+      if (!variant) throw new Error(`${item.productName || 'An item'} is no longer available in the live menu.`);
+      const product = products.find(p => Number(p.id) === Number(variant.productId));
+      if (!product) throw new Error(`${item.productName || 'An item'} product is no longer available.`);
+      return {
+        variantId: Number(variant.id), productId: Number(product.id), productName: product.name,
+        variantName: variant.name, quantity: Math.max(1, Number(item.quantity || 1)),
+        unitPrice: Number(variant.price || item.unitPrice || 0), lineTotal: 0
+      };
+    }).map(item => ({ ...item, lineTotal: item.unitPrice * item.quantity }));
+  }
+
+  function clearEditForm() {
+    state.v56EditingOrderId = null;
+    state.v56EditingOrder = null;
+    state.v56EditServiceContext = null;
+    document.documentElement.classList.remove('v56-editing-order', 'v35-booking-active');
+    const screen = q('#screen-pos');
+    screen?.classList.remove('v56-editing-order', 'v35-booking-open', 'v38-ready');
+    q('#v56-edit-banner')?.remove();
+    const button = q('#place-order span');
+    if (button) button.textContent = 'Place order';
+    if (typeof window.renderCart === 'function') window.renderCart();
+  }
+
+  function installEditBanner(order) {
+    q('#v56-edit-banner')?.remove();
+    const panel = q('#screen-pos .cart-panel');
+    if (!panel) return;
+    const banner = document.createElement('div');
+    banner.id = 'v56-edit-banner';
+    banner.className = 'v56-edit-banner';
+    banner.innerHTML = `<div><small>EDITING BOOKED ORDER</small><strong>${esc(order.tokenNumber)} · ${esc(order.orderNumber)}</strong></div><button type="button">Cancel edit</button>`;
+    banner.querySelector('button').addEventListener('click', () => { clearEditForm(); toast('Order edit cancelled.'); });
+    panel.prepend(banner);
+  }
+
+  async function beginEdit(orderId) {
+    if (!Number(orderId)) return;
+    try {
+      const order = await apiRequest(`/orders/${orderId}/edit`);
+      state.cart = mapCart(order);
+      state.orderType = order.orderType || 'Takeaway';
+      state.paymentMethod = order.paymentMethod || 'Cash';
+      state.v56EditingOrderId = Number(order.id);
+      state.v56EditingOrder = order;
+      state.v56EditServiceContext = { serviceMode: order.serviceMode, serviceAssignmentId: order.serviceAssignmentId };
+      const note = q('#order-note'); if (note) note.value = order.notes || '';
+      const discount = q('#discount'); if (discount) discount.value = Number(order.discount || 0);
+      qa('[data-order-type]').forEach(button => button.classList.toggle('active', button.dataset.orderType === state.orderType));
+      qa('[data-payment]').forEach(button => button.classList.toggle('active', button.dataset.payment === state.paymentMethod));
+      document.documentElement.classList.add('v56-editing-order', 'v35-booking-active');
+      const screen = q('#screen-pos');
+      screen?.classList.add('v56-editing-order', 'v35-booking-open', 'v38-ready');
+      if (typeof window.showScreen === 'function') window.showScreen('pos');
+      if (typeof window.renderCart === 'function') window.renderCart();
+      installEditBanner(order);
+      const button = q('#place-order span'); if (button) button.textContent = 'Update order';
+      q('#v56-order-dialog')?.close();
+      setTimeout(() => q('#screen-pos .cart-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+      toast(`Order ${order.tokenNumber} opened in the cart.`);
+    } catch (error) { toast(error.message || 'Could not open this order for editing.'); }
+  }
+
+  async function updateEditingOrder() {
+    const orderId = Number(state.v56EditingOrderId || 0);
+    if (!orderId) return false;
+    if (!(state.cart || []).length) { toast('Add at least one item before updating the order.'); return true; }
+    const button = q('#place-order');
+    if (button?.disabled) return true;
+    if (button) button.disabled = true;
+    try {
+      const order = await apiRequest(`/orders/${orderId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          orderType: state.orderType || state.v56EditingOrder?.orderType || 'Takeaway',
+          paymentMethod: state.paymentMethod || state.v56EditingOrder?.paymentMethod || 'Cash',
+          discount: Number(q('#discount')?.value || 0), notes: q('#order-note')?.value || '',
+          items: (state.cart || []).map(item => ({ variantId: Number(item.variantId), quantity: Math.max(1, Number(item.quantity || 1)) }))
+        })
+      });
+      clearEditForm();
+      state.cart = [];
+      if (typeof window.renderCart === 'function') window.renderCart();
+      if (typeof window.refreshHub === 'function') window.refreshHub(true);
+      toast(`${order.tokenNumber || 'Order'} updated successfully.`);
+      if (typeof window.showOrderComplete === 'function') window.showOrderComplete(order);
+    } catch (error) { toast(error.message || 'Could not update the order.'); }
+    finally { if (button) button.disabled = false; }
+    return true;
+  }
+
+  function installCheckoutInterceptor() {
+    const button = q('#place-order');
+    if (!button || button.dataset.v56EditBound) return;
+    button.dataset.v56EditBound = '1';
+    button.addEventListener('click', event => {
+      if (!state.v56EditingOrderId) return;
+      event.preventDefault(); event.stopImmediatePropagation(); updateEditingOrder();
+    }, true);
+  }
+
+  async function applyOperationAction(order, action) {
+    if (action === 'edit') return beginEdit(order.id);
+    if (action === 'receipt') return window.mnahelsV31?.printUrl?.(`/api/receipts/${order.id}/customer`, 'receipt');
+    if (action === 'kitchen') return window.mnahelsV31?.printUrl?.(`/api/receipts/${order.id}/kitchen`, 'kitchen ticket');
+    if (action === 'cancel') {
+      if (!confirm(`Cancel ${order.tokenNumber || order.orderNumber}?`)) return;
+      await apiRequest(`/orders/${order.id}/status`, { method: 'POST', body: JSON.stringify({ status: 'Cancelled' }) });
+    } else if (action === 'pay') {
+      await apiRequest(`/orders/${order.id}/payment`, { method: 'POST', body: JSON.stringify({ paymentStatus: 'Paid', paymentMethod: order.paymentMethod || 'Cash' }) });
+    } else if (action === 'status') {
+      const statuses = ['New', 'Confirmed', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+      const next = prompt(`Status: ${statuses.join(', ')}`, order.status || 'New');
+      if (!next || !statuses.includes(next)) return;
+      await apiRequest(`/orders/${order.id}/status`, { method: 'POST', body: JSON.stringify({ status: next }) });
+    }
+    if (typeof window.refreshHub === 'function') window.refreshHub(true);
+    lastOpsFetch = 0; scheduleBoot(80);
+  }
+
+  function canEdit(order) { return activeStates.has(order.status) && order.status !== 'Cancelled' && order.paymentStatus !== 'Paid'; }
+
+  function decorateOperationCards(orders) {
+    const byNumber = new Map(orders.map(order => [String(order.orderNumber || '').trim(), order]));
+    qa('#admin-orders .order-row').forEach(row => {
+      const number = q('.order-main strong', row)?.textContent?.trim();
+      const order = byNumber.get(number);
+      if (!order) return;
+      let actions = q('.v56-operation-actions', row);
+      if (!actions) { actions = document.createElement('div'); actions.className = 'v56-operation-actions'; row.append(actions); }
+      actions.innerHTML = `
+        ${canEdit(order) ? '<button type="button" data-op="edit">Edit order</button>' : ''}
+        <button type="button" data-op="receipt">Receipt</button>
+        <button type="button" data-op="kitchen">Kitchen</button>
+        ${activeStates.has(order.status) ? '<button type="button" data-op="status">Status</button>' : ''}
+        ${order.paymentStatus !== 'Paid' && order.status !== 'Cancelled' ? '<button type="button" data-op="pay">Mark paid</button>' : ''}
+        ${activeStates.has(order.status) ? '<button type="button" data-op="cancel" class="danger">Cancel</button>' : ''}`;
+      actions.onclick = async event => {
+        const action = event.target.closest('[data-op]')?.dataset.op;
+        if (!action) return;
+        lastFocusId = order.id; lastOperationRow = row;
+        try { await applyOperationAction(order, action); }
+        catch (error) { toast(error.message || 'Could not update the order.'); }
+      };
+    });
+    if (lastFocusId && lastOperationRow?.isConnected) lastOperationRow.classList.add('v56-last-operation');
+  }
+
+  async function maybeDecorateOperations() {
+    const admin = q('#screen-admin');
+    if (!admin?.classList.contains('active') || document.hidden || opsBusy || Date.now() - lastOpsFetch < 12000) return;
+    opsBusy = true; lastOpsFetch = Date.now();
+    try {
+      const result = await apiRequest('/orders?take=120');
+      decorateOperationCards(Array.isArray(result) ? result : (result?.items || []));
+    } catch { }
+    finally { opsBusy = false; }
+  }
+
+  function enhanceSettings() {
+    const settings = q('.v45-settings-panel');
+    if (!settings || q('#v56-printer-recovery', settings)) return;
+    const card = document.createElement('section');
+    card.id = 'v56-printer-recovery';
+    card.className = 'v56-printer-recovery';
+    card.innerHTML = '<h4>Printer recovery</h4><p>Use this if the printer was changed, disconnected or Windows kept the old device.</p><div><button type="button" data-v56-print="receipt">Test receipt</button><button type="button" data-v56-print="kitchen">Test kitchen</button><button type="button" data-v56-print="window">Open Windows printers</button></div>';
+    card.addEventListener('click', event => {
+      const action = event.target.closest('[data-v56-print]')?.dataset.v56Print;
+      if (action === 'window') location.href = 'ms-settings:printers';
+      else if (action) window.mnahelsV31?.printUrl?.('/api/printers/test', `${action} printer test`);
+    });
+    settings.append(card);
+  }
+
+  function stabilizeAfterOrder() {
+    document.documentElement.classList.add('v56-post-order-stable');
+    const clean = () => {
+      qa('.v40-fly-ghost').forEach(node => node.remove());
+      if (typeof document.getAnimations === 'function') {
+        document.getAnimations().forEach(animation => {
+          const target = animation.effect?.target;
+          if (target?.closest?.('#screen-pos .product-card, #screen-pos .product-grid, .v40-fly-ghost')) animation.cancel();
+        });
+      }
+    };
+    clean(); setTimeout(clean, 350); setTimeout(clean, 1200);
+  }
+
+  function installCompletionHook() {
+    const original = window.showOrderComplete;
+    if (typeof original !== 'function' || original.__v56Performance) return;
+    const wrapped = function (...args) {
+      const result = original.apply(this, args);
+      stabilizeAfterOrder();
+      return result;
+    };
+    wrapped.__v56Performance = true;
+    window.showOrderComplete = wrapped;
+  }
+
+  function boot() {
+    bootTimer = 0;
+    releaseLabel();
+    loadBrandLogo();
+    restoreAutoJpg();
+    installCheckoutInterceptor();
+    installCompletionHook();
+    enhanceSettings();
+    maybeDecorateOperations();
+    if (state.v56EditingOrderId && state.v56EditingOrder) installEditBanner(state.v56EditingOrder);
+  }
+
+  function scheduleBoot(delay = 160) {
+    if (bootTimer) return;
+    bootTimer = window.setTimeout(boot, delay);
+  }
+
+  window.mnahelsV56 = { beginEdit, clearEditForm, release: RELEASE };
+  document.documentElement.classList.add('v56-performance');
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleBoot(40); });
+  document.addEventListener('click', event => {
+    if (event.target.closest('#refresh-orders, [data-screen="admin"], [data-screen="orders"], #new-order')) scheduleBoot(100);
+  }, true);
+  new MutationObserver(() => scheduleBoot()).observe(document.body, { childList: true, subtree: true });
+  window.setInterval(() => { if (!document.hidden) scheduleBoot(20); }, 10000);
+  scheduleBoot(0);
 })();
