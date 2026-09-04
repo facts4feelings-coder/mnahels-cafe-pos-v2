@@ -28,6 +28,17 @@ jobs:
       - name: Build server
         run: dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release -r win-x64 --self-contained true --no-restore --nologo
 
+  test-running-order:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Run running-order delta tests
+        run: dotnet run --project src/MnahelsCafe.Pos.Tests/MnahelsCafe.Pos.Tests.csproj -c Release --nologo
+
   build-desktop:
     runs-on: windows-latest
     timeout-minutes: 15
@@ -42,7 +53,7 @@ jobs:
         run: dotnet build src/MnahelsCafe.Desktop/MnahelsCafe.Desktop.csproj -c Release -r win-x64 --self-contained true --no-restore --nologo
 
   compile-installer:
-    needs: [build-server, build-desktop]
+    needs: [build-server, test-running-order, build-desktop]
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
