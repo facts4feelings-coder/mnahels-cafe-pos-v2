@@ -233,7 +233,7 @@ static class OrderEditingFeatures
                     oldTotal = decimal.Parse(reader.GetString(3), CultureInfo.InvariantCulture),
                     newTotal = decimal.Parse(reader.GetString(4), CultureInfo.InvariantCulture),
                     createdAt = DateTimeOffset.Parse(reader.GetString(5), CultureInfo.InvariantCulture),
-                    userId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+                    userId = reader.IsDBNull(6) ? (int?)null : reader.GetInt32(6),
                     userName = reader.GetString(7)
                 });
             }
