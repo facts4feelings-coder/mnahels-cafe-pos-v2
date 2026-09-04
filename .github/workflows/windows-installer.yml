@@ -26,7 +26,15 @@ jobs:
       - name: Restore server
         run: dotnet restore src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj --runtime win-x64 --nologo
       - name: Build server
-        run: dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release -r win-x64 --self-contained true --no-restore --nologo
+        shell: pwsh
+        run: |
+          $output = @(& dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release -r win-x64 --self-contained true --no-restore --nologo 2>&1 | ForEach-Object { Write-Host $_; "$_" })
+          $code = $LASTEXITCODE
+          if ($code -ne 0) {
+            $tail = (($output | Select-Object -Last 80) -join '%0A').Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+            Write-Host "::error title=Server build failed::$tail"
+            exit $code
+          }
 
   test-running-order:
     runs-on: windows-latest
