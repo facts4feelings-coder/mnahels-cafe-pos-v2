@@ -6,6 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MnahelsCafe.Pos\MnahelsCafe.Pos.csproj" />
+    <Compile Include="..\MnahelsCafe.Pos\RunningOrderDelta.cs" Link="RunningOrderDelta.cs" />
   </ItemGroup>
 </Project>
