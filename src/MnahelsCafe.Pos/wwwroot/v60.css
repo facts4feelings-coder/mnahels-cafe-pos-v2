@@ -1,0 +1,24 @@
+/* Mnahel's Cafe POS v0.15.47 · prominent order edit action and full-width dashboard order log */
+
+.v60-edit{order:-1;display:inline-flex;align-items:center;gap:6px;border:1px solid #ffd11a;border-radius:10px;background:linear-gradient(180deg,#ffd94d,#f0b500);color:#1a1204;padding:7px 12px;font:800 12px/1 inherit;letter-spacing:.02em;cursor:pointer;box-shadow:0 4px 14px rgba(240,181,0,.34);transition:transform .12s ease,box-shadow .12s ease,background .12s ease}
+.v60-edit span{font-size:13px;line-height:1}
+.v60-edit b{font-weight:900;letter-spacing:.01em}
+.v60-edit:hover{background:linear-gradient(180deg,#ffe375,#ffc61a);box-shadow:0 6px 18px rgba(255,198,26,.46);transform:translateY(-1px)}
+.v60-edit:active{transform:translateY(0);box-shadow:0 3px 10px rgba(240,181,0,.34)}
+.v60-edit:focus-visible{outline:2px solid #fff3c4;outline-offset:2px}
+
+.v36-order-card .v36-card-actions,#orders-list .order-card .order-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.v56-operation-actions{display:none!important}
+
+.v60-edit-banner small{color:#ffd65f}
+html.v60-editing-order #place-order{box-shadow:inset 0 0 0 2px rgba(255,209,26,.55)}
+html.v60-editing-order .cart-head h3{color:#ffd65f}
+
+#v59-dashboard-order-audit{grid-column:1/-1;width:100%;margin:0 0 14px}
+#v59-dashboard-order-audit .v59-order-metrics{display:flex;flex-wrap:wrap;gap:10px}
+#v59-dashboard-events{width:100%;overflow-x:auto}
+#v59-dashboard-events table{width:100%;border-collapse:collapse}
+#v59-dashboard-events .empty{padding:12px;color:#a9a9a9;font-size:12px}
+
+@media(max-width:900px){.v60-edit{padding:6px 10px;font-size:11px}.v36-order-card .v36-card-actions,#orders-list .order-card .order-actions{justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){.v60-edit{transition:none}.v60-edit:hover{transform:none}}
