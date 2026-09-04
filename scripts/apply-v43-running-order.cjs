@@ -46,7 +46,7 @@ payment = replaceRequired(payment,
 write(paymentPath, payment);
 
 const v56Path = 'src/MnahelsCafe.Pos/wwwroot/v56.js';
-let v56 = read(v56Path);
+let v56 = read(v56Path).replace(/\r\n/g, '\n');
 v56 = v56.replace(/const RELEASE = '[^']+'/, "const RELEASE = '0.15.43'");
 v56 = v56.replace('${esc(order.tokenNumber)} · ${esc(order.orderNumber)}', '${esc(order.tokenNumber)} · ${esc(order.receiptNumber || order.orderNumber || "Running order")}');
 if (!v56.includes('originalQuantity:')) {
