@@ -50,7 +50,7 @@ function installPrintDedupe(){
   const sheet=q('#print-sheet'),text=String(sheet?.textContent||'').replace(/\s+/g,' ').trim();
   const token=text.match(/MC[-\s]?\d+/i)?.[0]?.replace(/\s+/g,'')||'preview';
   const kind=q('[data-receipt-kind]',sheet)?.dataset.receiptKind||(/kitchen/i.test(filename)?'kitchen':'customer');
-  const key=`${token}:${kind}:${filename.replace(/\d{8,}/g,'stamp')}`.toLowerCase();
+  const key=`${token}:${kind}`.toLowerCase();
   const now=Date.now(),last=downloadSeen.get(key)||0;
   if(now-last<8000)return;
   downloadSeen.set(key,now);
@@ -95,7 +95,7 @@ function refresh(){appState();syncOrderStart();loadHdLogo();installPrintDedupe()
 document.addEventListener('click',event=>{
  const manual=event.target.closest?.('#v45-download-customer,#v45-download-kitchen,#v31-download,#v31-download-jpg,[data-v45-download],[data-download-receipt]');
  if(manual)manualDownloadBudget=/both/i.test(manual.textContent||'')?2:1;
- const resource=event.target.closest?.('[data-v38-resource]');if(resource)requestAnimationFrame(()=>focusSelectedResource(resource));
+ const resource=event.target.closest?.('[data-v38-resource]');if(resource)requestAnimationFrame(()=>requestAnimationFrame(()=>focusSelectedResource(resource)));
  if(event.target.closest?.('[data-v38-start],#ma-new-order'))setTimeout(refresh,0);
  if(event.target.closest?.('[data-screen="shift"],#v46-chip'))setTimeout(()=>loadOrderLog(true),120);
  if(event.target.closest?.('#place-order,[data-v36-status],[data-v35-status],[data-v35-cancel],[data-v56-edit-order],[data-v58-edit-order]'))setTimeout(()=>loadOrderLog(true),900);
