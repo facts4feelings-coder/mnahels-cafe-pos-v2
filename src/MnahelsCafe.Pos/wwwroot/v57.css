@@ -1,0 +1,17 @@
+/* v0.15.42 — requested menu and receipt visual corrections */
+#categories{scrollbar-width:none!important;-ms-overflow-style:none!important}
+#categories::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+.v41-hot-image{background-position:center 22%!important}
+html.v57-order-locked #product-grid .product-card{cursor:not-allowed!important}
+html.v57-order-locked #product-grid .product-card .v38-card-hint{border-color:#f4bf24!important;background:rgba(24,20,10,.94)!important}
+html.v57-order-locked #product-grid .product-card .v38-card-hint b{color:#ffd65b!important}
+.v57-start-pulse{animation:v57StartPulse .7s ease-in-out 2!important}
+@keyframes v57StartPulse{50%{transform:scale(1.045);box-shadow:0 0 0 5px rgba(244,191,36,.22),0 12px 28px rgba(244,191,36,.24)}}
+.v43-receipt{font-size:13px!important}
+.v43-dark-head{height:112px!important;min-height:112px!important;grid-template-rows:57px 31px!important}
+.v43-brand{gap:2px!important}.v43-brand-line>b{font-size:20px!important}.v43-brand-logo,.v43-brand-logo svg{width:31px!important;height:31px!important}
+.v43-brand>small.v57-tagline{font-size:9.4px!important;letter-spacing:.075em!important}
+.v43-brand>.v57-address{display:block!important;color:#fff!important;font-size:8.2px!important;line-height:1.15!important;font-weight:900!important;letter-spacing:.015em!important;white-space:nowrap!important}
+.v43-seal strong{font-size:10px!important;line-height:1!important}
+.v43-item-name b{font-size:12px!important}.v43-meta-cell b{font-size:11.6px!important}.v43-summary .tp-total{font-size:14px!important}
+@media(max-width:360px){.v43-brand-line>b{font-size:19px!important}.v43-brand>.v57-address{font-size:7.7px!important}}
