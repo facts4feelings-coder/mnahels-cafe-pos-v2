@@ -1,0 +1,35 @@
+name: Diagnose server build
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  diagnose-server:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore server
+        run: dotnet restore src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj --runtime win-x64 --nologo
+      - name: Build and report exact failure
+        shell: pwsh
+        run: |
+          dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release -r win-x64 --self-contained true --no-restore --nologo 2>&1 | Tee-Object -FilePath server-build.log
+          $code = $LASTEXITCODE
+          if ($code -ne 0) {
+            $tail = Get-Content server-build.log -Tail 120
+            @('Server build diagnostic:', '```text') + $tail + @('```') | Set-Content diagnostic-comment.md
+            gh pr comment $env:PR_NUMBER --body-file diagnostic-comment.md
+            exit $code
+          }
