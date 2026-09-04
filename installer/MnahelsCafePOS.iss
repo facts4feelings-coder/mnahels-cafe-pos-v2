@@ -1,6 +1,6 @@
 ; Mnahel's Cafe POS installer · Eastern Cross Technology
 #define MyAppName "Mnahel's Cafe POS"
-#define MyAppVersion "0.15.42"
+#define MyAppVersion "0.15.43"
 #define MyAppPublisher "Eastern Cross Technology"
 #define MyAppExeName "MnahelsCafe.Pos.exe"
 #define MyDesktopExeName "MnahelsCafe.Desktop.exe"
@@ -9,7 +9,7 @@
 AppId={{7D9C41C9-AF0E-47D5-B2E1-0D5B5B204A43}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-VersionInfoVersion=0.15.42.0
+VersionInfoVersion=0.15.43.0
 VersionInfoProductVersion={#MyAppVersion}
 VersionInfoDescription={#MyAppName} Windows installer
 AppPublisher={#MyAppPublisher}
