@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.50 build patch
+/* Mnahel's Cafe POS v0.15.51 build patch
  * - order log on the Shift screen only, plus a per-order log
  * - every RUNNING ORDER / cancellation slip is built and printed by v61
  * - original slip footer restored on every copy
@@ -11,8 +11,8 @@ const path = require('path');
 
 const root = path.join(__dirname, '..');
 const web = path.join(root, 'src', 'MnahelsCafe.Pos', 'wwwroot');
-const RELEASE = '0.15.50';
-const REVISION = '20260905-edit-cart-service-hub-50';
+const RELEASE = '0.15.51';
+const REVISION = '20260905-edit-cart-header-51';
 
 const lf = value => value.replace(/\r\n/g, '\n');
 const read = file => lf(fs.readFileSync(file, 'utf8'));
@@ -44,6 +44,8 @@ const indexPath = path.join(web, 'index.html');
 let index = read(indexPath);
 index = insertOnce(index, '</head>', '<link rel="stylesheet" href="/v61.css?v=' + REVISION + '">\n', 'v61 stylesheet');
 index = insertOnce(index, '</body>', '<script src="/v61.js?v=' + REVISION + '"></script>\n', 'v61 script');
+index = index.replace(/<link rel="stylesheet" href="\/v61\.css\?v=[^"]*">/, '<link rel="stylesheet" href="/v61.css?v=' + REVISION + '">');
+index = index.replace(/<script src="\/v61\.js\?v=[^"]*"><\/script>/, '<script src="/v61.js?v=' + REVISION + '"></script>');
 index = index.replace(/<meta name="application-version" content="[^"]*">/, '<meta name="application-version" content="' + RELEASE + '">');
 index = index.replace('<span>Place order</span>', '<span>Book order</span>');
 write(indexPath, index);
@@ -106,8 +108,8 @@ write(
 /* 6. .cart-panel is a grid (cart-head / segment / cart-items / cart-footer), so a
       fifth direct child shifted every row and pushed the cart heading into the
       middle of the panel. The edit banner now lives inside .cart-head, which is a
-      single auto row. Cancelling an edit restores the Book order label instead of
-      the old Place order text. */
+      single auto row, and v61.css makes it span the whole head. Cancelling an edit
+      restores the Book order label instead of the old Place order text. */
 const v56Path = path.join(web, 'v56.js');
 let v56 = read(v56Path);
 v56 = replaceOnce(
@@ -143,8 +145,8 @@ const v61 = read(path.join(web, 'v61.js'));
 const v61css = read(path.join(web, 'v61.css'));
 
 const checks = [
-	['v61 stylesheet installed', finalIndex.includes('/v61.css')],
-	['v61 script installed', finalIndex.includes('/v61.js')],
+	['v61 stylesheet installed', finalIndex.includes('/v61.css?v=' + REVISION)],
+	['v61 script installed', finalIndex.includes('/v61.js?v=' + REVISION)],
 	['v60 order console preserved', finalIndex.includes('/v60.js')],
 	['v58 running-order script preserved', finalIndex.includes('/v58.js')],
 	['markup ships book order label', finalIndex.includes('<span>Book order</span>') && !finalIndex.includes('<span>Place order</span>')],
@@ -167,6 +169,7 @@ const checks = [
 	['edit banner mounted in cart head', finalV56.includes("(panel.querySelector('.cart-head') || panel).prepend(banner)")],
 	['no place order text left in v56', !finalV56.includes("'Place order'")],
 	['edit banner styled inside cart head', v61css.includes('#screen-pos .cart-head>#v56-edit-banner')],
+	['edit banner spans full cart head row', v61css.includes('grid-column:1/-1') && v61css.includes('min-width:100%')],
 	['edit banner kept out of cart grid', v61.includes('function relocateEditBanner')],
 	['service hub shortcut', v61.includes('function goServiceHub') && v61.includes('v61-add-service')],
 	['build number stamped in ui', v61.includes('function stampBuild')],
@@ -184,4 +187,4 @@ new Function(finalV58);
 new Function(finalV59);
 new Function(v61);
 
-console.log('v' + RELEASE + ' edit-mode cart, Book/Update labels, Service Hub shortcut, slip names and order log verified.');
+console.log('v' + RELEASE + ' edit-mode cart header, Book/Update labels, Service Hub shortcut, slip names and order log verified.');
