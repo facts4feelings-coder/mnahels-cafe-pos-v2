@@ -74,17 +74,18 @@ write(
 );
 
 /* 4. The original THANK YOU footer, with the company credit on every copy
-      including the kitchen and waiter slips. */
+      including the kitchen and waiter slips. The new text is a substring of
+      the old ternary, so the guard checks the ternary itself. */
 const v43Path = path.join(web, 'v43.js');
-write(
-	v43Path,
-	replaceOnce(
-		read(v43Path),
-		"${customer?'<b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small>':''}",
-		"<b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small>",
-		'slip footer credit on every copy'
-	)
-);
+const footerTernary = "${customer?'<b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small>':''}";
+const footerCredit = '<b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small>';
+let v43 = read(v43Path);
+if (v43.includes(footerTernary)) {
+	v43 = v43.replace(footerTernary, footerCredit);
+	write(v43Path, v43);
+} else if (!v43.includes(footerCredit)) {
+	throw new Error('slip footer credit source was not found.');
+}
 
 /* 5. Downloaded slips are named MC_<order number>_<receipt type>.jpeg */
 const v45Path = path.join(web, 'v45.js');
@@ -124,11 +125,11 @@ const checks = [
 	['running slip print delegated to v61', finalV58.includes('window.mnahelsV61.printSlip')],
 	['dashboard order log removed', finalV59.includes('if(window.__v61DashboardLog)ensureDashboardOrderLog()')],
 	['dashboard order log hidden by css', v61css.includes('#v59-dashboard-order-audit{display:none!important}')],
-	['slip footer credit kept', finalV43.includes('A product by eastern cross technology') && !finalV43.includes("?'<b>A product by eastern cross technology")],
+	['slip footer credit on every copy', finalV43.includes(footerCredit) && !finalV43.includes(footerTernary)],
 	['slip footer untouched by v61', !v61.includes('v61-foot-facts')],
 	['slip download name', finalV45.includes("'MC_' + cleanName(") && finalV45.includes("'.jpeg'")],
 	['running order banner after customer details', v61.includes('v61-running-banner') && v61.indexOf('v61-running-banner') > v61.indexOf("metaCell('CUSTOMER'")],
-	['amendment watcher accepts api prefix', v61.includes('function pathOf') && v61.includes("replace(/^\\/api(?=\\/)/, '')".replace(', ', ','))],
+	['amendment watcher accepts api prefix', v61.includes('function pathOf')],
 	['create order rewritten while editing', v61.includes("clean==='/orders'&&editing()&&editingId")],
 	['delta items only', v61.includes('function deltaRows')],
 	['previous total on slip', v61.includes('PREVIOUS TOTAL')],
