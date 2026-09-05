@@ -1,5 +1,5 @@
-/* Mnahel's Cafe POS v0.15.51 - shift order log, per-order log, running-order slips,
-   edit-mode cart and Service Hub shortcut.
+/* Mnahel's Cafe POS v0.15.52 - shift order log, per-order log, running-order slips,
+   instant edit-mode cart with a NEW ADDED section and the Service Hub shortcut.
    Copyright (c) 2026 Eastern Cross Technology. All rights reserved. */
 #v59-dashboard-order-audit{display:none!important}
 
@@ -39,8 +39,10 @@
 @media(max-width:1100px){.v61-order-timeline li{grid-template-columns:1fr;grid-template-areas:'when' 'action' 'who' 'what'}}
 
 /* Edit banner lives inside .cart-head so the .cart-panel grid rows never shift.
-   .cart-head is itself a grid/flex row, so the banner is forced to span every
-   column and sit on its own line above the cart title. */
+   While it is still a direct child of .cart-panel it stays hidden, so the wrong
+   layout (banner across the panel, big gap above the cart) is never painted even
+   for a single frame. */
+#screen-pos .cart-panel>#v56-edit-banner{display:none!important}
 #screen-pos .cart-head{flex-wrap:wrap}
 #screen-pos .cart-head>#v56-edit-banner{order:-1;grid-column:1/-1;grid-row:auto;flex:1 1 100%;width:100%;min-width:100%;max-width:100%;box-sizing:border-box;margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:12px;background:rgba(240,181,0,.12);border:1px solid rgba(240,181,0,.45);position:static;text-align:left;white-space:normal}
 #screen-pos .cart-head>#v56-edit-banner>*{position:static}
@@ -51,6 +53,15 @@
 #v61-add-service{order:9;grid-column:1/-1;flex:1 1 100%;width:100%;min-width:100%;box-sizing:border-box;margin:8px 0 0;padding:7px 10px;border-radius:10px;font-size:11.5px;font-weight:700;cursor:pointer;text-align:center;background:rgba(240,181,0,.1);color:#f0b500;border:1px dashed rgba(240,181,0,.55)}
 #v61-add-service:hover{background:rgba(240,181,0,.2)}
 #screen-pos.v61-editing #place-order{background:#f0b500;color:#150f08}
+
+/* Edit mode splits the cart: NEW ADDED group on top, booked items underneath.
+   css order does the grouping so the cart handlers keep their own row order. */
+html[data-v61-edit] #screen-pos .cart-head{border-radius:12px}
+html[data-v61-edit] #screen-pos #cart-items,#screen-pos.v61-editing #cart-items{display:flex;flex-direction:column}
+.v61-cart-group{margin:8px 0 2px;padding:5px 9px;border-radius:8px;font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;background:rgba(255,255,255,.05);opacity:.85}
+#v61-new-added{background:rgba(240,181,0,.16);color:#f0b500;opacity:1}
+#screen-pos #cart-items>[data-v61-new="1"]{border-left:3px solid #f0b500;background:rgba(240,181,0,.07);border-radius:8px}
+#screen-pos #cart-items .cart-line[data-v61-new="1"]{border-left:3px solid #f0b500;background:rgba(240,181,0,.07)}
 
 .v61-running-banner{margin:8px 0 4px;padding:7px 8px;background:#000;color:#fff;text-align:center;border-radius:2px}
 .v61-running-banner b{display:block;font:900 19px "Courier New",monospace;letter-spacing:2px}

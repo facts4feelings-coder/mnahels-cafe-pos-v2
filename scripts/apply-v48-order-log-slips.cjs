@@ -1,9 +1,11 @@
-/* Mnahel's Cafe POS v0.15.51 build patch
+/* Mnahel's Cafe POS v0.15.52 build patch
+ * - exactly one PUT /api/orders/{id} endpoint, so order updates stop returning 500
  * - order log on the Shift screen only, plus a per-order log
  * - every RUNNING ORDER / cancellation slip is built and printed by v61
  * - original slip footer restored on every copy
  * - downloaded slips are named MC_<order>_<type>.jpeg
  * - the edit banner stays out of the .cart-panel grid so the cart renders normally
+ * - edit mode splits the cart into NEW ADDED and booked items
  * - the cart button reads Book order for new orders and Update order while editing
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved. */
 const fs = require('fs');
@@ -11,12 +13,14 @@ const path = require('path');
 
 const root = path.join(__dirname, '..');
 const web = path.join(root, 'src', 'MnahelsCafe.Pos', 'wwwroot');
-const RELEASE = '0.15.51';
-const REVISION = '20260905-edit-cart-header-51';
+const programPath = path.join(root, 'src', 'MnahelsCafe.Pos', 'Program.cs');
+const RELEASE = '0.15.52';
+const REVISION = '20260905-route-dupe-new-added-52';
 
 const lf = value => value.replace(/\r\n/g, '\n');
 const read = file => lf(fs.readFileSync(file, 'utf8'));
 const write = (file, value) => fs.writeFileSync(file, value, 'utf8');
+const count = (value, snippet) => value.split(snippet).length - 1;
 
 function insertOnce(value, marker, addition, label) {
 	if (value.includes(addition)) return value;
@@ -30,6 +34,13 @@ function replaceOnce(value, oldText, newText, label) {
 	return value.replace(oldText, newText);
 }
 
+function collapse(value, snippet) {
+	const first = value.indexOf(snippet);
+	if (first < 0) return value;
+	const keep = value.slice(0, first + snippet.length);
+	return keep + value.slice(first + snippet.length).split(snippet).join('');
+}
+
 function stamp(file, pattern, replacement) {
 	const target = path.join(web, file);
 	if (!fs.existsSync(target)) return;
@@ -37,6 +48,21 @@ function stamp(file, pattern, replacement) {
 	if (!pattern.test(value)) return;
 	write(target, value.replace(pattern, replacement));
 }
+
+/* 0. One order-editing endpoint only. v43 injects OrderEditingFeatures.MapApi into
+      Program.cs and v44 rewrites the same line, so a working tree patched by an
+      older script can end up with the hook twice. Two identical PUT endpoints make
+      ASP.NET throw AmbiguousMatchException, every order update answers 500 and the
+      cart only shows "Request failed". Duplicated startup hooks are collapsed too. */
+let program = read(programPath);
+[
+	'OrderEditingFeatures.ApplySchema(db);',
+	'CredentialMigrationV44.Apply(db);',
+	'V42MenuMigration.Apply(db);',
+	'OrderEditingFeatures.MapApi(api);',
+	'OrderLogFeatures.MapApi(api);'
+].forEach(snippet => { program = collapse(program, snippet); });
+write(programPath, program);
 
 /* 1. Load v61 assets after v60 so they win, and ship the cart button already
       labelled Book order so no Place order text is ever visible. */
@@ -135,6 +161,7 @@ stamp('v60.js', /const BUILD='[^']+',REV='[^']+';/, "const BUILD='" + RELEASE + 
 stamp('v61.js', /const BUILD='[^']+',REV='[^']+';/, "const BUILD='" + RELEASE + "',REV='" + REVISION + "';");
 
 /* 8. Verification. */
+const finalProgram = read(programPath);
 const finalIndex = read(indexPath);
 const finalV43 = read(v43Path);
 const finalV45 = read(v45Path);
@@ -145,6 +172,11 @@ const v61 = read(path.join(web, 'v61.js'));
 const v61css = read(path.join(web, 'v61.css'));
 
 const checks = [
+	['single order editing api hook', count(finalProgram, 'OrderEditingFeatures.MapApi(api);') === 1],
+	['single order log api hook', count(finalProgram, 'OrderLogFeatures.MapApi(api);') === 1],
+	['single running-order schema hook', count(finalProgram, 'OrderEditingFeatures.ApplySchema(db);') === 1],
+	['single credential migration hook', count(finalProgram, 'CredentialMigrationV44.Apply(db);') === 1],
+	['single menu migration hook', count(finalProgram, 'V42MenuMigration.Apply(db);') === 1],
 	['v61 stylesheet installed', finalIndex.includes('/v61.css?v=' + REVISION)],
 	['v61 script installed', finalIndex.includes('/v61.js?v=' + REVISION)],
 	['v60 order console preserved', finalIndex.includes('/v60.js')],
@@ -166,10 +198,15 @@ const checks = [
 	['final total on slip', v61.includes('FINAL TOTAL')],
 	['cancelled row marked', v61.includes('v61-cancel-tag')],
 	['book and update labels', v61.includes("'Update order'") && v61.includes("'Book order'")],
+	['cart button label observed', v61.includes('function watchUi') && v61.includes('MutationObserver')],
+	['edit state applied instantly', v61.includes('function editFlag') && v61.includes("setAttribute('data-v61-edit','1')")],
+	['new added cart section', v61.includes('function markNewAdded') && v61.includes("'NEW ADDED'")],
+	['new added section styled', v61css.includes('#v61-new-added') && v61css.includes('.v61-cart-group')],
 	['edit banner mounted in cart head', finalV56.includes("(panel.querySelector('.cart-head') || panel).prepend(banner)")],
 	['no place order text left in v56', !finalV56.includes("'Place order'")],
 	['edit banner styled inside cart head', v61css.includes('#screen-pos .cart-head>#v56-edit-banner')],
 	['edit banner spans full cart head row', v61css.includes('grid-column:1/-1') && v61css.includes('min-width:100%')],
+	['edit banner hidden until relocated', v61css.includes('#screen-pos .cart-panel>#v56-edit-banner{display:none!important}')],
 	['edit banner kept out of cart grid', v61.includes('function relocateEditBanner')],
 	['service hub shortcut', v61.includes('function goServiceHub') && v61.includes('v61-add-service')],
 	['build number stamped in ui', v61.includes('function stampBuild')],
@@ -178,7 +215,7 @@ const checks = [
 ];
 
 const failed = checks.filter(entry => !entry[1]).map(entry => entry[0]);
-if (failed.length) throw new Error('Shift order log and running slip v' + RELEASE + ' verification failed: ' + failed.join(', '));
+if (failed.length) throw new Error('Order update and edit-cart v' + RELEASE + ' verification failed: ' + failed.join(', '));
 
 new Function(finalV43);
 new Function(finalV45);
@@ -187,4 +224,4 @@ new Function(finalV58);
 new Function(finalV59);
 new Function(v61);
 
-console.log('v' + RELEASE + ' edit-mode cart header, Book/Update labels, Service Hub shortcut, slip names and order log verified.');
+console.log('v' + RELEASE + ' single order-update endpoint, instant edit cart, NEW ADDED section and stable Book/Update label verified.');

@@ -1,10 +1,11 @@
-/* Mnahel's Cafe POS v0.15.50 - shift order log, per-order log, running-order delta slips,
- * edit-mode cart repair, Book/Update labels and a Service Hub shortcut.
+/* Mnahel's Cafe POS v0.15.52 - shift order log, per-order log, running-order delta slips,
+ * instant edit-mode cart with a NEW ADDED section, glitch-free Book/Update label
+ * and a Service Hub shortcut.
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology. */
 (function(){
 'use strict';
-const BUILD='0.15.50',REV='20260905-edit-cart-service-hub-50';
+const BUILD='0.15.52',REV='20260905-route-dupe-new-added-52';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'Rs '+Math.round(Number(v||0)).toLocaleString('en-PK');
@@ -135,7 +136,14 @@ function installApiHook(){
 /* ---- edit-mode cart ----
    .cart-panel is a grid of cart-head / segment / cart-items / cart-footer, so an
    extra direct child shifts every row and the heading lands in the middle. The
-   edit banner therefore lives inside .cart-head, which is a single auto row. */
+   edit banner therefore lives inside .cart-head, which is a single auto row, and
+   v61.css keeps it invisible until it has been relocated so the wrong layout is
+   never painted for a frame. */
+function editFlag(on){
+ const html=document.documentElement;
+ if(on){if(html.getAttribute('data-v61-edit')!=='1')html.setAttribute('data-v61-edit','1')}
+ else if(html.hasAttribute('data-v61-edit'))html.removeAttribute('data-v61-edit');
+}
 function relocateEditBanner(){
  const banner=q('#v56-edit-banner');
  if(!banner)return;
@@ -172,8 +180,54 @@ function serviceHubChip(){
  const want=type==='Dine-in'?'+ Add waiter / table in Service Hub':'+ Add rider in Service Hub';
  if(chip.textContent!==want)chip.textContent=want;
 }
+
+/* ---- NEW ADDED section ----
+   While a booked order is open the cart is split into two groups without touching
+   the DOM order the cart handlers rely on: css order keeps freshly added lines and
+   their NEW ADDED heading on top, booked lines underneath. */
+const HEAD_NEW='v61-new-added',HEAD_BOOKED='v61-booked-items';
+function groupHeading(id,text){
+ let el=q('#'+id);
+ if(!el){el=document.createElement('div');el.id=id;el.className='v61-cart-group';el.textContent=text}
+ return el;
+}
+function setOrder(el,value){const want=String(value);if(el.style.order!==want)el.style.order=want}
+function setShown(el,shown){const want=shown?'':'none';if(el.style.display!==want)el.style.display=want}
+function cartLines(host){
+ const lines=qa('.cart-line',host);
+ if(lines.length)return lines;
+ return [...host.children].filter(el=>el.id!==HEAD_NEW&&el.id!==HEAD_BOOKED&&!el.classList.contains('empty-cart'));
+}
+function markNewAdded(){
+ const host=q('#cart-items');
+ if(!host)return;
+ const lines=cartLines(host);
+ if(!editing()){
+  [HEAD_NEW,HEAD_BOOKED].forEach(id=>{const el=q('#'+id);if(el)el.remove()});
+  lines.forEach(line=>{if(line.style.order)line.style.order='';if(line.getAttribute('data-v61-new'))line.removeAttribute('data-v61-new')});
+  return;
+ }
+ const cart=Array.isArray(appState().cart)?appState().cart:[];
+ let fresh=0;
+ lines.forEach((line,index)=>{
+  const item=cart[index]||{};
+  const booked=item.originalQuantity!=null?Number(item.originalQuantity):null;
+  const isNew=booked===null||Number(item.quantity||0)>booked;
+  if(isNew){fresh++;if(line.getAttribute('data-v61-new')!=='1')line.setAttribute('data-v61-new','1');setOrder(line,2)}
+  else{if(line.getAttribute('data-v61-new'))line.removeAttribute('data-v61-new');setOrder(line,4)}
+ });
+ const newHead=groupHeading(HEAD_NEW,'NEW ADDED'),bookedHead=groupHeading(HEAD_BOOKED,'ALREADY BOOKED ITEMS');
+ setOrder(newHead,1);setOrder(bookedHead,3);
+ if(newHead.parentElement!==host)host.prepend(newHead);
+ if(bookedHead.parentElement!==host)host.append(bookedHead);
+ setShown(newHead,fresh>0);
+ setShown(bookedHead,lines.length>fresh);
+}
+
+/* ---- Book order / Update order label: one desired value, enforced instantly ---- */
 function ctaSync(){
  const on=editing();
+ editFlag(on);
  const root=q('#screen-pos');
  if(root)root.classList.toggle('v61-editing',on);
  if(!on){document.documentElement.classList.remove('v60-editing-order');editingId=0}
@@ -184,7 +238,7 @@ function ctaSync(){
  }
  if(!root)return;
  qa('b,strong,small,span',root).forEach(el=>{
-  if(el.children.length||el.closest('#place-order')||el.closest('#v56-edit-banner'))return;
+  if(el.children.length||el.closest('#place-order')||el.closest('#v56-edit-banner')||el.id===HEAD_NEW||el.id===HEAD_BOOKED)return;
   const raw=String(el.textContent||'').trim();
   if(!raw||raw.length>40)return;
   if(on){
@@ -206,6 +260,26 @@ function stampBuild(){
   const want=(raw.charAt(0)==='v'?'v':'')+BUILD;
   if(raw!==want)el.textContent=want;
  });
+}
+
+/* ---- instant repaint: observers instead of timers, so the cart never flashes ---- */
+let painting=false,syncing=false;
+function paint(){
+ if(painting)return;
+ painting=true;
+ const run=()=>{painting=false;relocateEditBanner();serviceHubChip();ctaSync();markNewAdded()};
+ if(typeof requestAnimationFrame==='function')requestAnimationFrame(run);else setTimeout(run,0);
+}
+function watchUi(){
+ const button=q('#place-order');
+ if(button&&!button.__v61){
+  button.__v61=true;
+  new MutationObserver(()=>{if(syncing)return;syncing=true;try{ctaSync()}finally{syncing=false}}).observe(button,{childList:true,subtree:true,characterData:true});
+ }
+ const panel=q('#screen-pos .cart-panel');
+ if(panel&&!panel.__v61){panel.__v61=true;new MutationObserver(paint).observe(panel,{childList:true,subtree:true})}
+ const root=q('#screen-pos');
+ if(root&&!root.__v61){root.__v61=true;new MutationObserver(paint).observe(root,{attributes:true,attributeFilter:['class']})}
 }
 
 /* ---- per-order log on the shift screen ---- */
@@ -253,21 +327,28 @@ async function loadLog(force){
   if(host&&!host.querySelector('details'))host.innerHTML='<div class="empty">Per-order log load nahi hua ('+esc((error&&error.message)||'error')+'). Refresh dabayen.</div>';
  }finally{busy=false}
 }
-function tick(){installApiHook();stampBuild();relocateEditBanner();serviceHubChip();ctaSync();stripDashboardLog()}
+function tick(){installApiHook();stampBuild();watchUi();relocateEditBanner();serviceHubChip();ctaSync();markNewAdded();stripDashboardLog()}
 function refresh(){tick();ensureSection();if(q('#screen-shift.active'))loadLog(false)}
 
 document.addEventListener('click',event=>{
  const target=event.target;
  if(!target||!target.closest)return;
- if(target.closest('[data-v60-edit],.v60-edit,[data-op="edit"]')){pendingEdit=Date.now();setTimeout(tick,0);setTimeout(tick,120);setTimeout(tick,400)}
- if(target.closest('#v56-edit-banner button,#new-order')){pendingEdit=0;setTimeout(tick,60)}
+ if(target.closest('[data-v60-edit],.v60-edit,[data-op="edit"]')){
+  pendingEdit=Date.now();
+  editFlag(true);
+  const root=q('#screen-pos');
+  if(root)root.classList.add('v61-editing');
+  ctaSync();
+  setTimeout(tick,0);setTimeout(tick,120);setTimeout(tick,400);
+ }
+ if(target.closest('#v56-edit-banner button,#new-order')){pendingEdit=0;setTimeout(tick,0);setTimeout(tick,60)}
  if(target.closest('[data-screen="shift"],#v46-chip,#v59-log-refresh'))setTimeout(()=>loadLog(true),150);
- if(target.closest('#place-order,[data-order-type],#cart-items button'))setTimeout(tick,120);
+ if(target.closest('#place-order,[data-order-type],#cart-items button'))setTimeout(tick,0);
 },true);
 installApiHook();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
 setTimeout(refresh,400);setTimeout(refresh,1200);
 setInterval(()=>{if(document.visibilityState==='visible'){tick();if(q('#screen-shift.active'))loadLog(false)}},2500);
 document.documentElement.dataset.v61Revision=REV;
-window.mnahelsV61={build:BUILD,uiRevision:REV,slipHtml:slipHtml,printSlip:printSlip,cancellationRows:cancellationRows,additionRows:additionRows,loadLog:loadLog,refresh:refresh,goServiceHub:goServiceHub};
+window.mnahelsV61={build:BUILD,uiRevision:REV,slipHtml:slipHtml,printSlip:printSlip,cancellationRows:cancellationRows,additionRows:additionRows,loadLog:loadLog,refresh:refresh,goServiceHub:goServiceHub,markNewAdded:markNewAdded};
 })();
