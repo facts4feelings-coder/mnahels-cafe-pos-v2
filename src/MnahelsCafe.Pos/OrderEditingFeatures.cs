@@ -12,6 +12,16 @@ using Microsoft.EntityFrameworkCore;
 
 static class OrderEditingFeatures
 {
+    /* v0.15.53 · MapApi is idempotent per route group. A patched Program.cs can end
+       up with the OrderEditingFeatures.MapApi hook more than once; that registered
+       PUT /api/orders/{id} twice and every booked-order update then failed with
+       AmbiguousMatchException, which the cart showed as "Request failed".
+       GET /api/order-editing/build reports the build actually running plus how many
+       times the hook was invoked, so a stale server process is easy to spot. */
+    public const string BuildStamp = "0.15.53";
+    private static readonly HashSet<RouteGroupBuilder> MappedGroups = new();
+    private static int _mapCalls;
+
     public static void ApplySchema(PosDb db)
     {
         var columns = Columns(db, "OrderItems");
@@ -50,6 +60,12 @@ static class OrderEditingFeatures
 
     public static void MapApi(RouteGroupBuilder api)
     {
+        lock (MappedGroups)
+        {
+            _mapCalls++;
+            if (!MappedGroups.Add(api)) return;
+        }
+        api.MapGet("/order-editing/build", () => Results.Ok(new { build = BuildStamp, mapCalls = _mapCalls }));
         api.MapGet("/orders/{id:long}/edit", LoadOrder);
         api.MapPut("/orders/{id:long}", UpdateOrder);
         api.MapGet("/orders/{id:long}/amendments", LoadAmendments);
@@ -64,6 +80,19 @@ static class OrderEditingFeatures
     }
 
     private static async Task<IResult> UpdateOrder(long id, UpdateBookedOrderRequest request, PosDb db, ClaimsPrincipal principal)
+    {
+        try
+        {
+            return await UpdateOrderCore(id, request, db, principal);
+        }
+        catch (Exception error)
+        {
+            var detail = error.InnerException?.Message ?? error.Message;
+            return Results.BadRequest(new { message = "Order update failed: " + detail });
+        }
+    }
+
+    private static async Task<IResult> UpdateOrderCore(long id, UpdateBookedOrderRequest request, PosDb db, ClaimsPrincipal principal)
     {
         var order = await db.Orders.Include(x => x.Items).SingleOrDefaultAsync(x => x.Id == id);
         if (order is null) return Results.NotFound(new { message = "Order not found." });
