@@ -30,6 +30,9 @@ function freeze(source){
   const a=[live,...live.querySelectorAll('*')],b=[copy,...copy.querySelectorAll('*')];
   a.forEach((element,i)=>{const css=getComputedStyle(element);for(const prop of css)b[i].style.setProperty(prop,css.getPropertyValue(prop),'important');});
   copy.style.setProperty('margin','0','important');
+  // SVG image documents need explicit tracks for the receipt's named header areas.
+  // These are the original v43 grid positions, not a different JPG layout.
+  [['.v43-brand','1 / 1 / 2 / 3'],['.v43-mode','2 / 1 / 3 / 2'],['.v43-seal','2 / 2 / 3 / 3']].forEach(([selector,area])=>copy.querySelector(selector)?.style.setProperty('grid-area',area,'important'));
   const width=Math.ceil(rect.width),height=Math.ceil(rect.height);
   if(!width||!height||width*height>16000000)throw Error('Receipt dimensions are invalid or too large; nothing was cropped.');
   return {html:copy.outerHTML,xml:new XMLSerializer().serializeToString(copy),width,height,kind:receipt.dataset.receiptKind||'customer',text:receipt.textContent||''};
@@ -38,7 +41,6 @@ function freeze(source){
 function fromHtml(html){const box=document.createElement('div');box.innerHTML=html;return freeze(box);}
 async function jpeg(snapshot,name){
  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+snapshot.width+'" height="'+snapshot.height+'"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">'+snapshot.xml+'</div></foreignObject></svg>';
- // Data URL avoids the tainted-canvas path used by blob SVG foreignObjects.
  const image=new Image();image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
  await image.decode();
  const canvas=document.createElement('canvas');canvas.width=snapshot.width*2;canvas.height=snapshot.height*2;
@@ -53,6 +55,7 @@ function bridge(type){
  if(!(window.__mnahelsDualPrintBridge&&window.chrome?.webview?.postMessage)){
   nativePrint();return Promise.resolve(true);
  }
+ if(!window.__mnahelsPrintJobBridge)return Promise.reject(Error('Update this Windows app to v0.15.57 before printing. Your order is saved.'));
  const id=Date.now().toString(36)+'-'+(++serial);
  return new Promise((resolve,reject)=>{
   let timedOut=false;
@@ -70,7 +73,6 @@ function bridge(type){
  });
 }
 function printHtml(html,type='customer'){
- // HTML is captured at the call boundary, never read from a later order.
  const source=String(html||'');
  const task=async()=>{
   if(uncertain)throw Error('Previous printer job is unconfirmed. Check the printer; automatic retry is disabled.');
