@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.48 - shift order log, per-order log and running-order slip rework
+/* Mnahel's Cafe POS v0.15.48 - shift order log, per-order log, booking slip footer and running-order slip rework
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology. */
 (function(){
@@ -17,6 +17,33 @@ function orderMode(order){const v=String(order&&order.orderType||'Takeaway');ret
 function placedAt(order){const src=order&&(order.createdAt||order.placedAt);const d=src?new Date(src):new Date();return Number.isNaN(d.getTime())?String(src||''):d.toLocaleString('en-PK',{day:'2-digit',month:'short',hour:'numeric',minute:'2-digit'})}
 function service(order,mode){if(mode==='Dine-in')return{label:'TABLE / WAITER',value:((order&&order.tableName)||('Table '+((order&&order.tableNumber)||'-')))+' - '+((order&&order.waiterName)||'-')};if(mode==='Delivery')return{label:'RIDER / AREA',value:((order&&order.riderName)||'Rider unassigned')+((order&&order.deliveryAddress)?' - '+order.deliveryAddress:'')};return{label:'FULFILMENT',value:'Counter pickup'}}
 function metaCell(label,value){return '<div class="v43-meta-cell"><span>'+esc(label)+'</span><b>'+esc(value)+'</b></div>'}
+
+/* Booking slips: the kitchen copy footer used to say only "KITCHEN COPY".
+   Every slip footer now repeats the order facts so the counter and the kitchen
+   can identify the slip without reading the whole receipt. */
+function itemCount(order){return (Array.isArray(order&&order.items)?order.items:[]).reduce((sum,item)=>sum+Math.max(0,Number((item&&item.quantity)||0)),0)}
+function footFacts(order){
+ const count=itemCount(order);
+ const parts=['MC-'+((order&&order.tokenNumber!=null)?order.tokenNumber:'-'),String(orderMode(order)).toUpperCase(),count+(count===1?' item':' items'),placedAt(order)];
+ const customer=(order&&order.customerName)||'';
+ if(customer)parts.push(customer);
+ const by=(order&&(order.createdByName||order.cashierName))||'';
+ const role=(order&&order.createdByRole)||'';
+ if(by)parts.push('By '+by+(role?' ('+String(role).toUpperCase()+')':''));
+ return parts.join('   |   ');
+}
+function installReceiptFooter(){
+ const v43=window.mnahelsV43;
+ if(!v43||typeof v43.receiptHtml!=='function'||v43.receiptHtml.__v61)return;
+ const original=v43.receiptHtml;
+ const wrapped=function(order,kind){
+  const html=original.apply(this,arguments);
+  if(typeof html!=='string'||html.indexOf('v61-foot-facts')>=0||html.indexOf('</footer>')<0)return html;
+  return html.replace('</footer>','<div class="v61-foot-facts">'+esc(footFacts(order))+'</div></footer>');
+ };
+ wrapped.__v61=true;
+ v43.receiptHtml=wrapped;
+}
 
 const KEY=item=>String((item&&item.productName)||'').toLowerCase()+'|'+String((item&&item.variantName)||'Regular').toLowerCase();
 function normalize(line){const quantity=Math.max(0,Number((line&&line.quantity)||0)),unitPrice=Number((line&&line.unitPrice)||0);return{variantId:line&&line.variantId,productName:(line&&line.productName)||'Item',variantName:(line&&line.variantName)||'Regular',quantity:quantity,unitPrice:unitPrice,lineTotal:Number(line&&line.lineTotal!=null?line.lineTotal:unitPrice*quantity),notes:(line&&line.notes)||null,cancelledQuantity:0,originalQuantity:quantity}}
@@ -55,7 +82,7 @@ function slipHtml(order,lines,type,result){
  const items=rows.map(row=>itemRow(row,cancellation)).join('')||'<div class="v43-empty">No items</div>';
  const token=(order&&order.tokenNumber!=null)?order.tokenNumber:'-';
  const customer=(order&&order.customerName)||'Walk-in customer';
- return '<article class="tp tp-customer v43-receipt kitchen v58-running-slip v61-running-slip '+(cancellation?'v61-cancellation':'v61-addition')+'" data-receipt-kind="'+(cancellation?'running-cancellation':'running-addition')+'" data-order-mode="'+esc(mode)+'"><header class="tp-head v43-dark-head"><div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">'+LOGO+'</span><b>MNAHEL&#39;S CAFE</b></div><small>THE WORLD OF TASTE</small></div><div class="v43-mode"><span class="v43-mode-icon">'+ICONS[mode]+'</span><b>'+esc(mode.toUpperCase())+'</b></div><div class="v43-seal"><strong>'+(cancellation?'CANCELLED':'RUNNING')+'</strong><small>'+(cancellation?'UPDATE SLIP':'ADD ITEMS')+'</small></div></header><div class="v43-body"><div class="v43-meta-grid">'+metaCell('ORDER','MC-'+token)+metaCell('PLACED AT',placedAt(order))+metaCell('CUSTOMER',customer)+metaCell(info.label,info.value)+'</div><div class="v61-running-banner"><b>'+title+'</b><small>'+hint+'</small></div><div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>AMOUNT</b></div>'+items+'</div>'+billBlock(previous,updated,cancellation)+'<footer class="tp-foot v41-footer"><strong>'+title+'</strong><span>MC-'+esc(token)+' - '+esc(customer)+'</span></footer></div></article>';
+ return '<article class="tp tp-customer v43-receipt kitchen v58-running-slip v61-running-slip '+(cancellation?'v61-cancellation':'v61-addition')+'" data-receipt-kind="'+(cancellation?'running-cancellation':'running-addition')+'" data-order-mode="'+esc(mode)+'"><header class="tp-head v43-dark-head"><div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">'+LOGO+'</span><b>MNAHEL&#39;S CAFE</b></div><small>THE WORLD OF TASTE</small></div><div class="v43-mode"><span class="v43-mode-icon">'+ICONS[mode]+'</span><b>'+esc(mode.toUpperCase())+'</b></div><div class="v43-seal"><strong>'+(cancellation?'CANCELLED':'RUNNING')+'</strong><small>'+(cancellation?'UPDATE SLIP':'ADD ITEMS')+'</small></div></header><div class="v43-body"><div class="v43-meta-grid">'+metaCell('ORDER','MC-'+token)+metaCell('PLACED AT',placedAt(order))+metaCell('CUSTOMER',customer)+metaCell(info.label,info.value)+'</div><div class="v61-running-banner"><b>'+title+'</b><small>'+hint+'</small></div><div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>AMOUNT</b></div>'+items+'</div>'+billBlock(previous,updated,cancellation)+'<footer class="tp-foot v41-footer"><strong>'+title+'</strong><span>'+esc(footFacts(order))+'</span><div class="v61-foot-facts">'+esc(customer)+'</div></footer></div></article>';
 }
 
 function localTime(v){if(!v)return'-';const d=new Date(v);return Number.isNaN(d.getTime())?'-':d.toLocaleString('en-PK',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'})}
@@ -102,16 +129,17 @@ async function loadLog(force){
   if(host&&!host.querySelector('details'))host.innerHTML='<div class="empty">Per-order log load nahi hua ('+esc((error&&error.message)||'error')+'). Refresh dabayen.</div>';
  }finally{busy=false}
 }
-function refresh(){stripDashboardLog();ensureSection();if(q('#screen-shift.active'))loadLog(false)}
+function refresh(){installReceiptFooter();stripDashboardLog();ensureSection();if(q('#screen-shift.active'))loadLog(false)}
 
 document.addEventListener('click',event=>{
  const target=event.target;
  if(target&&target.closest&&target.closest('[data-screen="shift"],#v46-chip,#v59-log-refresh'))setTimeout(()=>loadLog(true),150);
  if(target&&target.closest&&target.closest('#place-order,[data-v60-edit],[data-op="edit"]'))setTimeout(()=>loadLog(true),900);
 },true);
+installReceiptFooter();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
 setTimeout(refresh,600);setTimeout(refresh,1600);
 setInterval(()=>{if(document.visibilityState==='visible')refresh()},6000);
 document.documentElement.dataset.v61Revision=REV;
-window.mnahelsV61={build:BUILD,uiRevision:REV,slipHtml:slipHtml,cancellationRows:cancellationRows,additionRows:additionRows,loadLog:loadLog,refresh:refresh};
+window.mnahelsV61={build:BUILD,uiRevision:REV,slipHtml:slipHtml,cancellationRows:cancellationRows,additionRows:additionRows,footFacts:footFacts,loadLog:loadLog,refresh:refresh};
 })();
