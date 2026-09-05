@@ -2,6 +2,9 @@
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved. */
 (()=>{
 'use strict';
+// Do not discard distinct JPG updates merely because they share a token/kind.
+// v59 installs its legacy anchor hook on DOMContentLoaded, after this script.
+window.__v59PrintDedupe=true;
 const doneActions=new Map(),claimed=new Set();
 let queue=Promise.resolve(),uncertain=false,serial=0;
 const say=message=>window.toast?.(message);
