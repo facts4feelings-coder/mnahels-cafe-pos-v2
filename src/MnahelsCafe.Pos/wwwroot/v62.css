@@ -1,0 +1,16 @@
+/* Mnahel's Cafe POS v0.15.54 · updated-order receipt only. Existing POS layout is unchanged. */
+.v62-updated-receipt .v62-update-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px;padding:6px 7px;border:2px solid #000;background:#fff;color:#000}
+.v62-updated-receipt .v62-update-banner b{font-size:11px;line-height:1;font-weight:950;letter-spacing:.03em}
+.v62-updated-receipt .v62-update-banner small{font-size:7.6px;line-height:1.15;text-align:right;font-weight:850}
+.v62-change-section{margin:0 0 6px}
+.v62-section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;padding:4px 6px;border:1.5px solid #000;border-bottom:0;background:#fff;color:#000}
+.v62-section-title b{font-size:9px;line-height:1.1;font-weight:950;letter-spacing:.02em}
+.v62-section-title small{font-size:7px;line-height:1.1;text-align:right;font-weight:800}
+.v62-change-section .v43-items{margin-bottom:0}
+.v62-change-section .v43-item-name em{display:inline;font-style:normal;font-size:7px;font-weight:950;letter-spacing:.02em}
+.v62-added-row .v43-qty,.v62-plus b{font-weight:950}
+.v62-cancelled-row .v43-qty,.v62-cancelled-row .v43-third,.v62-minus b{font-weight:950}
+.v62-none{padding:7px;text-align:center;font-size:8.5px;font-weight:850;border-top:0;color:#000;background:#fff}
+.v62-summary .tp-line span{font-weight:850}
+.v62-summary .tp-total span{font-weight:950}
+@media print{.v62-updated-receipt,.v62-updated-receipt *{color:#000!important}.v62-updated-receipt .v62-update-banner,.v62-updated-receipt .v62-section-title,.v62-updated-receipt .v62-none{background:#fff!important;color:#000!important}}
