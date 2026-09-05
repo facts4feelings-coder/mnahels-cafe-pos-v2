@@ -1,0 +1,71 @@
+/* Mnahel's Cafe POS v0.15.48 - shift order log and running-order slip styling
+ * Copyright (c) 2026 Eastern Cross Technology. All rights reserved. */
+
+#v59-dashboard-order-audit{display:none!important}
+
+#v59-order-audit{width:100%;margin:0 0 16px}
+#v59-order-audit .v59-order-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 14px}
+#v59-order-audit .v59-order-metrics>div{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px}
+#v59-order-audit .v59-order-metrics>div small{display:block;font:700 9px/1.4 inherit;letter-spacing:.09em;text-transform:uppercase;opacity:.62}
+#v59-order-audit .v59-order-metrics>div b{display:block;margin-top:4px;font:800 22px/1.1 inherit}
+#v59-order-audit .v59-order-metrics>div[data-tone="success"]{border-bottom:2px solid #23c07a}
+#v59-order-audit .v59-order-metrics>div[data-tone="active"]{border-bottom:2px solid #f0b500}
+#v59-order-audit .v59-order-metrics>div[data-tone="cancel"]{border-bottom:2px solid #e2494b}
+#v59-order-audit .v59-order-metrics>div[data-tone="edit"]{border-bottom:2px solid #6b78f5}
+#v59-order-audit .v59-order-grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:14px;align-items:start}
+#v59-order-audit .v59-section-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 8px}
+#v59-order-audit .v59-section-title b{font:800 12px/1.3 inherit;letter-spacing:.03em}
+#v59-order-audit .v59-section-title span{font:600 10px/1.3 inherit;opacity:.58}
+#v59-order-audit .v46-table{max-height:none;overflow:visible}
+#v59-order-audit .v46-table table{width:100%;border-collapse:collapse;table-layout:auto}
+#v59-order-audit .v46-table th{position:sticky;top:0;z-index:1;background:#171310;font:700 9px/1.5 inherit;letter-spacing:.09em;text-transform:uppercase;opacity:.7;text-align:left;padding:8px 10px;white-space:nowrap}
+#v59-order-audit .v46-table td{padding:9px 10px;border-top:1px solid rgba(255,255,255,.06);font:600 11px/1.45 inherit;vertical-align:top}
+#v59-order-audit .v46-table tbody tr:nth-child(even){background:rgba(255,255,255,.018)}
+#v59-order-audit .v46-table td:nth-child(5){white-space:normal;word-break:break-word;max-width:340px}
+
+.v61-per-order-wrap{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.v61-per-order{display:flex;flex-direction:column;gap:8px}
+.v61-order-log{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:12px;overflow:hidden}
+.v61-order-log>summary{display:grid;grid-template-columns:92px minmax(0,1fr) 84px 150px;gap:10px;align-items:center;padding:11px 14px;cursor:pointer;list-style:none}
+.v61-order-log>summary::-webkit-details-marker{display:none}
+.v61-order-log>summary:hover{background:rgba(240,181,0,.08)}
+.v61-order-log>summary b{font:800 13px/1 inherit;color:#ffd94d}
+.v61-order-log>summary span{font:600 11px/1.3 inherit;opacity:.82;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v61-order-log>summary i{font:700 9px/1 inherit;letter-spacing:.07em;text-transform:uppercase;opacity:.6;font-style:normal}
+.v61-order-log>summary em{font:600 10px/1 inherit;opacity:.6;font-style:normal;text-align:right}
+.v61-order-log[open]>summary{border-bottom:1px solid rgba(255,255,255,.09);background:rgba(240,181,0,.06)}
+.v61-order-timeline{list-style:none;margin:0;padding:6px 14px 12px}
+.v61-order-timeline li{display:grid;grid-template-columns:150px 108px minmax(0,190px) minmax(0,1fr);gap:10px;align-items:center;padding:7px 0;border-top:1px solid rgba(255,255,255,.05)}
+.v61-order-timeline li:first-child{border-top:0}
+.v61-when{font:600 10px/1.3 inherit;opacity:.66}
+.v61-who{font:700 11px/1.3 inherit;display:flex;align-items:center;gap:6px}
+.v61-what{font:600 11px/1.45 inherit;opacity:.86;word-break:break-word}
+
+@media(max-width:1100px){
+ #v59-order-audit .v59-order-grid{grid-template-columns:minmax(0,1fr)}
+ #v59-order-audit .v59-order-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .v61-order-log>summary{grid-template-columns:80px minmax(0,1fr);row-gap:4px}
+ .v61-order-log>summary i,.v61-order-log>summary em{display:none}
+ .v61-order-timeline li{grid-template-columns:minmax(0,1fr);row-gap:3px}
+}
+
+.v61-running-banner{margin:10px 0 8px;padding:9px 10px;border:2px solid #000;border-radius:4px;text-align:center;background:#000}
+.v61-running-banner b{display:block;font:900 17px/1.12 "Courier New",monospace;letter-spacing:.06em;color:#fff}
+.v61-running-banner small{display:block;margin-top:3px;font:700 7.5px/1.3 "Courier New",monospace;letter-spacing:.04em;color:#fff;opacity:.92}
+.v61-running-slip .v61-cancelled-row{background:#f1f1f1;border-left:4px solid #000}
+.v61-running-slip .v61-cancel-tag{display:inline-block;margin-left:4px;padding:1px 4px;border:1px solid #000;border-radius:2px;font:900 7px/1.3 "Courier New",monospace;letter-spacing:.07em;font-style:normal;text-transform:uppercase}
+.v61-running-slip .v61-cancelled-row .v43-item-name b{text-decoration:line-through}
+.v61-bill{margin:9px 0 0;border:2px solid #000;border-radius:4px;overflow:hidden}
+.v61-bill-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 9px;border-bottom:1px solid #000}
+.v61-bill-row:last-child{border-bottom:0}
+.v61-bill-row span{font:700 8px/1.3 "Courier New",monospace;letter-spacing:.06em;text-transform:uppercase}
+.v61-bill-row b{font:900 11px/1.2 "Courier New",monospace}
+.v61-bill-row.v61-plus,.v61-bill-row.v61-minus{background:#ececec}
+.v61-bill-row.v61-bill-final{background:#000}
+.v61-bill-row.v61-bill-final span{color:#fff;font-size:9px}
+.v61-bill-row.v61-bill-final b{color:#fff;font-size:15px}
+
+@media print{
+ .v61-running-banner{break-inside:avoid;page-break-inside:avoid}
+ .v61-bill{break-inside:avoid;page-break-inside:avoid}
+}
