@@ -7,3 +7,5 @@ if(s.includes('observe(document.body, { childList: true, subtree: true })')||s.i
 if(!s.includes("qa('#admin-orders, #orders-list')"))throw new Error('Admin and Cashier order-card observers were not installed.');
 new Function(s);
 fs.writeFileSync(file,s,'utf8');
+// Validate the final receipt transport without changing the existing installer workflow.
+require('./test-v57-print-queue.cjs');
