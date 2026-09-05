@@ -1,6 +1,6 @@
 ; Mnahel's Cafe POS installer · Eastern Cross Technology
 #define MyAppName "Mnahel's Cafe POS"
-#define MyAppVersion "0.15.54"
+#define MyAppVersion "0.15.55"
 #define MyAppPublisher "Eastern Cross Technology"
 #define MyAppExeName "MnahelsCafe.Pos.exe"
 #define MyDesktopExeName "MnahelsCafe.Desktop.exe"
@@ -9,7 +9,7 @@
 AppId={{7D9C41C9-AF0E-47D5-B2E1-0D5B5B204A43}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-VersionInfoVersion=0.15.54.0
+VersionInfoVersion=0.15.55.0
 VersionInfoProductVersion={#MyAppVersion}
 VersionInfoDescription={#MyAppName} Windows installer
 AppPublisher={#MyAppPublisher}
@@ -47,7 +47,7 @@ Filename: "{sys}\sc.exe"; Parameters: "create MnahelsCafePOS binPath= ""{app}\{#
 Filename: "{sys}\sc.exe"; Parameters: "config MnahelsCafePOS binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""Mnahel's Cafe POS Server"""; Flags: runhidden waituntilterminated; Check: IsServerRole
 Filename: "{sys}\sc.exe"; Parameters: "failure MnahelsCafePOS reset= 86400 actions= restart/5000/restart/10000/restart/30000"; Flags: runhidden waituntilterminated; Check: IsServerRole
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Mnahels Cafe POS 5055"""; Flags: runhidden waituntilterminated; Check: IsServerRole
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Mnahels Cafe POS 5055"" dir=in action=allow protocol=TCP localport=5055"; Flags: runhidden waituntilterminated; Check: IsServerRole
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Mnahels Cafe POS 5055"" dir=in action=allow protocol=TCP localport=5055"""; Flags: runhidden waituntilterminated; Check: IsServerRole
 Filename: "{sys}\sc.exe"; Parameters: "start MnahelsCafePOS"; Flags: runhidden waituntilterminated; Check: IsServerRole
 Filename: "{sys}\sc.exe"; Parameters: "delete MnahelsCafePOS"; Flags: runhidden waituntilterminated; Check: IsClientRole
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Mnahels Cafe POS 5055"""; Flags: runhidden waituntilterminated; Check: IsClientRole
