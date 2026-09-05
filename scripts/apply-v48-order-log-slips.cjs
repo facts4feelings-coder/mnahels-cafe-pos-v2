@@ -1,6 +1,5 @@
 /* Mnahel's Cafe POS v0.15.48 build patch
  * - moves the order log out of the Admin dashboard into Shift only
- * - adds a per-order log section to the shift order log
  * - routes every RUNNING ORDER / cancellation slip through v61
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved. */
 const fs = require('fs');
@@ -43,18 +42,22 @@ index = insertOnce(index, '</body>', '<script src="/v61.js?v=' + REVISION + '"><
 index = index.replace(/<meta name="application-version" content="[^"]*">/, '<meta name="application-version" content="' + RELEASE + '">');
 write(indexPath, index);
 
-/* 2. Every running-order slip is rendered by v61 (big heading, previous/current/final bill,
-      cancellation slip keeps all original rows and marks the cancelled one). */
-const v58Path = path.join(web, 'v58.js');
-write(
-	v58Path,
-	replaceOnce(
-		read(v58Path),
-		'function deltaReceiptHtml(order,lines,type,result){',
-		'function deltaReceiptHtml(order,lines,type,result){if(window.mnahelsV61&&window.mnahelsV61.slipHtml)return window.mnahelsV61.slipHtml(order,lines,type,result);',
-		'v58 running slip delegation'
-	)
+/* 2. Every running-order slip is built and printed by v61: big RUNNING ORDER
+      heading under the customer details, delta items only, previous/current/final bill. */
+let v58 = read(path.join(web, 'v58.js'));
+v58 = replaceOnce(
+	v58,
+	'function deltaReceiptHtml(order,lines,type,result){',
+	'function deltaReceiptHtml(order,lines,type,result){if(window.mnahelsV61&&window.mnahelsV61.slipHtml)return window.mnahelsV61.slipHtml(order,lines,type,result);',
+	'v58 running slip markup delegation'
 );
+v58 = replaceOnce(
+	v58,
+	'async function printRunningSlip(order,lines,type,result){',
+	'async function printRunningSlip(order,lines,type,result){if(window.mnahelsV61&&window.mnahelsV61.printSlip)return window.mnahelsV61.printSlip(order,lines,type,result);',
+	'v58 running slip print delegation'
+);
+write(path.join(web, 'v58.js'), v58);
 
 /* 3. Order log lives on the Shift screen only. */
 const v59Path = path.join(web, 'v59.js');
@@ -78,8 +81,8 @@ stamp('v61.js', /const BUILD='[^']+',REV='[^']+';/, "const BUILD='" + RELEASE + 
 
 /* 5. Verification. */
 const finalIndex = read(indexPath);
-const v58 = read(v58Path);
-const v59 = read(v59Path);
+const finalV58 = read(path.join(web, 'v58.js'));
+const finalV59 = read(v59Path);
 const v61 = read(path.join(web, 'v61.js'));
 const v61css = read(path.join(web, 'v61.css'));
 
@@ -88,24 +91,28 @@ const checks = [
 	['v61 script installed', finalIndex.includes('/v61.js')],
 	['v60 order console preserved', finalIndex.includes('/v60.js')],
 	['v58 running-order script preserved', finalIndex.includes('/v58.js')],
-	['running slip delegated to v61', v58.includes('window.mnahelsV61.slipHtml')],
-	['dashboard order log removed', v59.includes('if(window.__v61DashboardLog)ensureDashboardOrderLog()')],
+	['running slip markup delegated to v61', finalV58.includes('window.mnahelsV61.slipHtml')],
+	['running slip print delegated to v61', finalV58.includes('window.mnahelsV61.printSlip')],
+	['dashboard order log removed', finalV59.includes('if(window.__v61DashboardLog)ensureDashboardOrderLog()')],
 	['dashboard order log hidden by css', v61css.includes('#v59-dashboard-order-audit{display:none!important}')],
 	['running order banner after customer details', v61.includes('v61-running-banner') && v61.indexOf('v61-running-banner') > v61.indexOf("metaCell('CUSTOMER'")],
+	['amendment response hook', v61.includes('function installApiHook')],
+	['delta items only', v61.includes('function deltaRows')],
 	['previous total on slip', v61.includes('PREVIOUS TOTAL')],
 	['current bill on slip', v61.includes('CURRENT BILL - NEW ITEMS')],
 	['final total on slip', v61.includes('FINAL TOTAL')],
-	['cancellation keeps every row', v61.includes('function cancellationRows')],
 	['cancelled row marked', v61.includes('v61-cancel-tag')],
+	['update order label in edit mode', v61.includes("['Book first','Update order']")],
+	['booking slip footer facts', v61.includes('v61-foot-facts') && v61.includes('function footFacts')],
 	['per-order log section', v61.includes('v61-per-order')],
-	['release version stamped', v61.includes("const BUILD='" + RELEASE + "'") && v59.includes("const BUILD='" + RELEASE + "'") && v58.includes("const BUILD='" + RELEASE + "'")]
+	['release version stamped', v61.includes("const BUILD='" + RELEASE + "'") && finalV59.includes("const BUILD='" + RELEASE + "'") && finalV58.includes("const BUILD='" + RELEASE + "'")]
 ];
 
 const failed = checks.filter(entry => !entry[1]).map(entry => entry[0]);
 if (failed.length) throw new Error('Shift order log and running slip v' + RELEASE + ' verification failed: ' + failed.join(', '));
 
-new Function(v58);
-new Function(v59);
+new Function(finalV58);
+new Function(finalV59);
 new Function(v61);
 
 console.log('v' + RELEASE + ' shift order log, per-order log and running-order slips verified.');
