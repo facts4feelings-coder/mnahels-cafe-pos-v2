@@ -1,50 +1,25 @@
-/* Mnahel's Cafe POS v0.15.48 - shift order log, per-order log, booking slip footer,
- * forced RUNNING ORDER delta slips and edit-mode Update order labels.
+/* Mnahel's Cafe POS v0.15.49 - shift order log, per-order log, running-order delta slips,
+ * edit-mode cart repair and Book/Update order labels.
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology. */
 (function(){
 'use strict';
-const BUILD='0.15.48',REV='20260905-shift-log-running-slip-48';
+const BUILD='0.15.49',REV='20260905-slip-footer-edit-cart-49';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'Rs '+Math.round(Number(v||0)).toLocaleString('en-PK');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-function appState(){try{if(typeof state!=='undefined'&&state){window.state=state;return state}}catch(e){}return window.state||{}}
+function appState(){try{if(typeof state!=='undefined'&&state)return state}catch(e){}return window.state||{}}
 function say(m){if(typeof window.toast==='function')window.toast(m)}
 
 const LOGO='<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14"/><text x="16" y="22" text-anchor="middle">M</text></svg>';
 const ICONS={'Dine-in':'<svg viewBox="0 0 24 24"><path d="M7 3v8m3-8v8M5 3v5c0 2 1 3 3 3s3-1 3-3V3M8 11v10M16 3v18m0-18c2 0 3 2 3 5s-1 5-3 5"/></svg>',Takeaway:'<svg viewBox="0 0 24 24"><path d="M6 8h12l-1 13H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg>',Delivery:'<svg viewBox="0 0 24 24"><path d="M3 7h11v10H3V7Zm11 4h4l3 3v3h-7v-6ZM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>'};
-function orderMode(order){const v=String(order&&order.orderType||'Takeaway');return ICONS[v]?v:'Takeaway'}
+function orderMode(order){const v=String((order&&order.orderType)||'Takeaway');return ICONS[v]?v:'Takeaway'}
 function placedAt(order){const src=order&&(order.createdAt||order.placedAt);const d=src?new Date(src):new Date();return Number.isNaN(d.getTime())?String(src||''):d.toLocaleString('en-PK',{day:'2-digit',month:'short',hour:'numeric',minute:'2-digit'})}
 function service(order,mode){if(mode==='Dine-in')return{label:'TABLE / WAITER',value:((order&&order.tableName)||('Table '+((order&&order.tableNumber)||'-')))+' - '+((order&&order.waiterName)||'-')};if(mode==='Delivery')return{label:'RIDER / AREA',value:((order&&order.riderName)||'Rider unassigned')+((order&&order.deliveryAddress)?' - '+order.deliveryAddress:'')};return{label:'FULFILMENT',value:'Counter pickup'}}
 function metaCell(label,value){return '<div class="v43-meta-cell"><span>'+esc(label)+'</span><b>'+esc(value)+'</b></div>'}
 
-/* ---- booking slip footers: kitchen copy footer said only "KITCHEN COPY" ---- */
-function itemCount(order){return (Array.isArray(order&&order.items)?order.items:[]).reduce((sum,item)=>sum+Math.max(0,Number((item&&item.quantity)||0)),0)}
-function footFacts(order){
- const count=itemCount(order);
- const parts=['MC-'+((order&&order.tokenNumber!=null)?order.tokenNumber:'-'),String(orderMode(order)).toUpperCase(),count+(count===1?' item':' items'),placedAt(order)];
- const customer=(order&&order.customerName)||'';
- if(customer)parts.push(customer);
- const by=(order&&(order.createdByName||order.cashierName))||'';
- const role=(order&&order.createdByRole)||'';
- if(by)parts.push('By '+by+(role?' ('+String(role).toUpperCase()+')':''));
- return parts.join('   |   ');
-}
-function installReceiptFooter(){
- const v43=window.mnahelsV43;
- if(!v43||typeof v43.receiptHtml!=='function'||v43.receiptHtml.__v61)return;
- const original=v43.receiptHtml;
- const wrapped=function(order,kind){
-  const html=original.apply(this,arguments);
-  if(typeof html!=='string'||html.indexOf('v61-foot-facts')>=0||html.indexOf('</footer>')<0)return html;
-  return html.replace('</footer>','<div class="v61-foot-facts">'+esc(footFacts(order))+'</div></footer>');
- };
- wrapped.__v61=true;
- v43.receiptHtml=wrapped;
-}
-
-/* ---- delta slips: ONLY the added items, or ONLY the removed items ---- */
+/* ---- delta slips: only the added items, or only the removed items ---- */
 function deltaRows(lines){
  return (Array.isArray(lines)?lines:[]).map(line=>{
   const quantity=Math.max(1,Number((line&&line.quantity)||1)),unitPrice=Number((line&&line.unitPrice)||0);
@@ -70,12 +45,12 @@ function slipHtml(order,lines,type,result){
  const rows=deltaRows(lines);
  const hint=cancellation?'SIRF YE ITEMS CANCEL KAREIN - baqi order jari hai':'SIRF YE NAYE ITEMS TAYAR KAREIN - purana order repeat nahi hai';
  const mode=orderMode(order),info=service(order,mode);
- const previous=Number(result&&result.previousTotal!=null?result.previousTotal:((order&&order.total)||0));
- const updated=Number(result&&result.updatedTotal!=null?result.updatedTotal:((order&&order.total)||0));
+ const previous=Number((result&&result.previousTotal!=null)?result.previousTotal:((order&&order.total)||0));
+ const updated=Number((result&&result.updatedTotal!=null)?result.updatedTotal:((order&&order.total)||0));
  const items=rows.map(row=>itemRow(row,cancellation)).join('')||'<div class="v43-empty">No items</div>';
  const token=(order&&order.tokenNumber!=null)?order.tokenNumber:'-';
  const customer=(order&&order.customerName)||'Walk-in customer';
- return '<article class="tp tp-customer v43-receipt kitchen v58-running-slip v61-running-slip '+(cancellation?'v61-cancellation':'v61-addition')+'" data-receipt-kind="'+(cancellation?'running-cancellation':'running-addition')+'" data-order-mode="'+esc(mode)+'"><header class="tp-head v43-dark-head"><div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">'+LOGO+'</span><b>MNAHEL&#39;S CAFE</b></div><small>THE WORLD OF TASTE</small></div><div class="v43-mode"><span class="v43-mode-icon">'+ICONS[mode]+'</span><b>'+esc(mode.toUpperCase())+'</b></div><div class="v43-seal"><strong>'+(cancellation?'CANCELLED':'RUNNING')+'</strong><small>'+(cancellation?'REMOVE ITEMS':'ADD ITEMS')+'</small></div></header><div class="v43-body"><div class="v43-meta-grid">'+metaCell('ORDER','MC-'+token)+metaCell('PLACED AT',placedAt(order))+metaCell('CUSTOMER',customer)+metaCell(info.label,info.value)+'</div><div class="v61-running-banner"><b>RUNNING ORDER</b><small>'+(cancellation?'CANCELLED ITEMS ONLY':'NEW ITEMS ONLY')+'</small></div><div class="v61-running-hint">'+hint+'</div><div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>AMOUNT</b></div>'+items+'</div>'+billBlock(previous,updated,cancellation)+'<footer class="tp-foot v41-footer"><strong>RUNNING ORDER'+(cancellation?' - CANCELLATION':'')+'</strong><span>'+(cancellation?'Cancelled items only':'New items only')+'</span><div class="v61-foot-facts">'+esc(footFacts(order))+'</div></footer></div></article>';
+ return '<article class="tp tp-customer v43-receipt kitchen v58-running-slip v61-running-slip '+(cancellation?'v61-cancellation':'v61-addition')+'" data-receipt-kind="'+(cancellation?'running-cancellation':'running-addition')+'" data-order-mode="'+esc(mode)+'"><header class="tp-head v43-dark-head"><div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">'+LOGO+'</span><b>MNAHEL&#39;S CAFE</b></div><small>THE WORLD OF TASTE</small></div><div class="v43-mode"><span class="v43-mode-icon">'+ICONS[mode]+'</span><b>'+esc(mode.toUpperCase())+'</b></div><div class="v43-seal"><strong>'+(cancellation?'CANCELLED':'RUNNING')+'</strong><small>'+(cancellation?'REMOVE ITEMS':'ADD ITEMS')+'</small></div></header><div class="v43-body"><div class="v43-meta-grid">'+metaCell('ORDER','MC-'+token)+metaCell('PLACED AT',placedAt(order))+metaCell('CUSTOMER',customer)+metaCell(info.label,info.value)+'</div><div class="v61-running-banner"><b>RUNNING ORDER</b><small>'+(cancellation?'CANCELLED ITEMS ONLY':'NEW ITEMS ONLY')+'</small></div><div class="v61-running-hint">'+hint+'</div><div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>AMOUNT</b></div>'+items+'</div>'+billBlock(previous,updated,cancellation)+'<footer class="tp-foot v41-footer"><strong>RUNNING ORDER'+(cancellation?' - CANCELLATION':'')+'</strong><span>'+(cancellation?'Cancelled items only':'New items only')+'</span><b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small></footer></div></article>';
 }
 
 /* ---- printing: one deduped path for every running-order slip ---- */
@@ -101,15 +76,19 @@ async function printSlip(order,lines,type,result){
  sheet.removeAttribute('style');
  sheet.className='print-sheet tp-sheet kitchen v58-running-print v61-running-print';
  sheet.innerHTML=slipHtml(order,lines,type,result);
- await sleep(200);
+ await sleep(220);
  const ok=await bridgePrint();
  if(!ok)say('Running-order print cancel ho gayi.');
  return ok;
 }
 
-/* The edit flow did not always reach the delta printer, so a full kitchen copy
-   was printed instead. Watching the amendment response guarantees the right slip. */
-let handling=false;
+/* ---- amendment watcher ----
+   window.api paths have no /api prefix, so both shapes are accepted. While a
+   booked order is open for editing, a create-order POST is rewritten into the
+   amendment PUT so the new-order path (and its table checks) never runs. */
+let editingId=0,handling=false;
+function pathOf(value){return String(value||'').split('?')[0].replace(/^\/api(?=\/)/,'')}
+function editing(){return !!q('#v56-edit-banner')}
 async function handleAmendment(result){
  if(!result||handling)return;
  const order=result.order||result;
@@ -128,11 +107,20 @@ function installApiHook(){
  const original=window.api;
  if(typeof original!=='function'||original.__v61)return;
  const wrapped=function(path,options){
-  const promise=original.apply(this,arguments);
+  let usePath=path,useOptions=options;
   try{
-   const method=String((options&&options.method)||'GET').toUpperCase();
-   const clean=String(path||'').split('?')[0];
-   if(method==='PUT'&&/^\/api\/orders\/\d+$/.test(clean)&&promise&&typeof promise.then==='function')promise.then(result=>{try{handleAmendment(result)}catch(e){}},()=>{});
+   const clean=pathOf(path),method=String((options&&options.method)||'GET').toUpperCase();
+   const opened=clean.match(/^\/orders\/(\d+)\/edit$/);
+   if(opened)editingId=Number(opened[1]);
+   if(method==='POST'&&clean==='/orders'&&editing()&&editingId){
+    usePath=(String(path||'').indexOf('/api/')===0?'/api':'')+'/orders/'+editingId;
+    useOptions=Object.assign({},options||{},{method:'PUT'});
+   }
+  }catch(e){}
+  const promise=original.call(this,usePath,useOptions);
+  try{
+   const clean=pathOf(usePath),method=String((useOptions&&useOptions.method)||'GET').toUpperCase();
+   if(method==='PUT'&&/^\/orders\/\d+$/.test(clean)&&promise&&typeof promise.then==='function')promise.then(result=>{try{handleAmendment(result)}catch(e){}},()=>{});
   }catch(e){}
   return promise;
  };
@@ -140,23 +128,51 @@ function installApiHook(){
  window.api=wrapped;
 }
 
-/* ---- edit mode says "Book first" on an already booked order ---- */
-const LABELS=[['Book first','Update order'],['Book order','Update order'],['Book now','Update order'],['Order will be Booked + Unpaid','Order will be Updated'],['Booked + Unpaid','Updated order'],['Place order','Update order']];
-function editing(){const s=appState();return Number(s.v56EditingOrderId||0)>0||document.documentElement.classList.contains('v60-editing-order')||document.documentElement.classList.contains('v56-editing-order')}
-function retitleCta(){
- const root=q('#screen-pos');
- if(!root)return;
+/* ---- Book order vs Update order, and the edit-mode cart ---- */
+function ctaSync(){
  const on=editing();
- qa('b,strong,span,small,button,div',root).forEach(el=>{
-  if(el.children.length)return;
+ const root=q('#screen-pos');
+ if(root)root.classList.toggle('v61-editing',on);
+ if(!on){document.documentElement.classList.remove('v60-editing-order');editingId=0}
+ const label=q('#place-order span');
+ if(label&&!label.children.length){
+  const want=on?'Update order':'Book order';
+  if(String(label.textContent||'').trim()!==want)label.textContent=want;
+ }
+ if(!root)return;
+ qa('b,strong,small,span',root).forEach(el=>{
+  if(el.children.length||el.closest('#place-order'))return;
   const raw=String(el.textContent||'').trim();
   if(!raw||raw.length>40)return;
   if(on){
-   const hit=LABELS.find(pair=>pair[0]===raw);
-   if(hit){if(!el.dataset.v61Label)el.dataset.v61Label=raw;el.textContent=hit[1]}
-  }else if(el.dataset.v61Label){el.textContent=el.dataset.v61Label;delete el.dataset.v61Label}
+   if(raw==='Book first'||raw==='Book order'||raw==='Place order')el.textContent='Update order';
+   else if(raw==='Order will be Booked + Unpaid')el.textContent='Order will be Updated';
+  }else{
+   if(raw==='Update order')el.textContent='Book first';
+   else if(raw==='Order will be Updated')el.textContent='Order will be Booked + Unpaid';
+  }
  });
- root.classList.toggle('v61-editing',on);
+}
+function fixEditCart(){
+ const list=q('#cart-items');
+ if(!list)return;
+ const filled=!!list.querySelector('.cart-line');
+ qa('#screen-pos .cart-empty,#screen-pos .empty-cart,#screen-pos .cart-placeholder,#screen-pos .cart-panel .empty').forEach(node=>{node.style.display=filled?'none':''});
+ if(filled&&list.style.display==='none')list.style.display='';
+}
+let stamped=0;
+function stampBuild(){
+ if(stamped>6)return;
+ stamped++;
+ const meta=q('meta[name="application-version"]');
+ if(meta)meta.content=BUILD;
+ qa('body *').forEach(el=>{
+  if(el.children.length)return;
+  const raw=String(el.textContent||'').trim();
+  if(!/^v?\d+\.\d+\.\d+$/.test(raw))return;
+  const want=(raw.charAt(0)==='v'?'v':'')+BUILD;
+  if(raw!==want)el.textContent=want;
+ });
 }
 
 /* ---- per-order log on the shift screen ---- */
@@ -164,7 +180,7 @@ function localTime(v){if(!v)return'-';const d=new Date(v);return Number.isNaN(d.
 function roleBadge(role){const n=String(role||'Staff');return '<span class="v46-role '+(n.toLowerCase()==='admin'?'admin':'cashier')+'">'+esc(n.toUpperCase())+'</span>'}
 function grouped(events){
  const map=new Map();
- (events||[]).forEach(e=>{const key=String(e&&e.tokenNumber!=null?e.tokenNumber:'-');if(!map.has(key))map.set(key,[]);map.get(key).push(e)});
+ (events||[]).forEach(e=>{const key=String((e&&e.tokenNumber!=null)?e.tokenNumber:'-');if(!map.has(key))map.set(key,[]);map.get(key).push(e)});
  return [...map.entries()].map(entry=>{const sorted=entry[1].slice().sort((a,b)=>new Date(a.at)-new Date(b.at));return{token:entry[0],rows:sorted,last:sorted[sorted.length-1]}}).sort((a,b)=>new Date(b.last.at)-new Date(a.last.at));
 }
 function perOrderHtml(events){
@@ -192,7 +208,7 @@ async function loadLog(force){
  if(busy||!s.user)return;
  busy=true;
  try{
-  const data=typeof window.api==='function'?await window.api('/api/shifts/current/order-log'):await fetch('/api/shifts/current/order-log',{credentials:'same-origin'}).then(r=>{if(!r.ok)throw Error(r.status+' '+r.statusText);return r.json()});
+  const data=typeof window.api==='function'?await window.api('/shifts/current/order-log'):await fetch('/api/shifts/current/order-log',{credentials:'same-origin'}).then(r=>{if(!r.ok)throw Error(r.status+' '+r.statusText);return r.json()});
   const next=JSON.stringify((data&&data.events)||[]);
   if(force||next!==signature){
    signature=next;ensureSection();
@@ -204,18 +220,18 @@ async function loadLog(force){
   if(host&&!host.querySelector('details'))host.innerHTML='<div class="empty">Per-order log load nahi hua ('+esc((error&&error.message)||'error')+'). Refresh dabayen.</div>';
  }finally{busy=false}
 }
-function refresh(){installApiHook();installReceiptFooter();retitleCta();stripDashboardLog();ensureSection();if(q('#screen-shift.active'))loadLog(false)}
+function refresh(){installApiHook();stampBuild();ctaSync();fixEditCart();stripDashboardLog();ensureSection();if(q('#screen-shift.active'))loadLog(false)}
 
 document.addEventListener('click',event=>{
  const target=event.target;
  if(!target||!target.closest)return;
  if(target.closest('[data-screen="shift"],#v46-chip,#v59-log-refresh'))setTimeout(()=>loadLog(true),150);
- if(target.closest('#place-order,[data-v60-edit],[data-op="edit"],#new-order'))setTimeout(refresh,120);
+ if(target.closest('#place-order,[data-v60-edit],[data-op="edit"],#new-order,#cart-items button'))setTimeout(refresh,120);
 },true);
-installApiHook();installReceiptFooter();
+installApiHook();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
 setTimeout(refresh,500);setTimeout(refresh,1400);
-setInterval(()=>{if(document.visibilityState==='visible')refresh()},4000);
+setInterval(()=>{if(document.visibilityState==='visible'){installApiHook();ctaSync();fixEditCart();stripDashboardLog();if(q('#screen-shift.active'))loadLog(false)}},3000);
 document.documentElement.dataset.v61Revision=REV;
-window.mnahelsV61={build:BUILD,uiRevision:REV,slipHtml:slipHtml,printSlip:printSlip,cancellationRows:cancellationRows,additionRows:additionRows,footFacts:footFacts,loadLog:loadLog,refresh:refresh};
+window.mnahelsV61={build:BUILD,uiRevision:REV,slipHtml:slipHtml,printSlip:printSlip,cancellationRows:cancellationRows,additionRows:additionRows,loadLog:loadLog,refresh:refresh};
 })();
