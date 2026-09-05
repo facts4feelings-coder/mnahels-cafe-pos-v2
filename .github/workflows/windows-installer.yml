@@ -58,7 +58,15 @@ jobs:
       - name: Restore desktop
         run: dotnet restore src/MnahelsCafe.Desktop/MnahelsCafe.Desktop.csproj --runtime win-x64 --nologo
       - name: Build desktop
-        run: dotnet build src/MnahelsCafe.Desktop/MnahelsCafe.Desktop.csproj -c Release -r win-x64 --self-contained true --no-restore --nologo
+        shell: pwsh
+        run: |
+          $output = @(& dotnet build src/MnahelsCafe.Desktop/MnahelsCafe.Desktop.csproj -c Release -r win-x64 --self-contained true --no-restore --nologo 2>&1 | ForEach-Object { Write-Host $_; "$_" })
+          $code = $LASTEXITCODE
+          if ($code -ne 0) {
+            $tail = (($output | Select-Object -Last 80) -join '%0A').Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+            Write-Host "::error title=Desktop build failed::$tail"
+            exit $code
+          }
 
   compile-installer:
     needs: [build-server, test-running-order, build-desktop]
