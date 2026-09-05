@@ -4,7 +4,7 @@
 const fs=require('fs'),path=require('path');
 const root=path.resolve(__dirname,'..');
 const programPath=path.join(root,'src','MnahelsCafe.Desktop','Program.cs');
-let program=fs.readFileSync(programPath,'utf8');
+let program=fs.readFileSync(programPath,'utf8').replace(/\r\n/g,'\n');
 const oldCondition='if (_printers.RawTextPrint && !exactHtmlDesign)',newCondition='if (_printers.RawTextPrint)';
 if(program.includes(oldCondition))program=program.replace(oldCondition,newCondition);
 else if(!program.includes(newCondition))throw new Error('desktop RAW print condition was not found.');
@@ -15,9 +15,8 @@ if(!program.includes('window.__mnahelsPrintJobBridge=true;')){
  if(!program.includes(bridge))throw new Error('Desktop bridge flag not found.');
  program=program.replace(bridge,bridge+'window.__mnahelsPrintJobBridge=true;');
 }
-// The same print dialog stays in use. Do not release the shared receipt sheet
-// while it is open, otherwise the following job can replace its contents.
-if(!program.includes('window.__mnahelsAfterPrintBridge'))program=program.replace('window.__mnahelsPrintJobBridge=true;',"window.__mnahelsPrintJobBridge=true;window.__mnahelsAfterPrintBridge=true;window.addEventListener('afterprint',function(){try{window.chrome.webview.postMessage('mnahels-print-dialog-closed')}catch(e){}});");
+// BridgeScript runs at document creation AND DOMContentLoaded. Register once.
+if(!program.includes('window.__mnahelsAfterPrintBridge'))program=program.replace('window.__mnahelsPrintJobBridge=true;',"window.__mnahelsPrintJobBridge=true;if(!window.__mnahelsAfterPrintBridge){window.__mnahelsAfterPrintBridge=true;window.addEventListener('afterprint',function(){try{window.chrome.webview.postMessage('mnahels-print-dialog-closed')}catch(e){}});}");
 if(!program.includes('TaskCompletionSource<bool>? _interactivePrintCompletion')){
  const field=/private readonly SemaphoreSlim _printGate[^;]+;/;
  if(!field.test(program))throw new Error('Native print gate field not found.');
@@ -34,23 +33,21 @@ if(!program.includes('message == "mnahels-print-dialog-closed"')){
 `+marker);
 }
 if(!program.includes('var dialogCompleted = new TaskCompletionSource<bool>')){
- const branch=/if \(!_printers\.Silent\)\s*\{\s*core\.ShowPrintUI\(CoreWebView2PrintDialogKind\.Browser\);\s*return true;\s*\}/;
- if(!branch.test(program))throw new Error('Interactive print branch not found.');
- program=program.replace(branch,`if (!_printers.Silent)
-            {
-                var dialogCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                _interactivePrintCompletion = dialogCompleted;
-                try
-                {
-                    core.ShowPrintUI(CoreWebView2PrintDialogKind.Browser);
-                    var finished = await Task.WhenAny(dialogCompleted.Task, Task.Delay(TimeSpan.FromMinutes(5)));
-                    return finished == dialogCompleted.Task;
-                }
-                finally
-                {
-                    if (ReferenceEquals(_interactivePrintCompletion, dialogCompleted)) _interactivePrintCompletion = null;
-                }
-            }`);
+ // Preserve the existing enclosing try/catch, its log and false return.
+ const statements='                    core.ShowPrintUI(CoreWebView2PrintDialogKind.Browser);\n                    return true;';
+ if(!program.includes(statements))throw new Error('Interactive print statements not found inside the existing try/catch.');
+ program=program.replace(statements,`                    var dialogCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    _interactivePrintCompletion = dialogCompleted;
+                    try
+                    {
+                        core.ShowPrintUI(CoreWebView2PrintDialogKind.Browser);
+                        var finished = await Task.WhenAny(dialogCompleted.Task, Task.Delay(TimeSpan.FromMinutes(5)));
+                        return finished == dialogCompleted.Task;
+                    }
+                    finally
+                    {
+                        if (ReferenceEquals(_interactivePrintCompletion, dialogCompleted)) _interactivePrintCompletion = null;
+                    }`);
 }
 fs.writeFileSync(programPath,program,'utf8');
-console.log('Legacy desktop stage complete; dialog lifecycle tracked; final v57 HTML patch follows.');
+console.log('Legacy desktop stage complete; existing try/catch preserved; final v57 HTML patch follows.');
