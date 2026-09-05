@@ -1,10 +1,10 @@
-/* Mnahel's Cafe POS v0.15.49 - shift order log, per-order log, running-order delta slips,
- * edit-mode cart repair and Book/Update order labels.
+/* Mnahel's Cafe POS v0.15.50 - shift order log, per-order log, running-order delta slips,
+ * edit-mode cart repair, Book/Update labels and a Service Hub shortcut.
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology. */
 (function(){
 'use strict';
-const BUILD='0.15.49',REV='20260905-slip-footer-edit-cart-49';
+const BUILD='0.15.50',REV='20260905-edit-cart-service-hub-50';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'Rs '+Math.round(Number(v||0)).toLocaleString('en-PK');
@@ -83,12 +83,16 @@ async function printSlip(order,lines,type,result){
 }
 
 /* ---- amendment watcher ----
-   window.api paths have no /api prefix, so both shapes are accepted. While a
+   window.api paths carry no /api prefix, so both shapes are accepted. While a
    booked order is open for editing, a create-order POST is rewritten into the
    amendment PUT so the new-order path (and its table checks) never runs. */
-let editingId=0,handling=false;
+let editingId=0,handling=false,pendingEdit=0;
 function pathOf(value){return String(value||'').split('?')[0].replace(/^\/api(?=\/)/,'')}
-function editing(){return !!q('#v56-edit-banner')}
+function editing(){
+ if(q('#v56-edit-banner'))return true;
+ if(Number(appState().v56EditingOrderId||0)>0)return true;
+ return pendingEdit>0&&Date.now()-pendingEdit<8000;
+}
 async function handleAmendment(result){
  if(!result||handling)return;
  const order=result.order||result;
@@ -120,7 +124,7 @@ function installApiHook(){
   const promise=original.call(this,usePath,useOptions);
   try{
    const clean=pathOf(usePath),method=String((useOptions&&useOptions.method)||'GET').toUpperCase();
-   if(method==='PUT'&&/^\/orders\/\d+$/.test(clean)&&promise&&typeof promise.then==='function')promise.then(result=>{try{handleAmendment(result)}catch(e){}},()=>{});
+   if(method==='PUT'&&/^\/orders\/\d+$/.test(clean)&&promise&&typeof promise.then==='function')promise.then(result=>{pendingEdit=0;try{handleAmendment(result)}catch(e){}},()=>{});
   }catch(e){}
   return promise;
  };
@@ -128,7 +132,46 @@ function installApiHook(){
  window.api=wrapped;
 }
 
-/* ---- Book order vs Update order, and the edit-mode cart ---- */
+/* ---- edit-mode cart ----
+   .cart-panel is a grid of cart-head / segment / cart-items / cart-footer, so an
+   extra direct child shifts every row and the heading lands in the middle. The
+   edit banner therefore lives inside .cart-head, which is a single auto row. */
+function relocateEditBanner(){
+ const banner=q('#v56-edit-banner');
+ if(!banner)return;
+ const head=q('#screen-pos .cart-head');
+ if(head&&banner.parentElement!==head)head.prepend(banner);
+}
+function cartType(){
+ const active=q('#screen-pos .segment button.active');
+ return String((active&&active.dataset&&active.dataset.orderType)||appState().orderType||'Takeaway');
+}
+function goServiceHub(){
+ const nav=qa('.nav-item,nav button').find(button=>/service\s*hub/i.test(String(button.textContent||'')));
+ if(!nav){say('Service Hub screen nahi mili.');return}
+ nav.click();
+ setTimeout(()=>{
+  const add=qa('button').find(button=>button.offsetParent&&/^\s*[+]?\s*(add|new)\s+(waiter|rider|table|staff|member)/i.test(String(button.textContent||'')));
+  if(add)add.click();
+ },550);
+}
+function serviceHubChip(){
+ const head=q('#screen-pos .cart-head');
+ if(!head)return;
+ const type=cartType();
+ let chip=q('#v61-add-service');
+ if(type!=='Dine-in'&&type!=='Delivery'){if(chip)chip.remove();return}
+ if(!chip){
+  chip=document.createElement('button');
+  chip.id='v61-add-service';
+  chip.type='button';
+  chip.className='v61-add-service';
+  chip.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();goServiceHub()});
+ }
+ if(chip.parentElement!==head)head.append(chip);
+ const want=type==='Dine-in'?'+ Add waiter / table in Service Hub':'+ Add rider in Service Hub';
+ if(chip.textContent!==want)chip.textContent=want;
+}
 function ctaSync(){
  const on=editing();
  const root=q('#screen-pos');
@@ -141,7 +184,7 @@ function ctaSync(){
  }
  if(!root)return;
  qa('b,strong,small,span',root).forEach(el=>{
-  if(el.children.length||el.closest('#place-order'))return;
+  if(el.children.length||el.closest('#place-order')||el.closest('#v56-edit-banner'))return;
   const raw=String(el.textContent||'').trim();
   if(!raw||raw.length>40)return;
   if(on){
@@ -153,20 +196,10 @@ function ctaSync(){
   }
  });
 }
-function fixEditCart(){
- const list=q('#cart-items');
- if(!list)return;
- const filled=!!list.querySelector('.cart-line');
- qa('#screen-pos .cart-empty,#screen-pos .empty-cart,#screen-pos .cart-placeholder,#screen-pos .cart-panel .empty').forEach(node=>{node.style.display=filled?'none':''});
- if(filled&&list.style.display==='none')list.style.display='';
-}
-let stamped=0;
 function stampBuild(){
- if(stamped>6)return;
- stamped++;
  const meta=q('meta[name="application-version"]');
- if(meta)meta.content=BUILD;
- qa('body *').forEach(el=>{
+ if(meta&&meta.content!==BUILD)meta.content=BUILD;
+ qa('.side-bottom *,.server-state *,.sidebar small,.sidebar b,.sidebar strong,.sidebar span,#v46-chip *').forEach(el=>{
   if(el.children.length)return;
   const raw=String(el.textContent||'').trim();
   if(!/^v?\d+\.\d+\.\d+$/.test(raw))return;
@@ -220,18 +253,21 @@ async function loadLog(force){
   if(host&&!host.querySelector('details'))host.innerHTML='<div class="empty">Per-order log load nahi hua ('+esc((error&&error.message)||'error')+'). Refresh dabayen.</div>';
  }finally{busy=false}
 }
-function refresh(){installApiHook();stampBuild();ctaSync();fixEditCart();stripDashboardLog();ensureSection();if(q('#screen-shift.active'))loadLog(false)}
+function tick(){installApiHook();stampBuild();relocateEditBanner();serviceHubChip();ctaSync();stripDashboardLog()}
+function refresh(){tick();ensureSection();if(q('#screen-shift.active'))loadLog(false)}
 
 document.addEventListener('click',event=>{
  const target=event.target;
  if(!target||!target.closest)return;
+ if(target.closest('[data-v60-edit],.v60-edit,[data-op="edit"]')){pendingEdit=Date.now();setTimeout(tick,0);setTimeout(tick,120);setTimeout(tick,400)}
+ if(target.closest('#v56-edit-banner button,#new-order')){pendingEdit=0;setTimeout(tick,60)}
  if(target.closest('[data-screen="shift"],#v46-chip,#v59-log-refresh'))setTimeout(()=>loadLog(true),150);
- if(target.closest('#place-order,[data-v60-edit],[data-op="edit"],#new-order,#cart-items button'))setTimeout(refresh,120);
+ if(target.closest('#place-order,[data-order-type],#cart-items button'))setTimeout(tick,120);
 },true);
 installApiHook();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
-setTimeout(refresh,500);setTimeout(refresh,1400);
-setInterval(()=>{if(document.visibilityState==='visible'){installApiHook();ctaSync();fixEditCart();stripDashboardLog();if(q('#screen-shift.active'))loadLog(false)}},3000);
+setTimeout(refresh,400);setTimeout(refresh,1200);
+setInterval(()=>{if(document.visibilityState==='visible'){tick();if(q('#screen-shift.active'))loadLog(false)}},2500);
 document.documentElement.dataset.v61Revision=REV;
-window.mnahelsV61={build:BUILD,uiRevision:REV,slipHtml:slipHtml,printSlip:printSlip,cancellationRows:cancellationRows,additionRows:additionRows,loadLog:loadLog,refresh:refresh};
+window.mnahelsV61={build:BUILD,uiRevision:REV,slipHtml:slipHtml,printSlip:printSlip,cancellationRows:cancellationRows,additionRows:additionRows,loadLog:loadLog,refresh:refresh,goServiceHub:goServiceHub};
 })();
