@@ -1,20 +1,12 @@
-/* Mnahel's Cafe POS v0.15.56 desktop print patch.
- * Uses the existing RAW ESC/POS path first for every receipt, including v43/v62,
- * and keeps the current HTML print path as a fallback only.
+/* v0.15.57: use the EXISTING HTML path for styled receipts so saved font sizes,
+ * wrapping and boxes reach the printer. Legacy RAW receipts remain RAW-first;
+ * retain RAW as recovery if the styled HTML job is rejected before success.
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved. */
-const fs=require('fs');
-const path=require('path');
-const root=path.resolve(__dirname,'..');
-const programPath=path.join(root,'src','MnahelsCafe.Desktop','Program.cs');
-let program=fs.readFileSync(programPath,'utf8');
-const oldCondition='if (_printers.RawTextPrint && !exactHtmlDesign)';
-const newCondition='if (_printers.RawTextPrint)';
-if(program.includes(oldCondition))program=program.replace(oldCondition,newCondition);
-else if(!program.includes(newCondition))throw new Error('desktop RAW print condition was not found.');
-const oldComment='// Compact 80mm receipts use the WebView HTML engine so the printer-safe\n            // white header, readable type, outlined icons, tables and seals stay exact.';
-const newComment='// Use the existing RAW ESC/POS path first, including for styled receipts.\n            // If RAW cannot print, execution continues into the existing HTML fallback.';
-if(program.includes(oldComment))program=program.replace(oldComment,newComment);
-if(!program.includes(newCondition)||program.includes(oldCondition))throw new Error('RAW print was not enabled for styled receipts.');
-if(!program.includes('BuildTag = "0.15.56"')||!program.includes('20260905-menu-images-order-print-56'))throw new Error('desktop performance patch did not stamp the v0.15.56 UI revision.');
-fs.writeFileSync(programPath,program,'utf8');
-console.log('v0.15.56 desktop RAW-first receipt printing verified; HTML fallback preserved.');
+const fs=require('fs'),path=require('path');const file=path.resolve(__dirname,'../src/MnahelsCafe.Desktop/Program.cs');let s=fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n');
+const condition='if (_printers.RawTextPrint && !exactHtmlDesign)';
+if(!s.includes(condition))s=s.replace('if (_printers.RawTextPrint)',condition);
+if(!s.includes(condition))throw Error('Existing styled HTML / legacy RAW routing not found.');
+const marker='if (status == CoreWebView2PrintStatus.Succeeded) return true;';
+if(!s.includes('v57-style-recovery')){if(!s.includes(marker))throw Error('Print result guard missing.');s=s.replace(marker,marker+'\n                // v57-style-recovery: never retry a successful job.\n                if (exactHtmlDesign && _printers.RawTextPrint && await RawTextPrintAsync(core, type, widthMm)) return true;');}
+if(!s.includes('BuildTag = "0.15.57"')||!s.includes('20260905-receipt-wrap-57'))throw Error('Desktop version stamp missing.');
+fs.writeFileSync(file,s,'utf8');console.log('v0.15.57 existing HTML receipt route, RAW recovery and legacy route verified.');

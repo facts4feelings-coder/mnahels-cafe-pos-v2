@@ -35,6 +35,8 @@ jobs:
             Write-Host "::error title=Server build failed::$tail"
             exit $code
           }
+      - name: Test actual receipts and bounded UI work
+        run: node scripts/test-v57-receipts.cjs
 
   test-running-order:
     runs-on: windows-latest
