@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.55 desktop print patch.
+/* Mnahel's Cafe POS v0.15.56 desktop print patch.
  * Uses the existing RAW ESC/POS path first for every receipt, including v43/v62,
  * and keeps the current HTML print path as a fallback only.
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved. */
@@ -15,6 +15,6 @@ const oldComment='// Compact 80mm receipts use the WebView HTML engine so the pr
 const newComment='// Use the existing RAW ESC/POS path first, including for styled receipts.\n            // If RAW cannot print, execution continues into the existing HTML fallback.';
 if(program.includes(oldComment))program=program.replace(oldComment,newComment);
 if(!program.includes(newCondition)||program.includes(oldCondition))throw new Error('RAW print was not enabled for styled receipts.');
-if(!program.includes('BuildTag = "0.15.55"')||!program.includes('20260905-receipt-data-55'))throw new Error('desktop performance patch did not stamp the v0.15.55 UI revision.');
+if(!program.includes('BuildTag = "0.15.56"')||!program.includes('20260905-menu-images-order-print-56'))throw new Error('desktop performance patch did not stamp the v0.15.56 UI revision.');
 fs.writeFileSync(programPath,program,'utf8');
-console.log('v0.15.55 desktop RAW-first receipt printing verified; HTML fallback preserved.');
+console.log('v0.15.56 desktop RAW-first receipt printing verified; HTML fallback preserved.');
