@@ -30,6 +30,7 @@ async function live(page,id,predicate){await page.waitForFunction(({id,predicate
  return p&&p.name===predicate.name&&p.variants.some(v=>v.price===predicate.price);
 },{id,predicate},{timeout:20000})}
 async function startOrder(page,mode){
+ report.lastAction='Open '+mode+' guided setup';
  await page.keyboard.press('F2');await page.locator('#v38-order-setup[open] [data-v38-mode="'+mode+'"]').click();
  await page.locator('[data-v38-start]').waitFor({state:'visible'});
  if(mode==='Dine-in'){
@@ -40,6 +41,8 @@ async function startOrder(page,mode){
   await page.locator('#v38-customer-name').fill('QA UI Customer');await page.locator('#v38-customer-phone').fill('03001234567');
   if(mode==='Delivery')await page.locator('#v38-delivery-address').fill('QA isolated delivery address');
  }
+ report.lastAction='Submit '+mode+' guided setup';
+ report.setupBeforeSubmit=await page.evaluate(()=>Object.fromEntries(['v38-customer-name','v38-customer-phone','v38-delivery-address'].map(id=>[id,document.getElementById(id)?.value??null])));
  await page.locator('[data-v38-start]').click();await page.waitForFunction(()=>state.v38SetupDone&&!document.querySelector('#v38-order-setup').open);
  assert.equal(await page.evaluate(()=>state.orderType),mode);
 }
@@ -72,6 +75,7 @@ async function run(){
   const pages={},contexts=[];
   for(const role of ['Admin','Cashier']){
    const context=await browser.newContext({viewport:{width:1366,height:900},locale:'en-PK',timezoneId:'Asia/Karachi'});contexts.push(context);
+   await context.addInitScript(require('./fixtures/ui-field-trace.cjs'));
    await context.addInitScript(appearance=>{
     localStorage.setItem('mnahels-theme',appearance);
     localStorage.setItem('mnahels.receipt-auto-jpg','0');localStorage.setItem('mnahels.receipt-auto-jpg-restored-v39','1');
@@ -178,9 +182,11 @@ run().catch(async e=>{
  report.failure={stage,message:e.stack};console.error('FAIL UI stage: '+stage+'\n'+e.stack);
  if(activePage&&!activePage.isClosed()){
   try{report.diagnostics=await activePage.evaluate(()=>({screen:state?.currentScreen,role:state?.user?.role,theme:document.documentElement.dataset.theme,cart:state?.cart,setup:state?.v38SetupDone,edit:state?.v56EditingOrderId,toast:document.querySelector('#toast')?.textContent,dialogs:[...document.querySelectorAll('dialog[open]')].map(x=>x.id),title:document.querySelector('#page-title')?.textContent,drawer:document.querySelector('#drawer-title')?.textContent,visibleButtons:[...document.querySelectorAll('button')].filter(x=>x.checkVisibility()).map(x=>({id:x.id,text:x.textContent.trim().slice(0,80),disabled:x.disabled})).slice(0,70),invalidFields:[...document.querySelectorAll('input:invalid,textarea:invalid,select:invalid')].filter(x=>x.checkVisibility()).map(x=>({id:x.id,reason:x.validationMessage}))}));await activePage.screenshot({path:'reports/browser/ui-failure.png',fullPage:true})}catch{}
+  try{report.setupTrace=await activePage.evaluate(()=>window.__qaSetupTrace||[])}catch{}
  }
  process.exitCode=1;
 }).finally(async()=>{
+ report.summary={complete:report.complete,completedBookings:report.bookings.length,completedLaterPayments:report.bookings.filter(x=>!x.payNow).length,errors:report.errors.length};
  fs.mkdirSync('reports',{recursive:true});fs.writeFileSync('reports/v61-ui-workflows.json',JSON.stringify(report,null,2));
  if(browser)await browser.close();if(f)await f.close();clearTimeout(watchdog);
 });
