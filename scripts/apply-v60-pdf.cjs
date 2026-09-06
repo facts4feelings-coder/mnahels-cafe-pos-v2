@@ -1,0 +1,6 @@
+const fs=require('fs'),path=require('path'),f=path.resolve(__dirname,'../src/MnahelsCafe.Pos/ShiftAuditPdf.cs');let s=fs.readFileSync(f,'utf8');
+if(!s.includes('var compactParts=')){
+const a='foreach(var e in events.Where(x=>x.Token==o.Token)){Need(96);y-=6;';
+const b='foreach(var e in events.Where(x=>x.Token==o.Token)){var detail=Regex.Replace(e.Details??"",@"^(Mixed|Addition|Cancellation)\\s*\\|\\s*","",RegexOptions.IgnoreCase);var compactParts=e.Action=="EDITED"||e.Action=="OrderEdited"?detail.Split(" | ",StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries):new[]{detail};int eventHeight=48+Wrap("Operator: "+e.Actor+" ["+e.Role+"]",481,10).Count*16+4+compactParts.Sum(p=>Wrap(p,481,11).Count*16+4);Need(Math.Min(eventHeight,180));y-=6;';
+const c='var detail=Regex.Replace(e.Details??"",@"^(Mixed|Addition|Cancellation)\\s*\\|\\s*","",RegexOptions.IgnoreCase);foreach(var part in detail.Split(" | ",StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries))Para(part);';
+if(!s.includes(a)||!s.includes(c))throw Error('Missing PDF compact-event anchors');s=s.replace(a,b).replace(c,'foreach(var part in compactParts)Para(part);');s=s.replace('data.Orders.Count} orders  /','data.Orders.Count} order{(data.Orders.Count==1?"":"s")}  /');fs.writeFileSync(f,s);}
