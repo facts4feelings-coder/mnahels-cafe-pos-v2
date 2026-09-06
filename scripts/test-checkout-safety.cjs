@@ -1,7 +1,8 @@
 /* Tests actual catalog/print source; mocked transport, no server or customer data. */
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const root='src/MnahelsCafe.Pos/wwwroot/';
-const watchdog=setTimeout(()=>{console.error('Checkout safety test did not finish');process.exit(1)},10000);
+let progress='initializing';
+const watchdog=setTimeout(()=>{console.error('Checkout safety test did not finish: '+progress);process.exit(1)},10000);
 function fixture(print=false){
  const listeners={},timers=new Map(),events=[],sent=[],requests=[];let sequence=0,reloads=0;
  const remote={epoch:'e1',revision:'r1'},state={user:{id:1,role:'Cashier'},menu:[],category:'All',cart:[{variantId:1,quantity:2,price:100}]};
@@ -15,7 +16,7 @@ function fixture(print=false){
 const tick=async()=>{for(let i=0;i<30;i++)await Promise.resolve()};
 (async()=>{
  for(const role of ['Admin','Cashier']){
-  const f=fixture();f.state.user.role=role;
+  progress='transport '+role;const f=fixture();f.state.user.role=role;
   const body=JSON.stringify({items:[{variantId:1,quantity:2}]});
   await assert.rejects(f.context.fetch('/api/orders/book',{method:'POST',body}),/verification/);
   await f.context.cafeCatalog.check();
@@ -23,8 +24,8 @@ const tick=async()=>{for(let i=0;i<30;i++)await Promise.resolve()};
    await f.context.fetch(path,{method:path.endsWith('/7')?'PUT':'POST',headers:{'Content-Type':'application/json','X-Test':'keep'},body});
    const h=f.requests.at(-1).options.headers;assert.equal(h.get('X-Cafe-Epoch'),'e1');assert.equal(h.get('X-Test'),'keep');assert.deepEqual(JSON.parse(h.get('X-Cafe-Cart')),[{variantId:1,quantity:2,unitPrice:100}]);
   }
-  await f.context.fetch(new Request(f.context.location.origin+'/api/orders/book',{method:'POST',headers:{'Content-Type':'application/json'},body}));assert.equal(f.requests.at(-1).options.headers.get('X-Cafe-Epoch'),'e1');
-  await f.context.fetch(new URL(f.context.location.origin+'/api/orders/book'),{method:'POST',body});assert.equal(f.requests.at(-1).options.headers.get('X-Cafe-Epoch'),'e1');
+  progress='Request body '+role;await f.context.fetch(new Request(f.context.location.origin+'/api/orders/book',{method:'POST',headers:{'Content-Type':'application/json'},body}));assert.equal(f.requests.at(-1).options.headers.get('X-Cafe-Epoch'),'e1');
+  progress='URL and topping '+role;await f.context.fetch(new URL(f.context.location.origin+'/api/orders/book'),{method:'POST',body});assert.equal(f.requests.at(-1).options.headers.get('X-Cafe-Epoch'),'e1');
   f.context.mnahelsV52={priceLines:()=>[...f.state.cart,{variantId:2,notes:'For Pizza A (Small)',price:40,quantity:2}]};
   await f.context.fetch('/api/orders/book',{method:'POST',body:JSON.stringify({items:[{variantId:1,quantity:2},{variantId:2,quantity:2,notes:'For Pizza A (Small)'}]})});assert.deepEqual(JSON.parse(f.requests.at(-1).options.headers.get('X-Cafe-Cart')).map(x=>x.unitPrice),[100,40]);delete f.context.mnahelsV52;
   await f.context.fetch('/api/orders/7/payment',{method:'POST',body:'{}'});assert.equal(f.requests.at(-1).options.headers.has('X-Cafe-Cart'),false);
@@ -36,7 +37,7 @@ const tick=async()=>{for(let i=0;i<30;i++)await Promise.resolve()};
  // Reset while one native job is in flight: preserve its sheet until acknowledgement,
  // reject queued work, and reload only when the queue is no longer uncertain.
  for(const timeout of [false,true]){
-  const f=fixture(true);await f.context.cafeCatalog.check();
+  progress='pending print timeout='+timeout;const f=fixture(true);await f.context.cafeCatalog.check();
   const a=f.context.mnahelsV64.printHtml('<p>First immutable receipt</p>');const outcome=a.catch(e=>e);
   await tick();assert.equal(f.sent.length,1);
   const b=f.context.mnahelsV64.printHtml('<p>Second queued receipt</p>');const rejected=b.catch(e=>e);
@@ -45,6 +46,6 @@ const tick=async()=>{for(let i=0;i<30;i++)await Promise.resolve()};
   f.ack('unrelated');assert.equal(f.reloads,0);
   f.ack(f.sent[0].id);await outcome;await rejected;await tick();assert.equal(f.sent.length,1,'Queued print crossed database replacement');assert.equal(f.reloads,1);assert.equal(f.context.mnahelsV64.status.pendingJobs,0);
  }
- const staged=fixture(true);await staged.context.cafeCatalog.check();const job=staged.context.mnahelsV64.printHtml('Queued before stage');const result=job.catch(e=>e);staged.remote.epoch='e2';await staged.context.cafeCatalog.check();await result;await tick();assert.equal(staged.sent.length,0,'Unsubmitted receipt printed after reset');assert.equal(staged.reloads,1);
+ progress='reset during staging';const staged=fixture(true);await staged.context.cafeCatalog.check();let releaseFonts;staged.context.document.fonts.ready=new Promise(resolve=>{releaseFonts=resolve});const job=staged.context.mnahelsV64.printHtml('Queued before stage');const result=job.catch(e=>e);staged.remote.epoch='e2';await staged.context.cafeCatalog.check();releaseFonts();await result;await tick();assert.equal(staged.sent.length,0,'Unsubmitted receipt printed after reset');assert.equal(staged.reloads,1);
  console.log('PASS: checkout headers, both roles/routes, Request inputs, preserved headers, zero price, later-payment exclusion, missing cart fail-closed, epoch blocking, reset pending/queued prints, timeout and correlated late acknowledgement.');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>clearTimeout(watchdog));
