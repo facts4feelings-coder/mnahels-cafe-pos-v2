@@ -1,0 +1,55 @@
+name: Repeated frontend profile
+on:
+  workflow_dispatch:
+  push:
+    branches: [refactor/performance-v0.15.61]
+    paths:
+      - 'src/**'
+      - 'scripts/profile-v61-browser.cjs'
+      - '.github/workflows/repeated-profile.yml'
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: repeated-profile-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  repeated-profile:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: 2d0ae1c394907c428e6430d9fd5ef7485482d606
+          path: qa-baseline
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Measure repeated frontend startup, idle and cart memory
+        shell: pwsh
+        run: |
+          dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release --nologo *> repeated-profile.log
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          npm install --no-save --ignore-scripts playwright@1.55.0 >> repeated-profile.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          $env:CAFE_BASELINE_ROOT=(Resolve-Path 'qa-baseline/src/MnahelsCafe.Pos/wwwroot').Path
+          $env:CAFE_HEAD_SHA='${{ github.sha }}'
+          node scripts/profile-v61-browser.cjs >> repeated-profile.log 2>&1
+          exit $LASTEXITCODE
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v61-repeated-profile
+          path: |
+            repeated-profile.log
+            reports/v61-repeated-profile.json
+          if-no-files-found: error
+      - if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');const prs=await github.rest.pulls.list({...context.repo,head:context.repo.owner+':'+context.ref.replace('refs/heads/',''),state:'open',per_page:5});if(!prs.data.length)return;let report='No measurement report';if(fs.existsSync('reports/v61-repeated-profile.json'))report=fs.readFileSync('reports/v61-repeated-profile.json','utf8');const tail=fs.existsSync('repeated-profile.log')?fs.readFileSync('repeated-profile.log','utf8').slice(-3500):'No log';await github.rest.issues.createComment({...context.repo,issue_number:prs.data[0].number,body:'Repeated frontend profile for '+context.sha+' — NOT native startup / physical printer acceptance.\n```json\n'+report.slice(0,42000)+'\n```\n```text\n'+tail+'\n```'});
