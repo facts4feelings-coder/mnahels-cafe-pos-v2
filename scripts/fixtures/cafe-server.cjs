@@ -1,0 +1,13 @@
+const fs=require('fs'),path=require('path'),os=require('os'),assert=require('assert/strict'),crypto=require('crypto'),{spawn,execFileSync}=require('child_process');
+module.exports=async function(){
+ if(!process.env.GITHUB_ACTIONS)throw Error('Isolated CI only');
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'cafe-browser-qa-')),base='http://127.0.0.1:5187',dbPath=path.join(root,'mnahels-pos.db'),log=fs.openSync(path.join(root,'server.log'),'a'),cookies={},password=crypto.randomBytes(18).toString('hex');let server,closed=false;
+ const wait=ms=>new Promise(r=>setTimeout(r,ms));
+ async function start(){server=spawn('dotnet',[path.resolve('src/MnahelsCafe.Pos/bin/Release/net8.0/MnahelsCafe.Pos.dll'),'--urls',base,'--contentRoot',path.resolve('src/MnahelsCafe.Pos')],{env:{...process.env,MNAHELS_DATA_ROOT:root},stdio:['ignore',log,log]});for(let i=0;i<120;i++){try{const r=await fetch(base+'/api/health');if(r.ok){assert.equal(path.resolve((await r.json()).database),path.resolve(dbPath));return}}catch{}await wait(250)}throw Error(fs.readFileSync(path.join(root,'server.log'),'utf8').slice(-5000))}
+ async function stop(){if(server&&!server.killed){const done=new Promise(r=>server.once('exit',r));server.kill();await Promise.race([done,wait(5000)])}}
+ function sql(statements){return JSON.parse(execFileSync('python',['-c','import sys,json,sqlite3\nx=json.load(sys.stdin)\nc=sqlite3.connect(x["path"])\nc.execute("PRAGMA foreign_keys=ON")\nr=[]\nfor s,p in x["sql"]:\n r.append(c.execute(s,p).fetchall())\nc.commit()\nprint(json.dumps(r))'],{input:JSON.stringify({path:dbPath,sql:statements}),encoding:'utf8'}))}
+ async function api(role,url,method='GET',body,status=200){const r=await fetch(base+'/api'+url,{method,headers:{'Content-Type':'application/json',Cookie:cookies[role]||''},body:body===undefined?undefined:JSON.stringify(body)}),text=await r.text();assert.equal(r.status,status,method+' '+url+' '+text.slice(0,500));return text?JSON.parse(text):null}
+ async function close(){if(closed)return;closed=true;await stop();fs.closeSync(log)}
+ try{await start();const salt=crypto.randomBytes(16),hash=salt.toString('base64')+'.'+crypto.pbkdf2Sync(password,salt,120000,32,'sha256').toString('base64');sql(['Admin','Cashier'].map(role=>['INSERT INTO Users(Username,DisplayName,Role,PasswordHash,IsActive) VALUES(?,?,?,?,1)',['qa_'+role.toLowerCase(),'QA '+role,role,hash]]));for(const role of ['Admin','Cashier']){const r=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'qa_'+role.toLowerCase(),password})});assert.equal(r.status,200);cookies[role]=r.headers.getSetCookie()[0].split(';')[0]}}catch(e){await close();throw e}
+ return{root,base,cookies,api,sql,start,stop,close};
+};
