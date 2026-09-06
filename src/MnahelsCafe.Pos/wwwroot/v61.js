@@ -224,30 +224,81 @@ function markNewAdded(){
  setShown(bookedHead,lines.length>fresh);
 }
 
-/* ---- Book order / Update order label: one desired value, enforced instantly ---- */
+/* ---- Book order / Update order label: bounded discovery, instant repair ---- */
+const CTA_SELECTOR='b,strong,small,span';
+const CTA_TEXT=new Set(['Book first','Book order','Place order','Update order','Order will be Booked + Unpaid','Order will be Updated']);
+const ctaLabels=new Set();
+let ctaRoot=null,ctaObserver=null;
+function rememberCta(el){
+ if(!el||el.nodeType!==1)return false;
+ const had=ctaLabels.has(el);
+ const eligible=el.matches(CTA_SELECTOR)&&!el.children.length&&ctaRoot&&ctaRoot.contains(el)&&
+  !el.closest('#place-order,#v56-edit-banner')&&el.id!==HEAD_NEW&&el.id!==HEAD_BOOKED&&CTA_TEXT.has(String(el.textContent||'').trim());
+ if(eligible)ctaLabels.add(el);else ctaLabels.delete(el);
+ return had||eligible;
+}
+function discoverCta(node){
+ if(!node||node.nodeType!==1)return false;
+ let changed=rememberCta(node);
+ // Text-only mutations must not rediscover every product in the POS root.
+ if(node.children.length)node.querySelectorAll(CTA_SELECTOR).forEach(el=>{if(rememberCta(el))changed=true});
+ return changed;
+}
+function collectCtaMutations(records){
+ let changed=false,removed=false;
+ records.forEach(record=>{
+  if(record.type==='attributes'){
+   if(record.target===ctaRoot)paint();
+   return;
+  }
+  const el=record.target.nodeType===1?record.target:record.target.parentElement;
+  if(rememberCta(el))changed=true;
+  if(el&&el.closest('#place-order'))changed=true;
+  if(record.type==='childList'){
+   record.addedNodes.forEach(node=>{if(discoverCta(node))changed=true});
+   if(record.removedNodes.length)removed=true;
+  }
+ });
+ if(removed)ctaLabels.forEach(el=>{if(!ctaRoot.contains(el)){ctaLabels.delete(el);changed=true}});
+ return changed;
+}
+function ensureCtaRoot(root){
+ if(root===ctaRoot)return;
+ if(ctaObserver)ctaObserver.disconnect();
+ ctaObserver=null;ctaRoot=root;ctaLabels.clear();
+ if(!root)return;
+ discoverCta(root);
+ ctaObserver=new MutationObserver(records=>{if(collectCtaMutations(records))ctaSync()});
+ ctaObserver.observe(root,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+}
 function ctaSync(){
  const on=editing();
  editFlag(on);
  const root=q('#screen-pos');
- if(root)root.classList.toggle('v61-editing',on);
+ ensureCtaRoot(root);
+ // Drain pending records too: callers may append a label then refresh in the
+ // same JS task, before MutationObserver delivery.
+ if(ctaObserver)collectCtaMutations(ctaObserver.takeRecords());
+ if(root&&root.classList.contains('v61-editing')!==on)root.classList.toggle('v61-editing',on);
  if(!on){document.documentElement.classList.remove('v60-editing-order');editingId=0}
  const label=q('#place-order span');
  if(label&&!label.children.length){
   const want=on?'Update order':'Book order';
   if(String(label.textContent||'').trim()!==want)label.textContent=want;
  }
- if(!root)return;
- qa('b,strong,small,span',root).forEach(el=>{
-  if(el.children.length||el.closest('#place-order')||el.closest('#v56-edit-banner')||el.id===HEAD_NEW||el.id===HEAD_BOOKED)return;
+ ctaLabels.forEach(el=>{
+  rememberCta(el);
+  if(!ctaLabels.has(el))return;
   const raw=String(el.textContent||'').trim();
-  if(!raw||raw.length>40)return;
+  let want=raw;
   if(on){
-   if(raw==='Book first'||raw==='Book order'||raw==='Place order')el.textContent='Update order';
-   else if(raw==='Order will be Booked + Unpaid')el.textContent='Order will be Updated';
+   if(raw==='Book first'||raw==='Book order'||raw==='Place order')want='Update order';
+   else if(raw==='Order will be Booked + Unpaid')want='Order will be Updated';
   }else{
-   if(raw==='Update order')el.textContent='Book first';
-   else if(raw==='Order will be Updated')el.textContent='Order will be Booked + Unpaid';
+   if(raw==='Update order')want='Book first';
+   else if(raw==='Order will be Updated')want='Order will be Booked + Unpaid';
   }
+  if(raw!==want)el.textContent=want;
  });
 }
 function stampBuild(){
@@ -263,7 +314,7 @@ function stampBuild(){
 }
 
 /* ---- instant repaint: observers instead of timers, so the cart never flashes ---- */
-let painting=false,syncing=false;
+let painting=false;
 function paint(){
  if(painting)return;
  painting=true;
@@ -271,15 +322,8 @@ function paint(){
  if(typeof requestAnimationFrame==='function')requestAnimationFrame(run);else setTimeout(run,0);
 }
 function watchUi(){
- const button=q('#place-order');
- if(button&&!button.__v61){
-  button.__v61=true;
-  new MutationObserver(()=>{if(syncing)return;syncing=true;try{ctaSync()}finally{syncing=false}}).observe(button,{childList:true,subtree:true,characterData:true});
- }
  const panel=q('#screen-pos .cart-panel');
  if(panel&&!panel.__v61){panel.__v61=true;new MutationObserver(paint).observe(panel,{childList:true,subtree:true})}
- const root=q('#screen-pos');
- if(root&&!root.__v61){root.__v61=true;new MutationObserver(paint).observe(root,{attributes:true,attributeFilter:['class']})}
 }
 
 /* ---- per-order log on the shift screen ---- */
