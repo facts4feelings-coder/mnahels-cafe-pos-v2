@@ -1,14 +1,10 @@
 name: Browser regression and baseline measurements
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 permissions:
   contents: read
   pull-requests: write
-concurrency:
-  group: browser-regression-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
   browser-regression:
     runs-on: windows-latest
@@ -25,10 +21,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Build and compare actual browser sessions
+      - name: Build and verify catalog plus actual browser sessions
         shell: pwsh
         run: |
           dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release --nologo *> browser-tests.log
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-catalog-sync.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-v61-catalog.cjs >> browser-tests.log 2>&1
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
           npm install --no-save --ignore-scripts playwright@1.55.0 >> browser-tests.log 2>&1
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
@@ -42,6 +42,7 @@ jobs:
           path: |
             browser-tests.log
             reports/v61-browser-tests.json
+            reports/v61-catalog-tests.json
             reports/browser/*.png
           if-no-files-found: error
       - if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository

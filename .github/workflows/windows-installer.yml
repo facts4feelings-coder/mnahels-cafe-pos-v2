@@ -62,8 +62,14 @@ jobs:
       - name: Build desktop
         run: dotnet build src/MnahelsCafe.Desktop/MnahelsCafe.Desktop.csproj -c Release -r win-x64 --self-contained true --no-restore --nologo
 
+  browser-catalog:
+    uses: ./.github/workflows/browser-regression.yml
+    permissions:
+      contents: read
+      pull-requests: write
+
   compile-installer:
-    needs: [build-server, test-running-order, build-desktop]
+    needs: [build-server, test-running-order, build-desktop, browser-catalog]
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
