@@ -16,14 +16,9 @@ static class SeedData
             else { cashier.Role="Cashier"; if(string.IsNullOrWhiteSpace(cashier.DisplayName)) cashier.DisplayName="Front Cashier"; }
         }
 
-        var menuNeedsSync=!db.Categories.Any()
-            ||!db.Categories.Any(x=>x.Name=="Water / Mineral Water")
-            ||!db.Categories.Any(x=>x.Name=="Cold Drinks")
-            ||!db.Categories.Any(x=>x.Name=="Tin Pack")
-            ||!db.Products.Any(x=>x.Name=="Sprite Tin Pack")
-            ||!db.Products.Any(x=>x.Name=="Chicken Lazania");
+        var menuNeedsSync = !db.Categories.Any();
         if(menuNeedsSync) SyncMenu(db);
-        else if(!db.Products.Any(x=>x.Name=="Green Tea")) SyncHotDrinksV41(db);
+        
 
         if(!db.CafeTables.Any()) db.CafeTables.AddRange(
             new CafeTable{Name="Table 1"},new CafeTable{Name="Table 2"},new CafeTable{Name="Table 3"},new CafeTable{Name="Table 4"});

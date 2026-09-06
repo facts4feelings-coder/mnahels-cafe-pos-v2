@@ -39,17 +39,7 @@ static class AdminFeatures
             return Results.Ok(new { message = "Password changed successfully." });
         }).RequireAuthorization(p => p.RequireRole("Admin"));
 
-        api.MapGet("/admin/menu", async (PosDb db) => Results.Ok(await db.Categories
-            .OrderBy(x => x.SortOrder)
-            .Select(c => new
-            {
-                c.Id, c.Name, c.Icon,
-                products = c.Products.OrderBy(p => p.Name).Select(p => new
-                {
-                    p.Id, p.CategoryId, p.Name, p.Icon, p.Description, p.IsActive, p.IsAvailable,
-                    variants = p.Variants.OrderBy(v => v.SortOrder).Select(v => new { v.Id, v.Name, v.Price, v.SortOrder })
-                })
-            }).ToListAsync())).RequireAuthorization(p => p.RequireRole("Admin"));
+        api.MapGet("/admin/menu", async (PosDb db) => Results.Ok(await MenuCatalog.Read(db, includeArchived: true))).RequireAuthorization(p => p.RequireRole("Admin"));
 
         api.MapPost("/products", async (SaveProductRequest request, PosDb db, ClaimsPrincipal principal) =>
         {

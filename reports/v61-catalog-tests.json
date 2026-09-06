@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "Admin/Cashier identical active catalog",
+    "Archived management rows stay excluded from both order menus",
+    "Closed-shift booking blocked for both roles and both routes",
+    "Cashier cannot edit menu",
+    "Revision changes atomically with menu changes",
+    "Renamed products/custom prices survive restart",
+    "Wrong reset phrase does not mutate data",
+    "Reset restores nine Super Deals, Shakes and Coffee & Tea",
+    "Accounts preserved by reset",
+    "Backup restore preserves exact menu and changes client epoch",
+    "Restored menu survives restart"
+  ]
+}

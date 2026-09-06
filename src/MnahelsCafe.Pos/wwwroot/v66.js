@@ -1,4 +1,4 @@
-/* v0.15.60: targeted booking and receipt refinements.
+/* v0.15.61: targeted booking and receipt refinements.
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved. */
 (()=>{'use strict';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];let checking=null,opening=false;

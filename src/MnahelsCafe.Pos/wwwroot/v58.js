@@ -5,7 +5,7 @@
  */
 (()=>{
 'use strict';
-const BUILD='0.15.60',REV='20260905-route-dupe-new-added-52';
+const BUILD='0.15.61',REV='20260905-route-dupe-new-added-52';
 const q=(selector,root=document)=>root.querySelector(selector);
 const qa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
