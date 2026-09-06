@@ -23,6 +23,7 @@ static class MenuCatalog
  public static void MapApi(RouteGroupBuilder api){
   api.MapGet("/menu/revision",(PosDb db,HttpContext context)=>{context.Response.Headers.CacheControl="no-store";return Results.Ok(Stamp(db));});
   api.AddEndpointFilter(async(context,next)=>{
+   var rejection=await CheckoutSafety.Validate(context);if(rejection is not null)return rejection;
    var result=await next(context);var request=context.HttpContext.Request;
    if(request.Method is "GET" or "HEAD"||result is IStatusCodeHttpResult{StatusCode:>=400})return result;
    var path=request.Path.Value?.ToLowerInvariant()??"";
