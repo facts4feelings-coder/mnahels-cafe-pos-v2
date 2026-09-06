@@ -10,7 +10,11 @@ const money=text=>Number(String(text).replace(/[^0-9.-]/g,''));
 const count=()=>f.sql([['SELECT COUNT(*) FROM Orders',[]]])[0][0][0];
 async function mutation(page,method,path,action,status=200){
  const [r]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api'+path&&r.request().method()===method,{timeout:15000}),action()]);
- const text=await r.text();assert.equal(r.status(),status,method+' '+path+' '+text.slice(0,500));return text?JSON.parse(text):null;
+ assert.equal(r.status(),status,method+' '+path);
+ // Rejected login is deliberately not consumed by app.js; Edge may discard its
+ // body. Status plus the login/UI assertions are the contract, not that body.
+ if(path.startsWith('/auth/'))return null;
+ const text=await r.text();return text?JSON.parse(text):null;
 }
 async function login(page,role){
  await page.locator('#username').fill(f.credentials[role].username);await page.locator('#password').fill(f.credentials[role].password);
