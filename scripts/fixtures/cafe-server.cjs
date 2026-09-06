@@ -9,5 +9,5 @@ module.exports=async function(){
  async function api(role,url,method='GET',body,status=200){const r=await fetch(base+'/api'+url,{method,headers:{'Content-Type':'application/json',Cookie:cookies[role]||''},body:body===undefined?undefined:JSON.stringify(body)}),text=await r.text();assert.equal(r.status,status,method+' '+url+' '+text.slice(0,500));return text?JSON.parse(text):null}
  async function close(){if(closed)return;closed=true;await stop();fs.closeSync(log)}
  try{await start();const salt=crypto.randomBytes(16),hash=salt.toString('base64')+'.'+crypto.pbkdf2Sync(password,salt,120000,32,'sha256').toString('base64');sql(['Admin','Cashier'].map(role=>['INSERT INTO Users(Username,DisplayName,Role,PasswordHash,IsActive) VALUES(?,?,?,?,1)',['qa_'+role.toLowerCase(),'QA '+role,role,hash]]));for(const role of ['Admin','Cashier']){const r=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'qa_'+role.toLowerCase(),password})});assert.equal(r.status,200);cookies[role]=r.headers.getSetCookie()[0].split(';')[0]}}catch(e){await close();throw e}
- return{root,base,cookies,api,sql,start,stop,close};
+ return{root,base,cookies,api,sql,start,stop,close,credentials:Object.fromEntries(['Admin','Cashier'].map(role=>[role,{username:'qa_'+role.toLowerCase(),password}]))};
 };

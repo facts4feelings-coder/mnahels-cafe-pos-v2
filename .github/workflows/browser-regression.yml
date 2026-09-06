@@ -44,6 +44,8 @@ jobs:
           node scripts/test-cta-browser.cjs >> browser-tests.log 2>&1
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
           node scripts/test-checkout-browser.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-ui-workflows.cjs >> browser-tests.log 2>&1
           exit $LASTEXITCODE
       - if: always()
         uses: actions/upload-artifact@v4
@@ -55,10 +57,11 @@ jobs:
             reports/v61-catalog-tests.json
             reports/v61-checkout-tests.json
             reports/v61-cta-tests.json
+            reports/v61-ui-workflows.json
             reports/browser/*.png
           if-no-files-found: error
       - if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           script: |
-            const fs=require('fs');let text=fs.existsSync('browser-tests.log')?fs.readFileSync('browser-tests.log','utf8').slice(-14000):'No log';for(const name of ['v61-browser-tests','v61-checkout-tests','v61-cta-tests'])if(fs.existsSync('reports/'+name+'.json')){const r=JSON.parse(fs.readFileSync('reports/'+name+'.json'));text+='\n'+JSON.stringify(name==='v61-browser-tests'?{metrics:Object.fromEntries(Object.entries(r.measurements).map(([k,v])=>[k,{...v,styles:undefined}])),errors:r.errors}:r,null,2).slice(-12000)}await github.rest.issues.createComment({...context.repo,issue_number:context.issue.number,body:'Browser verification for '+context.payload.pull_request.head.sha+'\n```text\n'+text+'\n```'});
+            const fs=require('fs');let text=fs.existsSync('browser-tests.log')?fs.readFileSync('browser-tests.log','utf8').slice(-14000):'No log';for(const name of ['v61-browser-tests','v61-checkout-tests','v61-cta-tests','v61-ui-workflows'])if(fs.existsSync('reports/'+name+'.json')){const r=JSON.parse(fs.readFileSync('reports/'+name+'.json'));text+='\n'+JSON.stringify(name==='v61-browser-tests'?{metrics:Object.fromEntries(Object.entries(r.measurements).map(([k,v])=>[k,{...v,styles:undefined}])),errors:r.errors}:r,null,2).slice(-12000)}await github.rest.issues.createComment({...context.repo,issue_number:context.issue.number,body:'Browser verification for '+context.payload.pull_request.head.sha+'\n```text\n'+text+'\n```'});
