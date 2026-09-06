@@ -44,12 +44,16 @@ async function startOrder(page,mode){
  assert.equal(await page.evaluate(()=>state.orderType),mode);
 }
 async function addTwo(page,product){
- await page.locator('#search').fill(product.name);
- for(let n=1;n<=2;n++){
-  await page.locator('#product-grid .product-card[data-id="'+product.id+'"]').click();
-  await page.locator('#product-grid [data-v38-variant="'+product.variants[0].id+'"]').click();
-  await page.waitForFunction(({id,n})=>state.cart.find(x=>x.variantId===id)?.quantity===n,{id:product.variants[0].id,n});
- }
+ report.lastAction='Search and open product sizes';await page.locator('#search').fill(product.name);
+ await page.locator('#product-grid .product-card[data-id="'+product.id+'"]').click();
+ report.lastAction='Click the first Regular-size option';await page.locator('#product-grid [data-v38-variant="'+product.variants[0].id+'"]').click();
+ await page.waitForFunction(id=>state.cart.find(x=>x.variantId===id)?.quantity===1,product.variants[0].id);
+ // Exercise the actual quantity control rather than racing a second size popup
+ // against post-add search/grid reset. Rapid repeat-picker behavior is separate.
+ report.lastAction='Increase cart quantity using the plus button';
+ await page.locator('#cart-items .cart-line[data-variant-id="'+product.variants[0].id+'"] [data-a="+"]').click();
+ await page.waitForFunction(id=>state.cart.find(x=>x.variantId===id)?.quantity===2,product.variants[0].id);
+ report.lastAction='Cart quantity two confirmed';
 }
 async function settlePrints(page,expected){
  await page.waitForFunction(n=>window.__qaPrints.length>=n&&window.mnahelsV64.status.pendingJobs===0,expected,{timeout:15000});
@@ -167,7 +171,7 @@ async function run(){
  }
  assert.equal(report.bookings.length,48);assert.equal(report.errors.length,0,JSON.stringify(report.errors));
  report.checks.push('48 UI bookings: both roles/themes, all three service modes, every Pay Now payment method; 12 Pay Later orders settled through the actual payment dialog with all methods represented');
- report.checks.push('Displayed/saved totals, percent discounts, cash change, customer/address/table data, notes, cart reset; exactly two print-boundary calls per booking and one extra customer call per later payment');
+ report.checks.push('Actual size selection and cart quantity-plus control; displayed/saved totals, percent discounts, cash change, customer/address/table data, notes, cart reset; exactly two print-boundary calls per booking and one extra customer call per later payment');
  report.complete=true;console.log('PASS UI workflows: '+report.checks.join('; '));
 }
 run().catch(async e=>{
