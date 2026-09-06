@@ -1,9 +1,10 @@
 /* Actual user-control regression: real Edge + HTTP + isolated SQLite.
- * Only data setup/cleanup and the final window.print boundary are test-controlled.
+ * Data setup/cleanup, persisted theme preferences and the final window.print
+ * boundary are test-controlled. Theme-switch controls are not covered here.
  * This is not native WebView2, physical printing, JPG or pixel-perfect acceptance. */
 'use strict';
 const fs=require('fs'),assert=require('assert/strict'),{chromium}=require('playwright');
-const report={scope:'UI clicks in Edge; temporary database; window.print capture only',checks:[],bookings:[],errors:[],complete:false};
+const report={scope:'UI clicks in Edge; temporary database; persisted light/dark preferences; window.print capture only',checks:[],bookings:[],errors:[],complete:false};
 let stage='fixture',f,browser,activePage;
 const watchdog=setTimeout(()=>{console.error('UI workflow tests exceeded six minutes at '+stage);process.exit(1)},360000);watchdog.unref();
 const money=text=>Number(String(text).replace(/[^0-9.-]/g,''));
@@ -22,7 +23,7 @@ async function login(page,role){
  await page.waitForFunction(role=>state.user?.role===role&&window.cafeCatalog?.stamp&&state.menu.length>0&&window.mnahelsV41&&window.mnahelsV64,role,{timeout:30000});
  assert.equal((await page.locator('#user-role').textContent()).trim(),role);
 }
-async function theme(page,value){if(await page.evaluate(()=>document.documentElement.dataset.theme)!==value)await page.locator('#theme-toggle').click();assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),value)}
+async function theme(page,value){assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),value);assert.equal(await page.evaluate(()=>localStorage.getItem('mnahels-theme')),value)}
 async function live(page,id,predicate){await page.waitForFunction(({id,predicate})=>{
  const p=state.menu.flatMap(c=>c.products).find(p=>p.id===id);
  if(predicate.absent)return !p;if(predicate.unavailable)return !p||p.isAvailable===false;
@@ -59,15 +60,19 @@ async function finishBookingUi(page){
  await page.waitForFunction(()=>!document.querySelector('#v40-order-success.show'),null,{timeout:10000});
 }
 async function run(){
- f=await require('./fixtures/cafe-server.cjs')();browser=await chromium.launch({channel:'msedge',headless:true});fs.mkdirSync('reports/browser',{recursive:true});
+ f=await require('./fixtures/cafe-server.cjs')();
+ // Guarantee a disposable dining resource, independent of the initial seed.
+ const hub=await f.api('Admin','/service-hub');if(!hub.tables.some(t=>t.isActive&&!t.booked))await f.api('Admin','/service/tables','POST',{name:'QA UI isolated table'});
+ browser=await chromium.launch({channel:'msedge',headless:true});fs.mkdirSync('reports/browser',{recursive:true});
  for(const appearance of ['light','dark']){
   const pages={},contexts=[];
   for(const role of ['Admin','Cashier']){
    const context=await browser.newContext({viewport:{width:1366,height:900},locale:'en-PK',timezoneId:'Asia/Karachi'});contexts.push(context);
-   await context.addInitScript(()=>{
+   await context.addInitScript(appearance=>{
+    localStorage.setItem('mnahels-theme',appearance);
     localStorage.setItem('mnahels.receipt-auto-jpg','0');localStorage.setItem('mnahels.receipt-auto-jpg-restored-v39','1');
     window.__qaPrints=[];window.print=()=>{const s=document.querySelector('#print-sheet');window.__qaPrints.push({type:s?.classList.contains('kitchen')?'kitchen':'customer',text:s?.textContent||''})};
-   });
+   },appearance);
    const page=pages[role]=activePage=await context.newPage();page.setDefaultTimeout(15000);
    page.on('pageerror',e=>report.errors.push({role,appearance,error:e.message}));
    page.on('dialog',async d=>{if(d.type()==='confirm'&&/^Archive QA UI /.test(d.message()))await d.accept();else{report.errors.push({role,appearance,unexpectedDialog:d.message()});await d.dismiss()}});
@@ -87,7 +92,8 @@ async function run(){
   }
   const admin=pages.Admin,cashier=pages.Cashier;activePage=admin;stage=appearance+' Menu Manager';
   await admin.locator('.sidebar [data-screen="menu-admin"]').click();await admin.locator('#screen-menu-admin.active').waitFor();
-  assert.equal((await admin.locator('#page-title').textContent()).trim(),'Menu manager');
+  // The final Midnight Amber heading capitalizes Manager; both layers name this screen.
+  assert.equal((await admin.locator('#page-title').textContent()).trim().toLowerCase(),'menu manager');
   await admin.locator('#add-menu-item').click();await admin.locator('#menu-drawer-backdrop.open').waitFor();
   assert.equal((await admin.locator('#drawer-title').textContent()).trim(),'Add product');
   const categories=await admin.locator('#edit-category option').evaluateAll(xs=>xs.map(x=>x.value));assert(categories.length>=2);
@@ -167,7 +173,7 @@ async function run(){
 run().catch(async e=>{
  report.failure={stage,message:e.stack};console.error('FAIL UI stage: '+stage+'\n'+e.stack);
  if(activePage&&!activePage.isClosed()){
-  try{report.diagnostics=await activePage.evaluate(()=>({screen:state?.currentScreen,role:state?.user?.role,cart:state?.cart,setup:state?.v38SetupDone,edit:state?.v56EditingOrderId,toast:document.querySelector('#toast')?.textContent,dialogs:[...document.querySelectorAll('dialog[open]')].map(x=>x.id),title:document.querySelector('#page-title')?.textContent,drawer:document.querySelector('#drawer-title')?.textContent}));await activePage.screenshot({path:'reports/browser/ui-failure.png',fullPage:true})}catch{}
+  try{report.diagnostics=await activePage.evaluate(()=>({screen:state?.currentScreen,role:state?.user?.role,theme:document.documentElement.dataset.theme,cart:state?.cart,setup:state?.v38SetupDone,edit:state?.v56EditingOrderId,toast:document.querySelector('#toast')?.textContent,dialogs:[...document.querySelectorAll('dialog[open]')].map(x=>x.id),title:document.querySelector('#page-title')?.textContent,drawer:document.querySelector('#drawer-title')?.textContent,visibleButtons:[...document.querySelectorAll('button')].filter(x=>x.checkVisibility()).map(x=>({id:x.id,text:x.textContent.trim().slice(0,80),disabled:x.disabled})).slice(0,70),invalidFields:[...document.querySelectorAll('input:invalid,textarea:invalid,select:invalid')].filter(x=>x.checkVisibility()).map(x=>({id:x.id,reason:x.validationMessage}))}));await activePage.screenshot({path:'reports/browser/ui-failure.png',fullPage:true})}catch{}
  }
  process.exitCode=1;
 }).finally(async()=>{
