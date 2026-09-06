@@ -24,7 +24,7 @@ function connect(){if(channel)return;try{channel=new BroadcastChannel('mnahels-c
 if(typeof window.fetch==='function'){
  const original=window.fetch;
  window.fetch=async function(input,options){
-  const url=new URL(typeof input==='string'?input:input.url,location.href),method=String(options?.method||input?.method||'GET').toUpperCase();
+  const url=new URL(input instanceof URL?input.href:typeof input==='string'?input:input.url,location.href),method=String(options?.method||input?.method||'GET').toUpperCase();
   const path=url.pathname.replace(/\/$/,'');
   if(url.origin!==location.origin||!/^\/api\/orders(?:\/|$)/.test(path)||!['POST','PUT','PATCH','DELETE'].includes(method))return original.apply(this,arguments);
   const s=app();if(!s?.user)return original.apply(this,arguments);
@@ -36,7 +36,7 @@ if(typeof window.fetch==='function'){
    try{body=JSON.parse(raw)}catch{throw Error('Cart request verify nahi hua; order submit nahi hua.')}
    if(!Array.isArray(body?.items))throw Error('Cart request missing hai.');
    const prices=body.items.filter(line=>Number(line.quantity)>0).map(line=>{
-    const candidates=(s.cart||[]).filter(item=>Number(item.variantId)===Number(line.variantId)&&String(item.notes||'').trim()===String(line.notes||'').trim());
+    const candidates=(window.mnahelsV52?.priceLines?.()||s.cart||[]).filter(item=>Number(item.variantId)===Number(line.variantId)&&String(item.notes||'').trim()===String(line.notes||'').trim());
     const price=Number(candidates[0]?.price??candidates[0]?.unitPrice);
     if(!candidates.length||!Number.isFinite(price)||candidates.some(x=>Number(x.price??x.unitPrice)!==price))throw Error('Cart badal gaya. Dobara review karein; order submit nahi hua.');
     return{variantId:Number(line.variantId),quantity:Number(line.quantity),unitPrice:price};

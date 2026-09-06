@@ -1,0 +1,22 @@
+/* Actual v52 source, synthetic DOM/cart only. No customer database. */
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const classes={add(){},toggle(){}},input={checked:false},price={},label={classList:classes,querySelector:s=>s==='input'?input:s==='b'?price:null},lineTotal={},row={classList:classes,querySelector:s=>s==='.v52-topping-check'?label:s==='.v37-line-total'?lineTotal:null};
+let menuReads=0;
+const menu=[{name:'Pizza',products:[{name:'Pizza A',variants:[{id:1,name:'Small',price:500},{id:2,name:'Regular',price:100}]},{name:'Extra topping',variants:[{id:3,name:'Small',price:40}]}]}];
+const item={variantId:1,name:'Pizza A',variant:'Small',price:500,quantity:2};
+const state={cart:[item],get menu(){menuReads++;return menu}};
+const document={readyState:'loading',addEventListener(){},querySelector(){return null},querySelectorAll:s=>s==='#cart-items>.v37-cart-line'?[row]:[]};
+const context={state,document,console,setTimeout(){},setInterval(){},queueMicrotask(){},mnahelsV39:{discountPercent:()=>0}};context.window=context;
+vm.createContext(context);vm.runInContext(fs.readFileSync('src/MnahelsCafe.Pos/wwwroot/v52.js','utf8'),context);
+const api=context.mnahelsV52;context.renderCart=api.decorateCart;
+assert.equal(api.toppingFor({...item,variantId:2,variant:'Regular'}),null,'Custom pizza size must not throw');
+menuReads=0;for(let n=0;n<100;n++)assert.equal(api.subtotal(),1000);assert.equal(menuReads,0,'No topping lookup needed for an ordinary cart subtotal');
+api.decorateCart();input.checked=true;input.onchange({currentTarget:input,stopPropagation(){}});assert.equal(item.extraToppingQuote.price,40);assert.equal(api.subtotal(),1080);
+let expanded=api.expandedItems([{variantId:1,quantity:2}]);assert.equal(expanded.length,2);assert.equal(expanded[1].variantId,3);assert.equal(expanded[1].notes,'For Pizza A (Small)');assert.equal(api.priceLines()[1].price,40);
+menu[0].products[1].variants[0].price=80;api.decorateCart();assert.equal(api.subtotal(),1080,'Menu update must not silently reprice selected topping');assert.equal(api.priceLines()[1].price,40);assert.equal(price.textContent,'+Rs 40');
+input.checked=false;input.onchange({currentTarget:input,stopPropagation(){}});input.checked=true;input.onchange({currentTarget:input,stopPropagation(){}});assert.equal(item.extraToppingQuote.price,80,'Explicit reselect must get current quote');assert.equal(api.subtotal(),1160);
+menuReads=0;for(let n=0;n<100;n++)api.subtotal();assert.equal(menuReads,0,'Selected topping uses its quote, not repeated whole-menu scans');
+assert.equal(api.expandedItems(expanded),expanded,'Already expanded payload must not duplicate topping');
+item.extraToppingQuote=null;assert.throws(()=>api.expandedItems([{variantId:1,quantity:2}]),/dobara select/);
+item.extraTopping=false;assert.equal(api.priceLines().length,1);assert.equal(api.subtotal(),1000);
+console.log('PASS: custom pizza size; stable topping quotes, explicit reselection, expansion without duplicates; 100 repeated subtotal calls use zero menu scans with and without selected topping.');

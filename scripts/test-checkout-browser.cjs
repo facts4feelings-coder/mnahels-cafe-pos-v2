@@ -34,11 +34,27 @@ const timeout=setTimeout(()=>{console.error('Checkout browser tests exceeded fou
   // A changed price is never auto-accepted: explicitly review the draft here.
   for(const [role,page] of Object.entries(pages)){
    await cart(page,variant.id,444.5);
+   await page.evaluate(()=>{const input=document.querySelector('#discount');input.value='2';input.dispatchEvent(new Event('input',{bubbles:true}))});
+   const shown=await page.evaluate(()=>({discount:window.mnahelsV39.discountAmount(),total:Number(document.querySelector('#total').textContent.replace(/[^0-9.]/g,''))}));
+   const reviewed=await submit(page,'/orders/book',{...payload,discount:shown.discount});assert.equal(reviewed.status,200);assert.equal(shown.discount,18);assert.equal(reviewed.body.total,shown.total);assert.equal(shown.total,871);
    for(const payNow of [true,false])for(const paymentMethod of ['Cash','Card','Online']){
     const r=await submit(page,'/orders/book',{...payload,payNow,paymentMethod,cashReceived:1000});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.body.total,871.5);assert.equal(r.body.items[0].unitPrice,444.5);assert.equal(r.body.paymentStatus,payNow?'Paid':'Unpaid');if(payNow&&paymentMethod==='Cash')assert.equal(r.body.changeDue,128.5);
    }
   }
-  checks.push('Reviewed totals, discount, cash change and paid/unpaid status match for both roles and Cash/Card/Online');
+  checks.push('Displayed UI total equals saved total after explicit review; discount, cash change and paid/unpaid status match for both roles and Cash/Card/Online');
+  // Exercise the real application API wrappers and actual topping checkbox handler.
+  const quotes=[];
+  for(const [role,page] of Object.entries(pages)){
+   const quote=await page.evaluate(()=>{const options=state.menu.flatMap(c=>c.products).flatMap(p=>p.variants.map(v=>({variantId:v.id,name:p.name,variant:v.name,price:v.price,quantity:2})));const item=options.find(x=>window.mnahelsV52.toppingFor(x));if(!item)throw Error('No topping-capable pizza');state.cart=[item];window.renderCart();const checkbox=document.querySelector('.v52-topping-check input');if(!checkbox)throw Error('Topping checkbox missing');checkbox.checked=true;checkbox.dispatchEvent(new Event('change',{bubbles:true}));return{itemId:item.variantId,topping:item.extraToppingQuote,total:window.mnahelsV52.subtotal()-window.mnahelsV52.discountAmount()}});
+   const order=await page.evaluate(async itemId=>window.api('/api/orders/book',{method:'POST',body:JSON.stringify({items:[{variantId:itemId,quantity:2}],orderType:'Takeaway',payNow:false,discount:0})}),quote.itemId);
+   assert.equal(order.items.length,2);assert.equal(order.total,quote.total);quotes.push({role,...quote});
+  }
+  const topping=(await f.api('Admin','/admin/menu')).flatMap(c=>c.products).find(p=>p.variants.some(v=>v.id===quotes[0].topping.variantId));
+  await f.api('Admin','/products/'+topping.id,'PUT',{...topping,variants:topping.variants.map(v=>({...v,price:v.price+11}))});
+  const toppingCount=count();
+  for(const quote of quotes){const page=pages[quote.role];await page.evaluate(()=>window.cafeCatalog.check(true));assert.equal(await page.evaluate(()=>state.cart[0].extraToppingQuote.price),quote.topping.price);const failure=await page.evaluate(async itemId=>{try{await window.api('/api/orders/book',{method:'POST',body:JSON.stringify({items:[{variantId:itemId,quantity:2}],orderType:'Takeaway',payNow:false,discount:0})});return null}catch(e){return e.message}},quote.itemId);assert.match(failure,/Menu price badal/)}
+  assert.equal(count(),toppingCount);await f.api('Admin','/products/'+topping.id,'PUT',topping);for(const page of Object.values(pages))await cart(page,variant.id,444.5);
+  checks.push('Actual API wrappers and topping checkbox preserve quoted totals and reject changed topping prices');
   await change(444.5,false);const n=count();
   for(const page of Object.values(pages)){const r=await submit(page,'/orders/book',payload);assert.equal(r.status,409);assert.equal(r.body.code,'ITEM_UNAVAILABLE')}
   assert.equal(count(),n);checks.push('Unavailable items rejected with no order creation');await change(444.5);
