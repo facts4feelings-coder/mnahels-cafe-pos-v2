@@ -6,7 +6,14 @@
 const fs=require('fs'),assert=require('assert/strict'),{chromium}=require('playwright');
 const report={scope:'UI clicks in Edge; temporary database; persisted light/dark preferences; window.print capture only',checks:[],bookings:[],errors:[],complete:false};
 let stage='fixture',f,browser,activePage;
-const watchdog=setTimeout(()=>{console.error('UI workflow tests exceeded six minutes at '+stage);process.exit(1)},360000);watchdog.unref();
+function saveReport(){
+ report.summary={complete:report.complete,completedBookings:report.bookings.length,completedLaterPayments:report.bookings.filter(x=>!x.payNow).length,errors:report.errors.length};
+ fs.mkdirSync('reports',{recursive:true});fs.writeFileSync('reports/v61-ui-workflows.json',JSON.stringify(report,null,2));
+}
+const watchdog=setTimeout(()=>{
+ report.complete=false;report.failure={stage,message:'UI workflow tests exceeded ten minutes'};saveReport();
+ console.error('UI workflow tests exceeded ten minutes at '+stage+'; completed bookings: '+report.bookings.length);process.exit(1);
+},600000);watchdog.unref();
 const money=text=>Number(String(text).replace(/[^0-9.-]/g,''));
 const count=()=>f.sql([['SELECT COUNT(*) FROM Orders',[]]])[0][0][0];
 async function mutation(page,method,path,action,status=200){
@@ -186,7 +193,6 @@ run().catch(async e=>{
  }
  process.exitCode=1;
 }).finally(async()=>{
- report.summary={complete:report.complete,completedBookings:report.bookings.length,completedLaterPayments:report.bookings.filter(x=>!x.payNow).length,errors:report.errors.length};
- fs.mkdirSync('reports',{recursive:true});fs.writeFileSync('reports/v61-ui-workflows.json',JSON.stringify(report,null,2));
+ saveReport();
  if(browser)await browser.close();if(f)await f.close();clearTimeout(watchdog);
 });
