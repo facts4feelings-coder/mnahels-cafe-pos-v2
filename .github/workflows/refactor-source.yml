@@ -1,0 +1,58 @@
+name: Verify and commit source cleanup once
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  refactor:
+    if: github.event.pull_request.head.ref == 'refactor/performance-v0.15.61' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refactor and verify
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          npm install --no-save --ignore-scripts postcss@8.5.6
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/refactor-source.cjs *> refactor.log
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release --nologo >> refactor.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          dotnet build src/MnahelsCafe.Desktop/MnahelsCafe.Desktop.csproj -c Release --nologo >> refactor.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-v57-receipts.cjs >> refactor.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-v61-catalog.cjs >> refactor.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- src scripts .github reports
+          git commit -m 'Consolidate verified styles and shared catalog; remove recurring UI churn'
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          git push origin HEAD:refactor/performance-v0.15.61
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v61-cleanup-diagnostics
+          path: |
+            refactor.log
+            reports/*.json
+          if-no-files-found: ignore
+      - if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');const log=fs.existsSync('refactor.log')?fs.readFileSync('refactor.log','utf8').slice(-13000):'No build log';await github.rest.issues.createComment({...context.repo,issue_number:context.issue.number,body:'v61 source cleanup '+context.runId+'\n```text\n'+log+'\n```'});
