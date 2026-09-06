@@ -7,7 +7,14 @@ using Microsoft.AspNetCore.Routing;
 // One catalog projection for both roles; management explicitly includes archived items.
 static class MenuCatalog
 {
- public static void Initialize(PosDb db,bool factoryReset=false){Install(db);if(factoryReset)db.Database.ExecuteSqlRaw("DELETE FROM MenuUpdateHistory WHERE Key='super-deals-v60'");SeedData.Apply(db);SuperDealsMigration.Apply(db);V42MenuMigration.Apply(db);if(factoryReset)NewEpoch(db);}
+ public static void Initialize(PosDb db,bool factoryReset=false){
+  Install(db);
+  // Old flash deleted categories/products but left the v60 marker. Repair only that recognizable shape.
+  // Archived Super Deals still exist as rows, so intentional archival never meets this repair condition.
+  var legacyReset=!factoryReset&&db.Categories.Any(c=>c.Name=="Drinks & Shakes")&&!db.Categories.Any(c=>c.Name=="Super Deals"||c.Name=="Shakes")&&!db.Products.Any(p=>p.Name.StartsWith("Super Deal "))&&db.Database.SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM MenuUpdateHistory WHERE Key='super-deals-v60'").Single()>0;
+  if(factoryReset||legacyReset)db.Database.ExecuteSqlRaw("DELETE FROM MenuUpdateHistory WHERE Key='super-deals-v60'");
+  SeedData.Apply(db);SuperDealsMigration.Apply(db);V42MenuMigration.Apply(db);if(factoryReset)NewEpoch(db);
+ }
  public static async Task<CatalogCategory[]> Read(PosDb db,bool includeArchived=false){
   var categories=await db.Categories.AsNoTracking().Include(c=>c.Products).ThenInclude(p=>p.Variants).OrderBy(c=>c.SortOrder).ThenBy(c=>c.Id).ToListAsync();
   return categories.Select(c=>new CatalogCategory(c.Id,c.Name,c.Icon,c.Products.Where(p=>includeArchived||p.IsActive).OrderBy(p=>p.Name).ThenBy(p=>p.Id).Select(p=>new CatalogProduct(p.Id,p.CategoryId,p.Name,p.Icon,p.Description,p.IsActive,p.IsAvailable,p.Variants.OrderBy(v=>v.SortOrder).ThenBy(v=>v.Id).Select(v=>new CatalogVariant(v.Id,v.Name,v.Price,v.SortOrder)).ToArray())).ToArray())).Where(c=>includeArchived||c.Products.Length>0).ToArray();
