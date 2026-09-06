@@ -16,6 +16,8 @@ sealed class ShiftAuditOrder
  public string Status {get;set;}="";
  public string PaymentStatus {get;set;}="";
  public decimal Total {get;set;}
+ public decimal? Subtotal {get;set;}
+ public decimal? Discount {get;set;}
  public string Items {get;set;}="";
  public string Customer {get;set;}="";
 }
