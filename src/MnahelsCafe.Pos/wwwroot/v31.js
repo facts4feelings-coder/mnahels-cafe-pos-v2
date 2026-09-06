@@ -1,6 +1,6 @@
 (()=>{
 /* ==========================================================================
-   Mnahel's Cafe POS - v31 layer - build 0.15.25
+   MNHEL CAFE - v31 layer - build 0.15.25
    Owner    : Eastern Cross Technology - https://techmint.org
    Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
    A product by Eastern Cross Technology.
@@ -28,7 +28,7 @@ const PKEY='mnahels.print-pad';
 const LKEY='mnahels.print-left';
 const FKEY='mnahels.print-font';
 const OPTS=[48,58,68,70,72,76,80];
-const FONTS=[9,10,11,12];
+const FONTS=[9,10,11,12,14,16,18,20];
 const LEFTS=[-4,-3,-2,-1,-0.5,0,0.5,1,2,3,4];
 const FIT=[60,62,64,66,68,70,72,74,76,78,80];
 const el=s=>document.querySelector(s);
@@ -40,10 +40,10 @@ function num(k,def,min,max){const v=parseFloat(localStorage.getItem(k)||'');retu
 const width=()=>num(WKEY,80,40,210);
 const pad=()=>num(PKEY,0,0,8);
 const left=()=>num(LKEY,1,-8,8);
-const font=()=>num(FKEY,12,8,15);
+const font=()=>num(FKEY,11,8,20);
 function whiteHeader(){try{return localStorage.getItem('mnahels.receipt-header')==='white'}catch{return false}}
 const LAYOUTKEY='mnahels.print-layout-compact-21';
-try{if(localStorage.getItem(LAYOUTKEY)!=='1'){const savedW=localStorage.getItem(WKEY),savedF=parseFloat(localStorage.getItem(FKEY)||'');if(savedW===null||savedW==='70')localStorage.setItem(WKEY,'80');if(!isFinite(savedF)||savedF<12)localStorage.setItem(FKEY,'12');localStorage.setItem(LAYOUTKEY,'1')}}catch(e){}
+try{if(localStorage.getItem(LAYOUTKEY)!=='1'){const savedW=localStorage.getItem(WKEY),savedF=parseFloat(localStorage.getItem(FKEY)||'');if(savedW===null||savedW==='70')localStorage.setItem(WKEY,'80');if(!isFinite(savedF))localStorage.setItem(FKEY,'11');localStorage.setItem(LAYOUTKEY,'1')}}catch(e){}
 const bridgeReady=()=>!!(window.__mnahelsDualPrintBridge&&window.chrome&&window.chrome.webview&&window.chrome.webview.postMessage);
 const KIOSK='"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --kiosk-printing --app='+location.origin;
 let probe=null; /* width finder ke liye asthai width */
@@ -116,6 +116,7 @@ document.addEventListener('mnahels-print-settings-changed',apply);
 let hold=null,holdUntil=0;
 function stage(html,type){const sheet=el('#print-sheet');if(!sheet)return null;sheet.removeAttribute('style');sheet.className='print-sheet tp-sheet '+type;sheet.innerHTML=html;hold=html;holdUntil=Date.now()+9000;return sheet}
 function holdLonger(ms){if(hold)holdUntil=Date.now()+(ms||9000)}
+document.addEventListener('mnahels-print-stage',()=>{hold=null});
 setInterval(()=>{if(!hold)return;if(Date.now()>holdUntil){hold=null;return}const sheet=el('#print-sheet');if(!sheet)return;
 	const empty=sheetText().length<20;
 	if(sheet.innerHTML!==hold&&(!printing||empty)){sheet.removeAttribute('style');sheet.innerHTML=hold}
@@ -158,7 +159,7 @@ function silent(type){return new Promise(res=>{let over=false;const h=e=>{const 
 
 /* -------------------------------- asli print (yehi "Print" hai) */
 let busy=false;
-async function output(html,note){const sheet=stage(html,'customer');if(!sheet){say('The print sheet was not found.');return}
+async function output(html,note){if(window.mnahelsV64)return window.mnahelsV64.printHtml(html,'customer');const sheet=stage(html,'customer');if(!sheet){say('The print sheet was not found.');return}
 	await sleep(180);
 	if(sheetText().length<20){say('The print sheet is empty \u2014 please try again.');return}
 	printing=true;
@@ -206,12 +207,12 @@ function sync(){const w=width(),p=pad(),l=left(),f=font();
 function setWidth(v,quiet){const n=Math.round(parseFloat(v)*2)/2;if(!isFinite(n)||n<40||n>210){say('Set width between 40 and 210 mm.');return}localStorage.setItem(WKEY,String(n));apply();sync();changed();if(!quiet)say('Print width '+n+' mm set ho gayi.')}
 function setPad(v,quiet){const n=Math.round(parseFloat(v)*2)/2;if(!isFinite(n)||n<0||n>8){say('Set side margin between 0 and 8 mm.');return}localStorage.setItem(PKEY,String(n));apply();sync();changed();if(!quiet)say('Side margin '+n+' mm set ho gaya.')}
 function setLeft(v,quiet){const n=Math.round(parseFloat(v)*4)/4;if(!isFinite(n)||n<-8||n>8){say('Set left margin between -8 and +8 mm.');return}localStorage.setItem(LKEY,String(n));apply();sync();changed();if(!quiet)say('Left margin '+n+' mm set ho gaya.')}
-function setFont(v,quiet){const n=parseFloat(v);if(!isFinite(n)||n<8||n>15){say('Set receipt font between 8 and 15 px.');return}localStorage.setItem(FKEY,String(n));apply();sync();changed();if(!quiet)say('Receipt font set to '+n+' px.')}
+function setFont(v,quiet){const n=parseFloat(v);if(!isFinite(n)||n<8||n>20){say('Set receipt font between 8 and 20 px.');return}localStorage.setItem(FKEY,String(n));apply();sync();changed();if(!quiet)say('Receipt font set to '+n+' px.')}
 function card(){if(typeof state!=='undefined'&&state.user&&state.user.role!=='Admin')return;const old=el('#v31-print-card');if(old&&old.dataset.v31===BUILD)return;if(old)old.remove();
 	const anchor=el('#v28-print-card')||el('#backup-settings-card');const host=el('#screen-settings');if(!anchor&&!host)return;
 	const html='<article id="v31-print-card" class="panel v31-card" data-v31="'+BUILD+'">'
 		+'<h3>80mm receipt preview & print size</h3>'
-		+'<p class="v31-sub">80mm receipt setting: <b>width 80 mm \u00b7 left offset 1 mm \u00b7 side margin 0 \u00b7 font 12 px</b>. Preview now shows the exact compact receipt that will print. To find the correct width, <b>\ud83d\udccf Width finder</b> print \u2014 set the width to the last number that prints completely.</p>'
+		+'<p class="v31-sub">80mm receipt setting: <b>width 80 mm \u00b7 left offset 1 mm \u00b7 side margin 0 \u00b7 font 11 px</b>. Preview now shows the exact compact receipt that will print. To find the correct width, <b>\ud83d\udccf Width finder</b> print \u2014 set the width to the last number that prints completely.</p>'
 		+'<p class="v31-lbl">Paper width</p>'
 		+'<div id="v31-widths" class="v31-widths">'+OPTS.map(w=>'<button type="button" data-pw="'+w+'">'+w+' mm</button>').join('')+'<button type="button" id="v31-minus">\u2212 1</button><button type="button" id="v31-plus">+ 1</button></div>'
 		+'<p class="v31-lbl">Receipt font</p>'

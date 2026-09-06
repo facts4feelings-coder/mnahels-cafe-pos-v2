@@ -1,0 +1,725 @@
+{
+  "materializedFrom": "83e449934928edd6ca43a9ff54eff25a188217ad",
+  "removedBuildPatchScripts": [
+    "apply-desktop-performance.cjs",
+    "apply-desktop-printing-v54.cjs",
+    "apply-v41-runtime.ps1",
+    "apply-v42-runtime.cjs",
+    "apply-v43-running-order.cjs",
+    "apply-v44-hotfix.cjs",
+    "apply-v47-order-console.cjs",
+    "apply-v48-order-log-slips.cjs",
+    "apply-v54-receipt-fix.cjs",
+    "apply-v56-order-flow.cjs",
+    "apply-v57-receipts.cjs",
+    "apply-v58-receipt-integrity.cjs",
+    "apply-v59-polish.cjs",
+    "apply-v60-pdf.cjs",
+    "apply-v60-refinements.cjs",
+    "apply-web-performance.cjs"
+  ],
+  "files": [
+    {
+      "name": "app.js",
+      "bytes": 22990,
+      "intervals": 2,
+      "observers": 0
+    },
+    {
+      "name": "enhancements.css",
+      "bytes": 6617,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "midnight-amber.css",
+      "bytes": 24694,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "midnight-amber.js",
+      "bytes": 8489,
+      "intervals": 0,
+      "observers": 1
+    },
+    {
+      "name": "styles.css",
+      "bytes": 10579,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v10.css",
+      "bytes": 9314,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v10.js",
+      "bytes": 10671,
+      "intervals": 0,
+      "observers": 3
+    },
+    {
+      "name": "v12.css",
+      "bytes": 7385,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v12.js",
+      "bytes": 8797,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v13.css",
+      "bytes": 4753,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v13.js",
+      "bytes": 2781,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v14.css",
+      "bytes": 2561,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v14.js",
+      "bytes": 2979,
+      "intervals": 2,
+      "observers": 1
+    },
+    {
+      "name": "v15.css",
+      "bytes": 1852,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v15.js",
+      "bytes": 2118,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v16.css",
+      "bytes": 5276,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v16.js",
+      "bytes": 6335,
+      "intervals": 1,
+      "observers": 1
+    },
+    {
+      "name": "v17.css",
+      "bytes": 5465,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v17.js",
+      "bytes": 13946,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v18.css",
+      "bytes": 2009,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v18.js",
+      "bytes": 12791,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v19.css",
+      "bytes": 4461,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v19.js",
+      "bytes": 7588,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v20.css",
+      "bytes": 58,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v21.css",
+      "bytes": 554,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v21.js",
+      "bytes": 3981,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v22.css",
+      "bytes": 3531,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v22.js",
+      "bytes": 3951,
+      "intervals": 2,
+      "observers": 1
+    },
+    {
+      "name": "v23.css",
+      "bytes": 3694,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v23.js",
+      "bytes": 8836,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v24.css",
+      "bytes": 5043,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v24.js",
+      "bytes": 7790,
+      "intervals": 2,
+      "observers": 1
+    },
+    {
+      "name": "v26.css",
+      "bytes": 920,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v26.js",
+      "bytes": 3692,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v27.css",
+      "bytes": 8159,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v27.js",
+      "bytes": 12804,
+      "intervals": 1,
+      "observers": 2
+    },
+    {
+      "name": "v28.css",
+      "bytes": 2463,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v28.js",
+      "bytes": 3024,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v29.css",
+      "bytes": 9283,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v30.css",
+      "bytes": 2573,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v30.js",
+      "bytes": 13375,
+      "intervals": 2,
+      "observers": 0
+    },
+    {
+      "name": "v31.css",
+      "bytes": 3679,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v31.js",
+      "bytes": 24063,
+      "intervals": 2,
+      "observers": 0
+    },
+    {
+      "name": "v32.css",
+      "bytes": 2687,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v32.js",
+      "bytes": 21322,
+      "intervals": 2,
+      "observers": 0
+    },
+    {
+      "name": "v33.css",
+      "bytes": 6446,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v33.js",
+      "bytes": 3523,
+      "intervals": 2,
+      "observers": 0
+    },
+    {
+      "name": "v34.css",
+      "bytes": 4723,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v34.js",
+      "bytes": 4083,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v35.css",
+      "bytes": 16480,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v35.js",
+      "bytes": 19076,
+      "intervals": 0,
+      "observers": 1
+    },
+    {
+      "name": "v36.css",
+      "bytes": 17294,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v36.js",
+      "bytes": 30455,
+      "intervals": 1,
+      "observers": 1
+    },
+    {
+      "name": "v37.css",
+      "bytes": 10384,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v37.js",
+      "bytes": 4788,
+      "intervals": 1,
+      "observers": 1
+    },
+    {
+      "name": "v38.css",
+      "bytes": 18679,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v38.js",
+      "bytes": 21818,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v39.css",
+      "bytes": 8030,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v39.js",
+      "bytes": 6763,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v4.css",
+      "bytes": 4221,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v40.css",
+      "bytes": 13107,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v40.js",
+      "bytes": 18161,
+      "intervals": 1,
+      "observers": 2
+    },
+    {
+      "name": "v41.css",
+      "bytes": 14604,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v41.js",
+      "bytes": 28817,
+      "intervals": 1,
+      "observers": 1
+    },
+    {
+      "name": "v42.css",
+      "bytes": 3413,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v42.js",
+      "bytes": 6522,
+      "intervals": 1,
+      "observers": 1
+    },
+    {
+      "name": "v43.css",
+      "bytes": 7692,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v43.js",
+      "bytes": 7802,
+      "intervals": 0,
+      "observers": 1
+    },
+    {
+      "name": "v44.css",
+      "bytes": 1510,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v44.js",
+      "bytes": 2698,
+      "intervals": 0,
+      "observers": 1
+    },
+    {
+      "name": "v45.css",
+      "bytes": 8693,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v45.js",
+      "bytes": 19276,
+      "intervals": 1,
+      "observers": 2
+    },
+    {
+      "name": "v46.css",
+      "bytes": 5961,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v46.js",
+      "bytes": 16066,
+      "intervals": 2,
+      "observers": 0
+    },
+    {
+      "name": "v47.js",
+      "bytes": 3117,
+      "intervals": 2,
+      "observers": 0
+    },
+    {
+      "name": "v48.css",
+      "bytes": 16884,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v48.js",
+      "bytes": 3926,
+      "intervals": 0,
+      "observers": 2
+    },
+    {
+      "name": "v49.css",
+      "bytes": 10228,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v49.js",
+      "bytes": 9037,
+      "intervals": 1,
+      "observers": 3
+    },
+    {
+      "name": "v5.css",
+      "bytes": 6330,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v5.js",
+      "bytes": 18577,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v50.css",
+      "bytes": 552,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v50.js",
+      "bytes": 7164,
+      "intervals": 0,
+      "observers": 1
+    },
+    {
+      "name": "v51.css",
+      "bytes": 2550,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v51.js",
+      "bytes": 6868,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v52.css",
+      "bytes": 2580,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v52.js",
+      "bytes": 7893,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v53.css",
+      "bytes": 3913,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v53.js",
+      "bytes": 8744,
+      "intervals": 1,
+      "observers": 1
+    },
+    {
+      "name": "v54.css",
+      "bytes": 11230,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v54.js",
+      "bytes": 11486,
+      "intervals": 0,
+      "observers": 4
+    },
+    {
+      "name": "v55.css",
+      "bytes": 9729,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v55.js",
+      "bytes": 9627,
+      "intervals": 0,
+      "observers": 3
+    },
+    {
+      "name": "v56.css",
+      "bytes": 3489,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v56.js",
+      "bytes": 17237,
+      "intervals": 0,
+      "observers": 1
+    },
+    {
+      "name": "v57.css",
+      "bytes": 1715,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v57.js",
+      "bytes": 3384,
+      "intervals": 0,
+      "observers": 1
+    },
+    {
+      "name": "v58.css",
+      "bytes": 3228,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v58.js",
+      "bytes": 12644,
+      "intervals": 0,
+      "observers": 1
+    },
+    {
+      "name": "v59.css",
+      "bytes": 4843,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v59.js",
+      "bytes": 10827,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v6.css",
+      "bytes": 3467,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v6.js",
+      "bytes": 2781,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v60.css",
+      "bytes": 1845,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v60.js",
+      "bytes": 10548,
+      "intervals": 1,
+      "observers": 1
+    },
+    {
+      "name": "v61.css",
+      "bytes": 7558,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v61.js",
+      "bytes": 22155,
+      "intervals": 1,
+      "observers": 3
+    },
+    {
+      "name": "v62.css",
+      "bytes": 2582,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v62.js",
+      "bytes": 15596,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v63.js",
+      "bytes": 9602,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v64.js",
+      "bytes": 3589,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v65.js",
+      "bytes": 3203,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v66.js",
+      "bytes": 6130,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v7.css",
+      "bytes": 2528,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v7.js",
+      "bytes": 5341,
+      "intervals": 1,
+      "observers": 0
+    },
+    {
+      "name": "v8.css",
+      "bytes": 5949,
+      "intervals": 0,
+      "observers": 0
+    },
+    {
+      "name": "v8.js",
+      "bytes": 12921,
+      "intervals": 1,
+      "observers": 0
+    }
+  ]
+}

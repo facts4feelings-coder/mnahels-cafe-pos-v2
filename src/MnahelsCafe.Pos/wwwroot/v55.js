@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.35 stability, waiter context and menu rail
+ * MNHEL CAFE · v0.15.35 stability, waiter context and menu rail
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */

@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.12 compact five-item cart, percent discount and menu refresh
+ * MNHEL CAFE · v0.15.12 compact five-item cart, percent discount and menu refresh
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */

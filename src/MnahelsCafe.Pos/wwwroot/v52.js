@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.30 visible pizza/deal extra-topping checkbox
+ * MNHEL CAFE · v0.15.30 visible pizza/deal extra-topping checkbox
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  */
 (()=>{

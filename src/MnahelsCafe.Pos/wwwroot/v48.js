@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.26 · shift polish and lightweight UI stability. */
+/* MNHEL CAFE v0.15.26 · shift polish and lightweight UI stability. */
 (function(){
   'use strict';
   const q=(selector,root=document)=>root.querySelector(selector);

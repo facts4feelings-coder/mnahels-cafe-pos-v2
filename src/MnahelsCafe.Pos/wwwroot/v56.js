@@ -1,11 +1,11 @@
-/* Mnahel's Cafe POS v0.15.39 — app logo, automatic receipt JPG, smooth post-order performance, booked-order cart editing */
+/* MNHEL CAFE v0.15.39 — app logo, automatic receipt JPG, smooth post-order performance, booked-order cart editing */
 (() => {
   'use strict';
 
-  const RELEASE = '0.15.39';
+  const RELEASE = '0.15.60';
   const AUTO_JPG_KEY = 'mnahels.receipt-auto-jpg';
   const AUTO_JPG_MIGRATION = 'mnahels.receipt-auto-jpg-restored-v39';
-  const LOGO_URL = '/assets/brand/mnahels-logo.b64?v=20260903-logo-auto-jpg-performance-39';
+  const LOGO_URL = '/assets/brand/mnahels-logo.b64?v=20260904-hd-original-42';
   const activeStates = new Set(['New', 'Confirmed', 'Preparing', 'Ready']);
   const state = window.state || {};
   let bootTimer = 0;
@@ -23,8 +23,9 @@
   const toast = message => { if (typeof window.toast === 'function') window.toast(message); };
 
   async function apiRequest(path, options = {}) {
-    if (typeof window.api === 'function') return window.api(path, options);
-    const response = await fetch(`/api${path}`, {
+    const normalized = path.startsWith('/api/') ? path : `/api${path.startsWith('/') ? '' : '/'}${path}`;
+    if (typeof window.api === 'function') return window.api(normalized, options);
+    const response = await fetch(normalized, {
       ...options,
       headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
     });
@@ -40,7 +41,7 @@
     document.documentElement.dataset.v56Release = RELEASE;
     const meta = q('meta[name="application-version"]');
     if (meta) meta.content = RELEASE;
-    document.title = `Mnahel's Cafe POS v${RELEASE}`;
+    document.title = `MNHEL CAFE v${RELEASE}`;
   }
 
   function restoreAutoJpg() {
@@ -80,19 +81,27 @@
   }
 
   function mapCart(order) {
-    const variants = state.variants || [];
-    const products = state.products || [];
+    const menuProducts = (state.menu || []).flatMap(category => (category.products || []).map(product => ({ ...product })));
+    const products = (state.products || []).length ? state.products : menuProducts;
+    const variants = (state.variants || []).length ? state.variants : menuProducts.flatMap(product =>
+      (product.variants || []).map(variant => ({ ...variant, productId: product.id, productName: product.name })));
     return (order.items || []).map(item => {
-      const variant = variants.find(v => Number(v.id) === Number(item.variantId));
+      const requestedId = Number(item.variantId || 0);
+      const variant = variants.find(value => requestedId && Number(value.id) === requestedId) ||
+        variants.find(value => String(value.name || '').toLowerCase() === String(item.variantName || '').toLowerCase() &&
+          String(value.productName || products.find(product => Number(product.id) === Number(value.productId))?.name || '').toLowerCase() === String(item.productName || '').toLowerCase());
       if (!variant) throw new Error(`${item.productName || 'An item'} is no longer available in the live menu.`);
-      const product = products.find(p => Number(p.id) === Number(variant.productId));
+      const product = products.find(value => Number(value.id) === Number(variant.productId)) ||
+        menuProducts.find(value => (value.variants || []).some(option => Number(option.id) === Number(variant.id)));
       if (!product) throw new Error(`${item.productName || 'An item'} product is no longer available.`);
+      const quantity = Math.max(1, Number(item.quantity || 1));
+      const price = Number(variant.price || item.unitPrice || 0);
       return {
-        variantId: Number(variant.id), productId: Number(product.id), productName: product.name,
-        variantName: variant.name, quantity: Math.max(1, Number(item.quantity || 1)),
-        unitPrice: Number(variant.price || item.unitPrice || 0), lineTotal: 0
+        variantId: Number(variant.id), productId: Number(product.id), productName: product.name, name: product.name,
+        variantName: variant.name, variant: variant.name, quantity, originalQuantity: quantity,
+        unitPrice: price, price, lineTotal: price * quantity, notes: item.notes || null
       };
-    }).map(item => ({ ...item, lineTotal: item.unitPrice * item.quantity }));
+    });
   }
 
   function clearEditForm() {
@@ -104,7 +113,7 @@
     screen?.classList.remove('v56-editing-order', 'v35-booking-open', 'v38-ready');
     q('#v56-edit-banner')?.remove();
     const button = q('#place-order span');
-    if (button) button.textContent = 'Place order';
+    if (button) button.textContent = 'Book order';
     if (typeof window.renderCart === 'function') window.renderCart();
   }
 
@@ -115,9 +124,9 @@
     const banner = document.createElement('div');
     banner.id = 'v56-edit-banner';
     banner.className = 'v56-edit-banner';
-    banner.innerHTML = `<div><small>EDITING BOOKED ORDER</small><strong>${esc(order.tokenNumber)} · ${esc(order.orderNumber)}</strong></div><button type="button">Cancel edit</button>`;
+    banner.innerHTML = `<div><small>EDITING BOOKED ORDER</small><strong>${esc(order.tokenNumber)} · ${esc(order.receiptNumber || order.orderNumber || "Running order")}</strong></div><button type="button">Cancel edit</button>`;
     banner.querySelector('button').addEventListener('click', () => { clearEditForm(); toast('Order edit cancelled.'); });
-    panel.prepend(banner);
+    (panel.querySelector('.cart-head') || panel).prepend(banner);
   }
 
   async function beginEdit(orderId) {
@@ -150,26 +159,27 @@
   async function updateEditingOrder() {
     const orderId = Number(state.v56EditingOrderId || 0);
     if (!orderId) return false;
-    if (!(state.cart || []).length) { toast('Add at least one item before updating the order.'); return true; }
+    if (!(state.cart || []).some(item => Number(item.quantity ?? 0) > 0)) { toast('At least one active item is required; use order status to cancel the full order.'); return true; }
     const button = q('#place-order');
     if (button?.disabled) return true;
     if (button) button.disabled = true;
     try {
-      const order = await apiRequest(`/orders/${orderId}`, {
+      const result = await apiRequest(`/orders/${orderId}`, {
         method: 'PUT',
         body: JSON.stringify({
           orderType: state.orderType || state.v56EditingOrder?.orderType || 'Takeaway',
           paymentMethod: state.paymentMethod || state.v56EditingOrder?.paymentMethod || 'Cash',
-          discount: Number(q('#discount')?.value || 0), notes: q('#order-note')?.value || '',
-          items: (state.cart || []).map(item => ({ variantId: Number(item.variantId), quantity: Math.max(1, Number(item.quantity || 1)) }))
+          discount: window.mnahelsV39?.discountAmount?.() ?? Number(q('#discount')?.value || 0), notes: q('#order-note')?.value || '',
+          items: (state.cart || []).map(item => ({ variantId: Number(item.variantId), quantity: Math.max(0, Number(item.quantity ?? 0)), notes: item.notes || null }))
         })
       });
+      const order = result?.order || result;
       clearEditForm();
       state.cart = [];
       if (typeof window.renderCart === 'function') window.renderCart();
       if (typeof window.refreshHub === 'function') window.refreshHub(true);
       toast(`${order.tokenNumber || 'Order'} updated successfully.`);
-      if (typeof window.showOrderComplete === 'function') window.showOrderComplete(order);
+      if (typeof window.mnahelsV58?.completeRunningOrder === 'function') await window.mnahelsV58.completeRunningOrder(order, result); else { state.lastOrder = order; toast('Running order updated; kitchen delta is ready.'); }
     } catch (error) { toast(error.message || 'Could not update the order.'); }
     finally { if (button) button.disabled = false; }
     return true;
@@ -191,14 +201,14 @@
     if (action === 'kitchen') return window.mnahelsV31?.printUrl?.(`/api/receipts/${order.id}/kitchen`, 'kitchen ticket');
     if (action === 'cancel') {
       if (!confirm(`Cancel ${order.tokenNumber || order.orderNumber}?`)) return;
-      await apiRequest(`/orders/${order.id}/status`, { method: 'POST', body: JSON.stringify({ status: 'Cancelled' }) });
+      await apiRequest(`/orders/${order.id}/status`, { method: 'PUT', body: JSON.stringify({ status: 'Cancelled' }) });
     } else if (action === 'pay') {
       await apiRequest(`/orders/${order.id}/payment`, { method: 'POST', body: JSON.stringify({ paymentStatus: 'Paid', paymentMethod: order.paymentMethod || 'Cash' }) });
     } else if (action === 'status') {
       const statuses = ['New', 'Confirmed', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
       const next = prompt(`Status: ${statuses.join(', ')}`, order.status || 'New');
       if (!next || !statuses.includes(next)) return;
-      await apiRequest(`/orders/${order.id}/status`, { method: 'POST', body: JSON.stringify({ status: next }) });
+      await apiRequest(`/orders/${order.id}/status`, { method: 'PUT', body: JSON.stringify({ status: next }) });
     }
     if (typeof window.refreshHub === 'function') window.refreshHub(true);
     lastOpsFetch = 0; scheduleBoot(80);
@@ -207,20 +217,17 @@
   function canEdit(order) { return activeStates.has(order.status) && order.status !== 'Cancelled' && order.paymentStatus !== 'Paid'; }
 
   function decorateOperationCards(orders) {
+    const byId = new Map(orders.map(order => [String(order.id), order]));
     const byNumber = new Map(orders.map(order => [String(order.orderNumber || '').trim(), order]));
-    qa('#admin-orders .order-row').forEach(row => {
-      const number = q('.order-main strong', row)?.textContent?.trim();
-      const order = byNumber.get(number);
+    const byReceipt = new Map(orders.map(order => [String(order.receiptNumber || '').trim(), order]));
+    qa('#admin-orders .order-row, #admin-orders .v36-order-card, #orders-list .order-card').forEach(row => {
+      const rowId = row.dataset.id || q('[data-order]', row)?.dataset.order || q('[data-cancel]', row)?.dataset.cancel;
+      const number = q('.order-main strong, .order-info strong', row)?.textContent?.trim();
+      const order = byId.get(String(rowId || '')) || byNumber.get(number) || byReceipt.get(number);
       if (!order) return;
       let actions = q('.v56-operation-actions', row);
       if (!actions) { actions = document.createElement('div'); actions.className = 'v56-operation-actions'; row.append(actions); }
-      actions.innerHTML = `
-        ${canEdit(order) ? '<button type="button" data-op="edit">Edit order</button>' : ''}
-        <button type="button" data-op="receipt">Receipt</button>
-        <button type="button" data-op="kitchen">Kitchen</button>
-        ${activeStates.has(order.status) ? '<button type="button" data-op="status">Status</button>' : ''}
-        ${order.paymentStatus !== 'Paid' && order.status !== 'Cancelled' ? '<button type="button" data-op="pay">Mark paid</button>' : ''}
-        ${activeStates.has(order.status) ? '<button type="button" data-op="cancel" class="danger">Cancel</button>' : ''}`;
+      actions.innerHTML = canEdit(order) ? '<button type="button" data-op="edit">Edit order</button>' : '';
       actions.onclick = async event => {
         const action = event.target.closest('[data-op]')?.dataset.op;
         if (!action) return;
@@ -233,8 +240,8 @@
   }
 
   async function maybeDecorateOperations() {
-    const admin = q('#screen-admin');
-    if (!admin?.classList.contains('active') || document.hidden || opsBusy || Date.now() - lastOpsFetch < 12000) return;
+    const operationsVisible = q('#screen-admin')?.classList.contains('active') || q('#screen-orders')?.classList.contains('active');
+    if (!operationsVisible || document.hidden || opsBusy || Date.now() - lastOpsFetch < 12000) return;
     opsBusy = true; lastOpsFetch = Date.now();
     try {
       const result = await apiRequest('/orders?take=120');
@@ -301,13 +308,13 @@
     bootTimer = window.setTimeout(boot, delay);
   }
 
-  window.mnahelsV56 = { beginEdit, clearEditForm, release: RELEASE };
+  window.mnahelsV56 = { beginEdit, clearEditForm, updateEditingOrder, release: RELEASE };
   document.documentElement.classList.add('v56-performance');
   document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleBoot(40); });
   document.addEventListener('click', event => {
     if (event.target.closest('#refresh-orders, [data-screen="admin"], [data-screen="orders"], #new-order')) scheduleBoot(100);
   }, true);
-  new MutationObserver(() => scheduleBoot()).observe(document.body, { childList: true, subtree: true });
-  window.setInterval(() => { if (!document.hidden) scheduleBoot(20); }, 10000);
+  qa('#admin-orders, #orders-list').forEach(operationsRoot => new MutationObserver(() => scheduleBoot(180)).observe(operationsRoot, { childList: true }));
+  window.addEventListener('focus', () => scheduleBoot(30));
   scheduleBoot(0);
 })();

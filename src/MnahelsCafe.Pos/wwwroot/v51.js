@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.29 deal photos and pizza extra-topping workflow
+ * MNHEL CAFE · v0.15.29 deal photos and pizza extra-topping workflow
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  */
 (()=>{
@@ -35,14 +35,14 @@ function decorateCart(){
  });
  paintTotals();
 }
-function hookCart(){const current=window.renderCart;if(typeof current!=='function'||current===cartHook)return;const wrapped=function(){const result=current.apply(this,arguments);decorateCart();return result};wrapped.__v51=true;cartHook=wrapped;window.renderCart=wrapped}
-function hookTotals(){const current=window.totals;if(typeof current!=='function'||current===totalsHook)return;const wrapped=function(){const result=current.apply(this,arguments);paintTotals();return result};wrapped.__v51=true;totalsHook=wrapped;window.totals=wrapped}
-function hookProducts(){const current=window.renderProducts;if(typeof current!=='function'||current===productsHook)return;const wrapped=function(){const result=current.apply(this,arguments);queueMicrotask(hideStandaloneTopping);return result};wrapped.__v51=true;productsHook=wrapped;window.renderProducts=wrapped}
+function hookCart(){const current=window.renderCart;if(typeof current!=='function'||cartHook!==null)return;const wrapped=function(){const result=current.apply(this,arguments);decorateCart();return result};wrapped.__v51=true;cartHook=wrapped;window.renderCart=wrapped}
+function hookTotals(){const current=window.totals;if(typeof current!=='function'||totalsHook!==null)return;const wrapped=function(){const result=current.apply(this,arguments);paintTotals();return result};wrapped.__v51=true;totalsHook=wrapped;window.totals=wrapped}
+function hookProducts(){const current=window.renderProducts;if(typeof current!=='function'||productsHook!==null)return;const wrapped=function(){const result=current.apply(this,arguments);queueMicrotask(hideStandaloneTopping);return result};wrapped.__v51=true;productsHook=wrapped;window.renderProducts=wrapped}
 function expandedItems(items){
  const topping=toppingProduct(),toppingIds=new Set((topping?.variants||[]).map(x=>Number(x.id)));if((items||[]).some(x=>toppingIds.has(Number(x.variantId))))return items;
  const out=[];for(const line of items||[]){out.push(line);const item=(state?.cart||[]).find(x=>Number(x.variantId)===Number(line.variantId));const extra=item?.extraTopping?toppingFor(item):null;if(extra)out.push({variantId:extra.variantId,quantity:Number(line.quantity||item.quantity||1),notes:`For ${item.name} (${item.variant})`})}return out;
 }
-function hookApi(){const current=window.api;if(typeof current!=='function'||current===apiHook)return;const wrapped=async function(path,options={}){const method=String(options.method||'GET').toUpperCase();if((path==='/api/orders'||path==='/api/orders/book')&&method==='POST'&&options.body){try{const body=JSON.parse(options.body);body.items=expandedItems(body.items);body.discount=discountAmount();options={...options,body:JSON.stringify(body)}}catch(error){console.warn('[v51 topping payload]',error)}}return current(path,options)};wrapped.__v51=true;apiHook=wrapped;window.api=wrapped}
+function hookApi(){const current=window.api;if(typeof current!=='function'||apiHook!==null)return;const wrapped=async function(path,options={}){const method=String(options.method||'GET').toUpperCase();if((path==='/api/orders'||path==='/api/orders/book')&&method==='POST'&&options.body){try{const body=JSON.parse(options.body);body.items=expandedItems(body.items);body.discount=discountAmount();options={...options,body:JSON.stringify(body)}}catch(error){console.warn('[v51 topping payload]',error)}}return current(path,options)};wrapped.__v51=true;apiHook=wrapped;window.api=wrapped}
 function boot(){document.documentElement.dataset.uiRevision=REV;window.__MNAHELS_UI_REVISION__=REV;hookTotals();hookCart();hookProducts();hookApi();hideStandaloneTopping();decorateCart();paintTotals()}
 document.addEventListener('click',event=>{if(event.target.closest?.('.product-card,#cart-items button,#clear-cart'))setTimeout(()=>{hideStandaloneTopping();decorateCart()},0)},true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();setTimeout(boot,350);setTimeout(boot,1200);setInterval(()=>{if(document.visibilityState==='visible')boot()},4000);

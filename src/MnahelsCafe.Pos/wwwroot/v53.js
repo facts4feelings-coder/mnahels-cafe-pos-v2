@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.31 operations stability and close-shift polish
+ * MNHEL CAFE · v0.15.31 operations stability and close-shift polish
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  */
 (()=>{

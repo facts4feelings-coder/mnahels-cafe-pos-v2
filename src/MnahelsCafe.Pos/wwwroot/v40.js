@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.13 Midnight Amber motion, protected database flash and dashboard ranges
+ * MNHEL CAFE · v0.15.13 Midnight Amber motion, protected database flash and dashboard ranges
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */

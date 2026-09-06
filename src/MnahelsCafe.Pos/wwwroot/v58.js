@@ -1,11 +1,11 @@
 /*
- * Mnahel's Cafe POS · v0.15.46 clean running-order delta flow
+ * MNHEL CAFE · v0.15.46 clean running-order delta flow
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */
 (()=>{
 'use strict';
-const BUILD='0.15.46',REV='20260904-running-order-audit-46';
+const BUILD='0.15.60',REV='20260905-route-dupe-new-added-52';
 const q=(selector,root=document)=>root.querySelector(selector);
 const qa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -74,7 +74,7 @@ function billSummary(order,result){
  const previous=Number(result?.previousTotal??order?.total??0),updated=Number(result?.updatedTotal??order?.total??0);
  return `<div class="v58-bill-summary"><span><small>PREVIOUS BILL</small><b>${money(previous)}</b></span><i>→</i><span><small>UPDATED BILL</small><b>${money(updated)}</b></span></div>`;
 }
-function deltaReceiptHtml(order,lines,type,result){
+function deltaReceiptHtml(order,lines,type,result){if(window.mnahelsV61&&window.mnahelsV61.slipHtml)return window.mnahelsV61.slipHtml(order,lines,type,result);
  const cancellation=type==='cancellation';
  const title=cancellation?'RUNNING ORDER — CANCELLATION':'RUNNING ORDER';
  const subtitle=cancellation?'CANCELLED ITEMS ONLY':'NEW ITEMS ONLY · PREPARE PRIORITY';
@@ -110,7 +110,7 @@ function bridgePrint(){
   setTimeout(()=>{if(!finished){try{window.chrome.webview.removeEventListener('message',handler)}catch{}resolve(true)}},20000);
  });
 }
-async function printRunningSlip(order,lines,type,result){
+async function printRunningSlip(order,lines,type,result){if(window.mnahelsV61&&window.mnahelsV61.printSlip)return window.mnahelsV61.printSlip(order,lines,type,result);
  if(!Array.isArray(lines)||!lines.length)return true;
  const sheet=q('#print-sheet');if(!sheet){say('Kitchen print sheet nahi mili.');return false}
  sheet.removeAttribute('style');sheet.className='print-sheet tp-sheet kitchen v58-running-print';sheet.innerHTML=deltaReceiptHtml(order,lines,type,result);
@@ -131,7 +131,7 @@ function showRunningSuccess(order,result){
  actions.addEventListener('click',async event=>{const type=event.target.closest?.('[data-v58-print]')?.dataset.v58Print;if(!type)return;const button=event.target.closest('button');button.disabled=true;try{await printRunningSlip(order,type==='addition'?additions:cancellations,type,result)}finally{button.disabled=false}});
  q('#new-order',dialog)?.before(actions);if(!dialog.open)dialog.showModal();
 }
-async function completeRunningOrder(order,result){
+async function completeRunningOrder(order,result){if(window.mnahelsV64&&!result?.__v58Printing)return window.mnahelsV64.once(window.mnahelsV64.amendmentKey(order,result)+':kitchen',()=>completeRunningOrder(order,{...result,__v58Printing:true}));
  const app=currentState();app.lastOrder=order;app.v58RunningResult=result;resetOrderContext();showRunningSuccess(order,result);
  const additions=result?.additions||[],cancellations=result?.cancellations||[];
  if(additions.length)await printRunningSlip(order,additions,'addition',result);

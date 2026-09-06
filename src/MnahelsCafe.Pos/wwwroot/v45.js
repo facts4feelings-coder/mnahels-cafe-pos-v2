@@ -23,14 +23,14 @@ function applyReceiptPrefs(){
 }
 
 function settingNum(key,fallback,min,max){const value=parseFloat(pref(key,String(fallback)));return Number.isFinite(value)?Math.max(min,Math.min(max,value)):fallback}
-function printSettings(){const widthMm=settingNum('mnahels.print-width',80,40,210),padMm=settingNum('mnahels.print-pad',0,0,20),leftMm=settingNum('mnahels.print-left',1,-20,20),fontPx=settingNum('mnahels.print-font',12,8,20);return{widthMm,padMm,leftMm,fontPx,widthPx:Math.max(220,Math.round(widthMm*PX_PER_MM)),padPx:Math.round(padMm*PX_PER_MM),leftPx:Math.round(leftMm*PX_PER_MM),fontScale:fontPx/12}}
+function printSettings(){const widthMm=settingNum('mnahels.print-width',80,40,210),padMm=settingNum('mnahels.print-pad',0,0,20),leftMm=settingNum('mnahels.print-left',1,-20,20),fontPx=settingNum('mnahels.print-font',11,8,20);return{widthMm,padMm,leftMm,fontPx,widthPx:Math.max(220,Math.round(widthMm*PX_PER_MM)),padPx:Math.round(padMm*PX_PER_MM),leftPx:Math.round(leftMm*PX_PER_MM),fontScale:fontPx/12}}
 function cleanName(value){return String(value||'slip').trim().replace(/[^a-z0-9_-]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,70)||'slip'}
 function slipName(source){
   const receipt=source.matches?.('.v43-receipt,.tp')?source:q('.v43-receipt,.tp',source);
   const kind=receipt?.dataset?.receiptKind||(source.classList?.contains('kitchen')?'kitchen':receipt?.classList?.contains('kitchen')?'kitchen':'customer');
   const text=source.textContent||'';
   const token=(text.match(/\bMC-\d+\b/i)||text.match(/\bTOKEN\s*#?\s*\d+\b/i)||[])[0]||new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
-  return `mnahels-${cleanName(token)}-${cleanName(kind)}-slip.jpg`;
+  return 'MC_' + cleanName(String(token).replace(/^MC[-_]?/i, '')) + '_' + cleanName(kind) + '.jpeg';
 }
 function saveBlob(blob,name){
   const url=URL.createObjectURL(blob),anchor=document.createElement('a');
@@ -85,11 +85,11 @@ function drawCafeLogo(c,x,y,size,color){
 function drawV43(receipt,width){
   const settings=printSettings(),p=createPainter(width,settings.fontScale),c=p.ctx,isKitchen=receipt.classList.contains('kitchen'),innerPad=isKitchen?12:8,bodyX=Math.max(0,settings.leftPx)+settings.padPx+innerPad,bodyW=Math.max(100,width-(settings.padPx+innerPad)*2-Math.abs(settings.leftPx));let y=0;
   const blackHeader=headerStyle()==='black',headInk=blackHeader?'#fff':'#000',modeKey=String(receipt.dataset.orderMode||textOf(receipt,'.v43-mode b','Takeaway')).toUpperCase();
-  c.fillStyle=blackHeader?'#000':'#fff';c.fillRect(0,0,width,90);c.strokeStyle='#000';c.lineWidth=blackHeader?0:2;if(!blackHeader)c.strokeRect(1,1,width-2,88);c.fillStyle=headInk;
-  const brand=textOf(receipt,'.v43-brand b',"MNAHEL'S CAFE"),sub=textOf(receipt,'.v43-brand small','THE WORLD OF TASTE'),mode=textOf(receipt,'.v43-mode b','ORDER'),seal=textOf(receipt,'.v43-seal strong','SLIP'),sealSub=textOf(receipt,'.v43-seal small','');
-  const brandSize=Math.min(18.5,Math.max(15,width/18));p.font(brandSize,950);const brandWidth=c.measureText(brand).width,logoSize=28,brandStart=(width-(logoSize+7+brandWidth))/2;drawCafeLogo(c,brandStart+logoSize/2,19,logoSize,headInk);c.fillStyle=headInk;c.fillText(brand,brandStart+logoSize+7,11);p.font(8.2,900);p.drawLines([sub],width/2,37,9,'center');
-  drawModeIcon(c,modeKey,8,58,25,headInk);c.fillStyle=headInk;p.font(10.8,950);c.fillText(mode,39,64);
-  const sealW=102,sealH=31,sealX=width-sealW-8,sealY=54;c.lineWidth=1.8;c.strokeStyle=headInk;c.fillStyle=headInk;c.strokeRect(sealX+.5,sealY+.5,sealW-1,sealH-1);p.font(11.2,950);p.drawLines(p.wrap(seal,sealW-10),sealX+sealW/2,sealY+5,11,'center');p.font(7.2,900);p.drawLines(p.wrap(sealSub,sealW-10),sealX+sealW/2,sealY+18,8,'center');c.fillStyle='#000';y=96;
+  c.fillStyle=blackHeader?'#000':'#fff';c.fillRect(0,0,width,110);c.strokeStyle='#000';c.lineWidth=blackHeader?0:2;if(!blackHeader)c.strokeRect(1,1,width-2,108);c.fillStyle=headInk;
+  const brand=textOf(receipt,'.v43-brand b',"MNAHEL'S CAFE"),sub=textOf(receipt,'.v43-brand small','THE WORLD OF TASTE'),address=textOf(receipt,'.v57-address','Ada  25/85 Gaggoo Mandi, Lahore Road'),mode=textOf(receipt,'.v43-mode b','ORDER'),seal=textOf(receipt,'.v43-seal strong','SLIP'),sealSub=textOf(receipt,'.v43-seal small','');
+  const brandSize=Math.min(20,Math.max(16,width/17));p.font(brandSize,950);const brandWidth=c.measureText(brand).width,logoSize=28,brandStart=(width-(logoSize+7+brandWidth))/2;drawCafeLogo(c,brandStart+logoSize/2,19,logoSize,headInk);c.fillStyle=headInk;c.fillText(brand,brandStart+logoSize+7,11);p.font(9.2,900);p.drawLines([sub],width/2,37,10,'center');p.font(8.2,900);p.drawLines([address],width/2,49,9,'center');/*v42-address*/
+  drawModeIcon(c,modeKey,8,78,25,headInk);c.fillStyle=headInk;p.font(10.8,950);c.fillText(mode,39,84);
+  const sealW=102,sealH=31,sealX=width-sealW-8,sealY=74;c.lineWidth=1.8;c.strokeStyle=headInk;c.fillStyle=headInk;c.strokeRect(sealX+.5,sealY+.5,sealW-1,sealH-1);p.font(10,950);p.drawLines(p.wrap(seal,sealW-10),sealX+sealW/2,sealY+5,10,'center');p.font(7.2,900);p.drawLines(p.wrap(sealSub,sealW-10),sealX+sealW/2,sealY+18,8,'center');c.fillStyle='#000';y=116;
   const meta=qa(':scope > .v43-body > .v43-meta-grid > .v43-meta-cell',receipt);y=drawMetaGrid(p,meta,bodyX,y,bodyW)+6;
   const items=q('.v43-items',receipt);
   if(items){
@@ -106,22 +106,22 @@ function drawV43(receipt,width){
   }
   const summary=q('.v43-summary',receipt);if(summary){const rows=qa(':scope > .tp-line,:scope > .tp-total',summary);rows.forEach(row=>{const total=row.classList.contains('tp-total'),h=total?31:23;p.strokeBox(bodyX,y,bodyW,h,total?1.5:1);p.font(total?13:9,total?950:850);c.fillText(textOf(row,'span'),bodyX+6,y+(total?8:7));c.textAlign='right';c.fillText(textOf(row,'b'),bodyX+bodyW-6,y+(total?8:7));c.textAlign='left';y+=h});y+=5}
   const payment=qa(':scope > .v43-body > .v43-payment-grid > .v43-meta-cell',receipt);if(payment.length)y=drawMetaGrid(p,payment,bodyX,y,bodyW)+5;
-  const footer=q('.tp-foot',receipt);if(footer){c.setLineDash([4,3]);c.lineWidth=1;c.beginPath();c.moveTo(bodyX,y+.5);c.lineTo(bodyX+bodyW,y+.5);c.stroke();c.setLineDash([]);p.font(6.5,800);const credit=p.wrap(textOf(footer,'b','A product by Eastern Cross Technology'),bodyW);p.drawLines(credit,bodyX+bodyW/2,y+5,8,'center');let fy=y+7+credit.length*8;p.font(12.5,950);const thanks=p.wrap(textOf(footer,'strong','THANK YOU!'),bodyW);p.drawLines(thanks,bodyX+bodyW/2,fy,13,'center');fy+=thanks.length*13+2;p.font(8.4,850);const copy=p.wrap(textOf(footer,':scope > span',''),bodyW);p.drawLines(copy,bodyX+bodyW/2,fy,10,'center');y=fy+copy.length*10}
+  const footer=q('.tp-foot',receipt);if(footer){c.setLineDash([4,3]);c.lineWidth=1;c.beginPath();c.moveTo(bodyX,y+.5);c.lineTo(bodyX+bodyW,y+.5);c.stroke();c.setLineDash([]);p.font(12.5,950);const thanks=p.wrap(textOf(footer,'strong','THANK YOU'),bodyW);p.drawLines(thanks,bodyX+bodyW/2,y+5,13,'center');let fy=y+7+thanks.length*13;p.font(8.4,850);const copy=p.wrap(textOf(footer,':scope > span','we love to serve you again!'),bodyW);p.drawLines(copy,bodyX+bodyW/2,fy,10,'center');fy+=copy.length*10+4;p.font(6.2,800);const credit=p.wrap(textOf(footer,'b','A product by eastern cross technology'),bodyW);p.drawLines(credit,bodyX+bodyW/2,fy,8,'center');fy+=credit.length*8;p.font(6,800);const web=p.wrap(textOf(footer,'small','www.easterncrosstech.com'),bodyW);p.drawLines(web,bodyX+bodyW/2,fy,8,'center');y=fy+web.length*8/*v41-credit*/}
   return p.crop(y+7);
 }
 function drawGeneric(receipt,width){
   const settings=printSettings(),p=createPainter(width,settings.fontScale),c=p.ctx,left=Math.max(0,settings.leftPx)+settings.padPx+8,contentW=Math.max(100,width-(settings.padPx+8)*2-Math.abs(settings.leftPx));let y=0;c.fillStyle='#000';c.fillRect(0,0,width,46);c.fillStyle='#fff';p.font(15,950);p.drawLines([textOf(receipt,'.tp-head b',"MNAHEL'S CAFE")],width/2,9,18,'center');p.font(8,850);p.drawLines([textOf(receipt,'.tp-head small','PRINTABLE SLIP')],width/2,29,10,'center');c.fillStyle='#000';y=54;
   const clone=receipt.cloneNode(true);qa('.tp-head',clone).forEach(x=>x.remove());const text=(clone.innerText||clone.textContent||'').replace(/\s+/g,' ').trim();p.font(10,800);const lineH=Math.max(10,13*settings.fontScale),lines=p.wrap(text,contentW-12),boxH=Math.max(34,lines.length*lineH+14);p.strokeBox(left,y,contentW,boxH,1.2);p.drawLines(lines,left+6,y+7,lineH);y+=boxH+8;
-  p.font(6.5,800);p.drawLines(['A product by Eastern Cross Technology'],width/2,y,8,'center');return p.crop(y+14);
+  p.font(12.5,950);p.drawLines(['THANK YOU'],width/2,y,13,'center');y+=15;p.font(8.4,850);p.drawLines(['we love to serve you again!'],width/2,y,10,'center');y+=12;p.font(6.2,800);p.drawLines(['A product by eastern cross technology','www.easterncrosstech.com'],width/2,y,8,'center');return p.crop(y+20);
 }
 async function renderJpg(source,name){
   if(!source)throw Error('Slip preview not found.');const receipt=source.matches?.('.v43-receipt,.tp')?source:q('.v43-receipt,.tp',source);
   if(!receipt||!(receipt.textContent||'').trim())throw Error('Slip is empty.');
-  const width=printSettings().widthPx,rendered=receipt.classList.contains('v43-receipt')?drawV43(receipt,width):drawGeneric(receipt,width);
+  const width=printSettings().widthPx,rendered=receipt.classList.contains('v43-receipt')&&window.mnahelsV63?await window.mnahelsV63.renderCanvas(receipt,printSettings()):receipt.classList.contains('v43-receipt')?drawV43(receipt,width):drawGeneric(receipt,width);
   const jpg=await new Promise((resolve,reject)=>rendered.canvas.toBlob(blob=>blob?resolve(blob):reject(Error('JPG could not be created.')),'image/jpeg',0.98));
   const fileName=name||slipName(receipt);saveBlob(jpg,fileName);return{name:fileName,width:rendered.width,height:rendered.height};
 }
-function downloadElement(source,name,quiet=false){return queueExport(async()=>{try{const result=await renderJpg(source,name);if(!quiet&&typeof toast==='function')toast('Cropped JPG slip downloaded.');return result}catch(error){console.error('[JPG slip]',error);if(!quiet&&typeof toast==='function')toast(error.message||'JPG slip download failed.');return null}})}
+function downloadElement(source,name,quiet=false){if(source)source=source.cloneNode(true);return queueExport(async()=>{try{const result=await renderJpg(source,name);if(!quiet&&typeof toast==='function')toast('Cropped JPG slip downloaded.');return result}catch(error){console.error('[JPG slip]',error);if(!quiet&&typeof toast==='function')toast(error.message||'JPG slip download failed.');return null}})}
 function downloadCurrentPreview(){const settings=q('#v31-preview[open] #v31-paper .v43-receipt, #v31-preview[open] #v31-paper .tp'),receipt=q('#receipt-preview[open] #receipt-preview-body .v43-receipt, #receipt-preview[open] #receipt-preview-body .tp');return downloadElement(settings||receipt)}
 function downloadStaged(quiet=false){return downloadElement(q('#print-sheet'),undefined,quiet)}
 

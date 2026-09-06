@@ -1,11 +1,11 @@
-/* Mnahel's Cafe POS v0.15.52 - shift order log, per-order log, running-order delta slips,
+/* MNHEL CAFE v0.15.52 - shift order log, per-order log, running-order delta slips,
  * instant edit-mode cart with a NEW ADDED section, glitch-free Book/Update label
  * and a Service Hub shortcut.
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology. */
 (function(){
 'use strict';
-const BUILD='0.15.52',REV='20260905-route-dupe-new-added-52';
+const BUILD='0.15.60',REV='20260905-menu-images-order-print-56';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'Rs '+Math.round(Number(v||0)).toLocaleString('en-PK');
@@ -51,7 +51,7 @@ function slipHtml(order,lines,type,result){
  const items=rows.map(row=>itemRow(row,cancellation)).join('')||'<div class="v43-empty">No items</div>';
  const token=(order&&order.tokenNumber!=null)?order.tokenNumber:'-';
  const customer=(order&&order.customerName)||'Walk-in customer';
- return '<article class="tp tp-customer v43-receipt kitchen v58-running-slip v61-running-slip '+(cancellation?'v61-cancellation':'v61-addition')+'" data-receipt-kind="'+(cancellation?'running-cancellation':'running-addition')+'" data-order-mode="'+esc(mode)+'"><header class="tp-head v43-dark-head"><div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">'+LOGO+'</span><b>MNAHEL&#39;S CAFE</b></div><small>THE WORLD OF TASTE</small></div><div class="v43-mode"><span class="v43-mode-icon">'+ICONS[mode]+'</span><b>'+esc(mode.toUpperCase())+'</b></div><div class="v43-seal"><strong>'+(cancellation?'CANCELLED':'RUNNING')+'</strong><small>'+(cancellation?'REMOVE ITEMS':'ADD ITEMS')+'</small></div></header><div class="v43-body"><div class="v43-meta-grid">'+metaCell('ORDER','MC-'+token)+metaCell('PLACED AT',placedAt(order))+metaCell('CUSTOMER',customer)+metaCell(info.label,info.value)+'</div><div class="v61-running-banner"><b>RUNNING ORDER</b><small>'+(cancellation?'CANCELLED ITEMS ONLY':'NEW ITEMS ONLY')+'</small></div><div class="v61-running-hint">'+hint+'</div><div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>AMOUNT</b></div>'+items+'</div>'+billBlock(previous,updated,cancellation)+'<footer class="tp-foot v41-footer"><strong>RUNNING ORDER'+(cancellation?' - CANCELLATION':'')+'</strong><span>'+(cancellation?'Cancelled items only':'New items only')+'</span><b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small></footer></div></article>';
+ return (window.mnahelsV63?.cleanHtml||String)('<article class="tp tp-customer v43-receipt kitchen v58-running-slip v61-running-slip '+(cancellation?'v61-cancellation':'v61-addition')+'" data-receipt-kind="'+(cancellation?'running-cancellation':'running-addition')+'" data-order-mode="'+esc(mode)+'"><header class="tp-head v43-dark-head"><div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">'+LOGO+'</span><b>MNAHEL&#39;S CAFE</b></div><small>THE WORLD OF TASTE</small></div><div class="v43-mode"><span class="v43-mode-icon">'+ICONS[mode]+'</span><b>'+esc(mode.toUpperCase())+'</b></div><div class="v43-seal"><strong>'+(cancellation?'CANCELLED':'RUNNING')+'</strong><small>'+(cancellation?'REMOVE ITEMS':'ADD ITEMS')+'</small></div></header><div class="v43-body"><div class="v43-meta-grid">'+metaCell('ORDER','MC-'+token)+metaCell('PLACED AT',placedAt(order))+metaCell('CUSTOMER',customer)+metaCell(info.label,info.value)+'</div><div class="v61-running-banner"><b>'+(cancellation?'RUNNING ORDER — REMOVAL/CANCELLED':'RUNNING ORDER')+'</b><small>'+(cancellation?'CANCELLED ITEMS ONLY':'NEW ITEMS ONLY')+'</small></div><div class="v61-running-hint">'+hint+'</div><div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>AMOUNT</b></div>'+items+'</div>'+billBlock(previous,updated,cancellation)+'<footer class="tp-foot v41-footer"><strong>RUNNING ORDER'+(cancellation?' - CANCELLATION':'')+'</strong><span>'+(cancellation?'Cancelled items only':'New items only')+'</span><b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small></footer></div></article>');/*v63-clean*/
 }
 
 /* ---- printing: one deduped path for every running-order slip ---- */
@@ -65,7 +65,7 @@ function bridgePrint(){
   setTimeout(()=>{if(!finished){try{window.chrome.webview.removeEventListener('message',handler)}catch(e){}resolve(true)}},20000);
  });
 }
-async function printSlip(order,lines,type,result){
+async function printSlip(order,lines,type,result){if(window.mnahelsV64){if(!lines?.length)return true;return window.mnahelsV64.printHtml(slipHtml(order,lines,type,result),'kitchen');}
  if(!Array.isArray(lines)||!lines.length)return true;
  const key=String((order&&order.tokenNumber)||'-')+':'+String(type)+':'+lines.length+':'+Number((result&&result.updatedTotal)||0);
  const now=Date.now();
@@ -125,7 +125,7 @@ function installApiHook(){
   const promise=original.call(this,usePath,useOptions);
   try{
    const clean=pathOf(usePath),method=String((useOptions&&useOptions.method)||'GET').toUpperCase();
-   if(method==='PUT'&&/^\/orders\/\d+$/.test(clean)&&promise&&typeof promise.then==='function')promise.then(result=>{pendingEdit=0;try{handleAmendment(result)}catch(e){}},()=>{});
+   if(method==='PUT'&&/^\/orders\/\d+$/.test(clean)&&promise&&typeof promise.then==='function')promise.then(result=>{pendingEdit=0;/* Completion owns printing; watcher only refreshes audit. */setTimeout(()=>loadLog(true),700)},()=>{});
   }catch(e){}
   return promise;
  };
@@ -283,7 +283,7 @@ function watchUi(){
 }
 
 /* ---- per-order log on the shift screen ---- */
-function localTime(v){if(!v)return'-';const d=new Date(v);return Number.isNaN(d.getTime())?'-':d.toLocaleString('en-PK',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function localTime(v){if(!v)return'-';const d=new Date(v);if(Number.isNaN(d.getTime()))return'-';return '<span class="v65-shift-time">'+d.toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric',timeZone:'Asia/Karachi'})+'<br>'+d.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Karachi'})+'</span>'}
 function roleBadge(role){const n=String(role||'Staff');return '<span class="v46-role '+(n.toLowerCase()==='admin'?'admin':'cashier')+'">'+esc(n.toUpperCase())+'</span>'}
 function grouped(events){
  const map=new Map();

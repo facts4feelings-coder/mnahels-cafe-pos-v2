@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.27 · UI readability and workflow refinement. */
+/* MNHEL CAFE v0.15.27 · UI readability and workflow refinement. */
 (function(){
   'use strict';
   const BUILD='0.15.27',UI_REVISION='20260901-ui-readability-27';

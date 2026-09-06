@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.10 stable dashboard and Midnight Amber cart
+ * MNHEL CAFE · v0.15.10 stable dashboard and Midnight Amber cart
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  */
 (()=>{

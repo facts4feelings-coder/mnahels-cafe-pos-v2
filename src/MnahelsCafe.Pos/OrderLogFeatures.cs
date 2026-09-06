@@ -101,19 +101,19 @@ static class OrderLogFeatures
         var text = string.Join(", ", order.Items.Select(x => $"{x.Quantity}x {x.ProductName}"));
         return string.IsNullOrWhiteSpace(text) ? "No item detail" : text;
     }
-    private static int Token(string? details)
+    internal static int Token(string? details)
     {
         var match = Regex.Match(details ?? string.Empty, @"MC-(\d+)", RegexOptions.IgnoreCase);
         return match.Success && int.TryParse(match.Groups[1].Value, out var token) ? token : 0;
     }
-    private static string CleanDetails(string? value)
+    internal static string CleanDetails(string? value)
     {
         var text = Regex.Replace(value ?? string.Empty, @"^MC-\d+\s*[·|-]?\s*", string.Empty).Trim();
         return string.IsNullOrWhiteSpace(text) ? "Order activity" : text;
     }
 
-    private static async Task<List<OrderLogAmendment>> LoadAmendments(PosDb db, DateTimeOffset start, DateTimeOffset end,
-        IReadOnlyDictionary<int, (string Name, string Role)> users)
+    internal static async Task<List<OrderLogAmendment>> LoadAmendments(PosDb db, DateTimeOffset start, DateTimeOffset end,
+        IReadOnlyDictionary<int, (string Name, string Role)> users, bool strict=false)
     {
         var rows = new List<OrderLogAmendment>();
         DbConnection connection = db.Database.GetDbConnection();
@@ -122,6 +122,7 @@ static class OrderLogFeatures
         {
             if (shouldClose) await connection.OpenAsync();
             await using var command = connection.CreateCommand();
+            command.Transaction=db.Database.CurrentTransaction is null?null:Microsoft.EntityFrameworkCore.Storage.DbContextTransactionExtensions.GetDbTransaction(db.Database.CurrentTransaction);
             command.CommandText = """
                 SELECT a."OrderId", o."TokenNumber", a."UserId", a."UserName", a."Kind",
                        a."PayloadJson", a."OldTotal", a."NewTotal", a."CreatedAt"
@@ -146,7 +147,7 @@ static class OrderLogFeatures
                 });
             }
         }
-        catch { }
+        catch { if(strict)throw; }
         finally { if (shouldClose && connection.State == System.Data.ConnectionState.Open) await connection.CloseAsync(); }
         return rows;
     }
@@ -172,7 +173,8 @@ static class OrderLogFeatures
         foreach (var item in array.EnumerateArray())
         {
             TryProperty(item, "quantity", out var quantity); TryProperty(item, "productName", out var name);
-            values.Add($"{sign}{(quantity.ValueKind == JsonValueKind.Number ? quantity.GetInt32() : 0)} {name.GetString() ?? "Item"}");
+            TryProperty(item,"variantName",out var variant); TryProperty(item,"unitPrice",out var price); TryProperty(item,"notes",out var notes);
+            values.Add($"{sign}{(quantity.ValueKind == JsonValueKind.Number ? quantity.GetInt32() : 0)} {(name.ValueKind==JsonValueKind.String?name.GetString():"Item")} ({(variant.ValueKind==JsonValueKind.String?variant.GetString():"Regular")}) @ Rs {(price.ValueKind==JsonValueKind.Number?price.GetDecimal():0):0.##}"+(notes.ValueKind==JsonValueKind.String?$" | {notes.GetString()}":""));
         }
         return string.Join(", ", values);
     }

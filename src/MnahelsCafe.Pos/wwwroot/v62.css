@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.54 · updated-order receipt only. Existing POS layout is unchanged. */
+/* Mnahel's Cafe POS v0.15.56 · updated-order receipt only. Existing POS layout is unchanged. */
 .v62-updated-receipt .v62-update-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px;padding:6px 7px;border:2px solid #000;background:#fff;color:#000}
 .v62-updated-receipt .v62-update-banner b{font-size:11px;line-height:1;font-weight:950;letter-spacing:.03em}
 .v62-updated-receipt .v62-update-banner small{font-size:7.6px;line-height:1.15;text-align:right;font-weight:850}
@@ -14,3 +14,14 @@
 .v62-summary .tp-line span{font-weight:850}
 .v62-summary .tp-total span{font-weight:950}
 @media print{.v62-updated-receipt,.v62-updated-receipt *{color:#000!important}.v62-updated-receipt .v62-update-banner,.v62-updated-receipt .v62-section-title,.v62-updated-receipt .v62-none{background:#fff!important;color:#000!important}}
+
+.v62-empty-section{display:none!important}
+.v62-previous-summary{margin:0 0 7px;border:1.5px solid #000;background:#fff;color:#000}
+.v62-previous-summary .v62-section-title{border:0;border-bottom:1px solid #000}
+.v62-previous-preview{padding:6px 7px 5px;font-size:8px;line-height:1.25;font-weight:800;border-bottom:1px dashed #777}
+.v62-previous-totals{display:flex;justify-content:space-between;gap:8px;padding:6px 7px;font-size:8.5px;font-weight:850}
+.v62-previous-totals b{font-size:10px;font-weight:950}
+.v62-payment-state{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 7px;padding:6px 7px;border:2px solid #000;background:#fff;color:#000}
+.v62-payment-state b{font-size:11px;font-weight:950;letter-spacing:.04em}
+.v62-payment-state span{font-size:7.5px;font-weight:850;text-align:right}
+@media print{.v62-previous-summary,.v62-payment-state{background:#fff!important;color:#000!important}}
