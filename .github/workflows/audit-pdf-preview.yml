@@ -26,19 +26,29 @@ jobs:
         run: |
           & dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release --nologo 2>&1 | Tee-Object -FilePath qa-build.log
           exit $LASTEXITCODE
+      - name: Capture real receipt JPGs
+        id: receipts
+        if: steps.integration.outcome == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          & node scripts/capture-v60-receipts.cjs 2>&1 | Tee-Object -FilePath qa-receipts.log
+          exit $LASTEXITCODE
       - name: Attach synthetic proof and diagnostics to review
         if: always() && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs'), zlib = require('zlib');
+            const post = body => github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body});
             let body = 'Synthetic QA proof for ' + context.payload.pull_request.head.sha + '\n\n';
-            if (fs.existsSync('audit-test-output/shift-audit-visual.pdf')) {
-              const pdf = fs.readFileSync('audit-test-output/shift-audit-visual.pdf');
-              body += 'No customer data. Actual PDF writer, gzip/base64.\n```text\n' + zlib.gzipSync(pdf).toString('base64') + '\n```\n';
+            if (fs.existsSync('audit-test-output/shift-audit-visual.pdf')) body += 'No customer data. Actual PDF writer, gzip/base64.\n```text\n' + zlib.gzipSync(fs.readFileSync('audit-test-output/shift-audit-visual.pdf')).toString('base64') + '\n```\n';
+            for(const f of ['qa-build.log','qa-receipts.log']) if(fs.existsSync(f)) body += '\n'+f+':\n```text\n'+fs.readFileSync(f,'utf8').slice(-9000)+'\n```';
+            await post(body);
+            if(fs.existsSync('receipt-test-output')) for(const f of fs.readdirSync('receipt-test-output')) {
+              const b64=zlib.gzipSync(fs.readFileSync('receipt-test-output/'+f)).toString('base64');
+              if(b64.length<60000) await post('Synthetic receipt proof '+f+' for '+context.payload.pull_request.head.sha+'\n```text\n'+b64+'\n```');
             }
-            if (fs.existsSync('qa-build.log')) body += '\nBuild diagnostics:\n```text\n' + fs.readFileSync('qa-build.log','utf8').slice(-9000) + '\n```';
-            await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body});
-      - name: Require successful integration
-        if: steps.integration.outcome == 'failure'
-        run: throw 'Build integration failed; see diagnostic comment.'
+      - name: Require successful integration and receipt captures
+        if: steps.integration.outcome == 'failure' || steps.receipts.outcome == 'failure'
+        run: throw 'QA failed; see diagnostic comment.'
