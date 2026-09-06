@@ -62,7 +62,8 @@ function renderDetails(){
  body.scrollTop=0;q('#v38-setup-footer').innerHTML='<button type="button" class="v38-back" data-v38-back>← Back</button><div><small>Next: add menu items</small><button type="button" class="v38-start" data-v38-start>Start order <b>→</b></button></div>';
  autoInput(q('#v38-customer-name'),defaultName(proposedToken));autoInput(q('#v38-customer-phone'),defaultPhone(proposedToken));
  q('#v38-customer-phone')?.addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,11));
- requestAnimationFrame(()=>q('.v38-resource:not(:disabled),#v38-customer-name',dialog)?.focus());
+ // Do not steal focus after an operator has already moved to another field.
+ const focusOwner=document.activeElement;requestAnimationFrame(()=>{if(dialog.open&&(document.activeElement===focusOwner||document.activeElement===document.body))q('.v38-resource:not(:disabled),#v38-customer-name',dialog)?.focus()});
 }
 function modeSelect(mode){draft.mode=mode;draft.tableId=null;draft.waiterId=null;draft.riderId=null;const button=q(`[data-v38-mode="${mode}"]`);button?.classList.add('chosen');setTimeout(renderDetails,180)}
 function setResource(kind,id){draft.name=q('#v38-customer-name')?.value||draft.name;draft.phone=q('#v38-customer-phone')?.value||draft.phone;draft.address=q('#v38-delivery-address')?.value||draft.address;id=Number(id)||null;if(kind==='table')draft.tableId=id;if(kind==='waiter')draft.waiterId=id;if(kind==='rider')draft.riderId=id;renderDetails()}

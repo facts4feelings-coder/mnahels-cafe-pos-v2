@@ -36,6 +36,8 @@ jobs:
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
           npm install --no-save --ignore-scripts playwright@1.55.0 >> browser-tests.log 2>&1
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-guided-focus.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
           node scripts/test-ui-workflows.cjs >> browser-tests.log 2>&1
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
           $env:CAFE_BASELINE_ROOT=(Resolve-Path 'qa-baseline/src/MnahelsCafe.Pos/wwwroot').Path
