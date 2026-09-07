@@ -22,6 +22,7 @@ internal sealed class SetupForm : Form
     private readonly TextBox _address = new();
     private readonly Button _test = new();
     private readonly Button _scan = new();
+    private readonly Button _direct = new();
     private readonly ListBox _found = new();
     private readonly Label _status = new();
     private readonly Button _save = new();
@@ -88,6 +89,7 @@ internal sealed class SetupForm : Form
 
         StyleButton(_test, "Test", new Point(320, 205), 90);
         StyleButton(_scan, "Network scan", new Point(420, 205), 190);
+        StyleButton(_direct, "Direct cable setup", new Point(420, 166), 190);
 
         _found.Location = new Point(28, 248);
         _found.Size = new Size(582, 130);
@@ -117,7 +119,7 @@ internal sealed class SetupForm : Form
         Controls.AddRange(new Control[]
         {
             heading, hint, _serverRole, _clientRole, addressLabel,
-            _address, _test, _scan, _found, _status, _save, _cancel, credit
+            _address, _test, _scan, _direct, _found, _status, _save, _cancel, credit
         });
 
         _serverRole.CheckedChanged += (_, _) => SyncEnabled();
@@ -128,6 +130,14 @@ internal sealed class SetupForm : Form
         };
         _scan.Click += async (_, _) => await ScanAsync();
         _test.Click += async (_, _) => await TestAsync();
+        _direct.Click += (_, _) =>
+        {
+            using var setup = new DirectCableSetup(_serverRole.Checked);
+            if (setup.ShowDialog(this) != DialogResult.OK || setup.SavedConnection is null) return;
+            Result = setup.SavedConnection;
+            DialogResult = DialogResult.OK;
+            Close();
+        };
         _save.Click += async (_, _) => await SaveAsync();
         _cancel.Click += (_, _) =>
         {
