@@ -5,7 +5,7 @@
  * A product by Eastern Cross Technology. */
 (function(){
 'use strict';
-const BUILD='0.15.60',REV='20260905-menu-images-order-print-56';
+const BUILD='0.15.61',REV='20260905-menu-images-order-print-56';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'Rs '+Math.round(Number(v||0)).toLocaleString('en-PK');
@@ -302,6 +302,7 @@ function ctaSync(){
  });
 }
 function stampBuild(){
+ const title='MNHEL CAFE · v'+BUILD;if(document.title!==title)document.title=title;
  const meta=q('meta[name="application-version"]');
  if(meta&&meta.content!==BUILD)meta.content=BUILD;
  qa('.side-bottom *,.server-state *,.sidebar small,.sidebar b,.sidebar strong,.sidebar span,#v46-chip *').forEach(el=>{

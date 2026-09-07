@@ -72,6 +72,9 @@ jobs:
     needs: [build-server, test-running-order, build-desktop, browser-catalog]
     runs-on: windows-latest
     timeout-minutes: 25
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -104,23 +107,48 @@ jobs:
           if (-not $iscc) { throw 'Inno Setup compiler (ISCC.exe) was not found.' }
           & $iscc '/Qp' 'installer\MnahelsCafePOS.iss'
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE." }
-      - name: Verify installer and write checksum
+      - name: Verify release versions and write checksums
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $version = '0.15.61'
           $installers = @(Get-ChildItem 'installer\output\*.exe' -File)
           if ($installers.Count -ne 1) { throw "Expected exactly one installer, found $($installers.Count)." }
           $installer = $installers[0]
+          if ($installer.Name -ne "MnahelsCafePOS-Setup-$version.exe") { throw 'Wrong installer filename/version.' }
           if ($installer.Length -lt 1MB) { throw "Installer is unexpectedly small: $($installer.Length) bytes." }
+          foreach ($binary in @($installer.FullName, (Resolve-Path 'publish\win-x64\MnahelsCafe.Pos.dll').Path, (Resolve-Path 'publish\win-x64\MnahelsCafe.Desktop.dll').Path)) {
+            $info = [Diagnostics.FileVersionInfo]::GetVersionInfo($binary)
+            if ($info.FileVersion -ne "$version.0") { throw "Wrong binary version: $binary -> $($info.FileVersion)" }
+          }
+          $html = [IO.File]::ReadAllText((Resolve-Path 'publish\win-x64\wwwroot\index.html'))
+          $ui = [IO.File]::ReadAllText((Resolve-Path 'publish\win-x64\wwwroot\v61.js'))
+          if (-not $html.Contains('name="application-version" content="0.15.61"') -or -not $ui.Contains("const BUILD='0.15.61'")) { throw 'Published UI release version does not match.' }
           $hash = Get-FileHash $installer.FullName -Algorithm SHA256
           '{0} *{1}' -f $hash.Hash, $installer.Name | Set-Content 'installer\output\SHA256SUMS.txt' -Encoding ascii
+          $commit = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0) { throw 'Could not identify the built source commit.' }
+          [ordered]@{version=$version;filename=$installer.Name;bytes=$installer.Length;sha256=$hash.Hash;builtCommit=$commit;runId=$env:GITHUB_RUN_ID;runtime='win-x64';selfContained=$true;nativeInstallationVerified=$false;physicalPrintingVerified=$false} | ConvertTo-Json | Set-Content 'installer\output\build-info.json' -Encoding utf8
+          Copy-Item 'docs\INSTALL-v0.15.61.txt' 'installer\output\INSTALL-README.txt'
           Write-Host "Verified $($installer.Name) ($([math]::Round($installer.Length / 1MB, 2)) MB)"
           Write-Host "SHA256 $($hash.Hash)"
-      - name: Upload Windows installer only
+      - name: Upload versioned Windows installer
+        id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: MnahelsCafePOS-Windows-Installer
+          name: MnahelsCafePOS-0.15.61-Windows-x64
           path: installer/output/*
           if-no-files-found: error
           compression-level: 0
-          retention-days: 14
+          retention-days: 90
+      - name: Report installer download and checksum
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        env:
+          INSTALLER_ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+        with:
+          script: |
+            const fs=require('fs');
+            const info=JSON.parse(fs.readFileSync('installer/output/build-info.json','utf8').replace(/^\uFEFF/,''));
+            const body='Installer ready for '+context.payload.pull_request.head.sha+'\n\n[Download '+info.filename+' + SHA256 + instructions]('+process.env.INSTALLER_ARTIFACT_URL+')\n\n```json\n'+JSON.stringify(info,null,2)+'\n```\n\nAll required build/browser/order gates passed before packaging. Native installation and physical-printer acceptance on cafe hardware are not claimed. Back up the live database first; preserve the existing license and use the same Server/Cashier role.';
+            await github.rest.issues.createComment({...context.repo,issue_number:context.issue.number,body});
