@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/MnahelsCafe.Desktop/**'
       - 'src/MnahelsCafe.Network.Tests/**'
+      - 'scripts/direct-cable-route-overlap-tests.ps1'
       - '.github/workflows/direct-cable-regression.yml'
 permissions:
   contents: read
@@ -35,9 +36,14 @@ jobs:
           foreach($file in $scripts){
             $tokens=$null; $errors=$null
             [System.Management.Automation.Language.Parser]::ParseInput([IO.File]::ReadAllText($file.FullName),[ref]$tokens,[ref]$errors) | Out-Null
-            if($errors.Count){$errors | Out-String | Add-Content direct-cable-tests.log; throw ('PowerShell syntax failed: '+$file.Name)}
+            if($errors.Count){$errors | Out-String | Add-Content direct-cable-tests.log -Encoding UTF8; throw ('PowerShell syntax failed: '+$file.Name)}
           }
-          'PASS: all four scripts parsed by Windows PowerShell; no network setup was executed.' | Tee-Object -FilePath direct-cable-tests.log -Append
+          'PASS: all four scripts parsed by Windows PowerShell; no network setup was executed.' | Out-File direct-cable-tests.log -Append -Encoding UTF8
+      - name: Test route overlap guard with mocked routes only
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./scripts/direct-cable-route-overlap-tests.ps1 | Out-File direct-cable-tests.log -Append -Encoding UTF8
       - name: Record exact result
         if: always()
         uses: actions/github-script@v7
@@ -47,7 +53,7 @@ jobs:
           script: |
             const fs=require('fs');
             const log=fs.existsSync('direct-cable-tests.log')?fs.readFileSync('direct-cable-tests.log','utf8'):'No test log generated.';
-            await github.rest.issues.createComment({...context.repo,issue_number:24,body:'Direct-cable verification on '+context.sha+': '+process.env.RESULT+'\n\n```text\n'+log.slice(-7000)+'\n```\n\nBranch: feature/lan-operations-v0.15.61. This compiles the desktop and validates generated script contracts/syntax, NOT physical adapters, UAC, actual IP/DNS changes, rollback or two-laptop connectivity.'});
+            await github.rest.issues.createComment({...context.repo,issue_number:24,body:'Direct-cable verification on '+context.sha+': '+process.env.RESULT+'\n\n```text\n'+log.slice(-7000)+'\n```\n\nBranch: feature/lan-operations-v0.15.61. This compiles the desktop and validates generated script contracts/syntax and mocked route overlap, NOT physical adapters, UAC, actual IP/DNS changes, rollback or two-laptop connectivity.'});
       - uses: actions/upload-artifact@v4
         if: always()
         with:

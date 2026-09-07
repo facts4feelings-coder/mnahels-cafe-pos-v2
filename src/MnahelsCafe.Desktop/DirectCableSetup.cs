@@ -208,7 +208,8 @@ try {
   foreach($r in @(Get-NetRoute -AddressFamily IPv4 | Where-Object {$_.InterfaceIndex -ne $idx -and $_.DestinationPrefix -ne '0.0.0.0/0'})) {
     $parts=$r.DestinationPrefix.Split('/'); $bits=[int]$parts[1]
     if($bits -ge 1 -and $bits -le 32) {
-      $mask=[uint64]([math]::Pow(2,32)-[math]::Pow(2,32-$bits))
+      # Compare entire /24, including peer /32 and upper-half /25 routes.
+      $mask=[uint64]([math]::Pow(2,32)-[math]::Pow(2,32-[math]::Min($bits,24)))
       if(((IPv4-Number $ip) -band $mask) -eq ((IPv4-Number $parts[0]) -band $mask)){throw 'Another adapter/VPN already routes this direct-cable subnet. Choose an unused subnet manually.'}
     }
   }
