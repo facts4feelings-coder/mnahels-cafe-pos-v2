@@ -1,0 +1,57 @@
+name: Direct cable setup verification
+on:
+  push:
+    branches: [feature/lan-operations-v0.15.61]
+    paths:
+      - 'src/MnahelsCafe.Desktop/**'
+      - 'src/MnahelsCafe.Network.Tests/**'
+      - '.github/workflows/direct-cable-regression.yml'
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: direct-cable-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  direct-cable-contracts:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Compile desktop and test script builder without network changes
+        shell: pwsh
+        run: |
+          dotnet run --project src/MnahelsCafe.Network.Tests/MnahelsCafe.Network.Tests.csproj -c Release 2>&1 | Tee-Object -FilePath direct-cable-tests.log
+          if ($LASTEXITCODE -ne 0) { throw 'Direct-cable contract tests failed.' }
+      - name: Parse generated scripts without executing them
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $scripts=@(Get-ChildItem 'reports/direct-cable/*.ps1')
+          if($scripts.Count -ne 4){throw 'Expected four generated script cases.'}
+          foreach($file in $scripts){
+            $tokens=$null; $errors=$null
+            [System.Management.Automation.Language.Parser]::ParseInput([IO.File]::ReadAllText($file.FullName),[ref]$tokens,[ref]$errors) | Out-Null
+            if($errors.Count){$errors | Out-String | Add-Content direct-cable-tests.log; throw ('PowerShell syntax failed: '+$file.Name)}
+          }
+          'PASS: all four scripts parsed by Windows PowerShell; no network setup was executed.' | Tee-Object -FilePath direct-cable-tests.log -Append
+      - name: Record exact result
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          RESULT: ${{ job.status }}
+        with:
+          script: |
+            const fs=require('fs');
+            const log=fs.existsSync('direct-cable-tests.log')?fs.readFileSync('direct-cable-tests.log','utf8'):'No test log generated.';
+            await github.rest.issues.createComment({...context.repo,issue_number:24,body:'Direct-cable verification on '+context.sha+': '+process.env.RESULT+'\n\n```text\n'+log.slice(-7000)+'\n```\n\nBranch: feature/lan-operations-v0.15.61. This compiles the desktop and validates generated script contracts/syntax, NOT physical adapters, UAC, actual IP/DNS changes, rollback or two-laptop connectivity.'});
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: direct-cable-source-proof
+          path: |
+            direct-cable-tests.log
+            reports/direct-cable
