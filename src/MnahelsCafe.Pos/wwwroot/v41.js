@@ -1,11 +1,11 @@
 /*
- * Mnahel's Cafe POS · v0.15.14 order-first booking and practical payment settlement
+ * MNHEL CAFE · v0.15.14 order-first booking and practical payment settlement
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */
 (()=>{
 'use strict';
-const BUILD='0.15.16',UI_REVISION='20260830-reset-16';
+const BUILD='0.15.56',UI_REVISION='20260905-menu-images-order-print-56';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cash=v=>`Rs ${Number(v||0).toLocaleString('en-PK')}`;
@@ -66,7 +66,7 @@ function openPayment(order){
  qa('[data-v41-method]',dialog).forEach(x=>x.classList.toggle('active',x.dataset.v41Method==='Cash'));syncLatePaymentUi();dialog.showModal();
 }
 async function submitLatePayment(event){
- event.preventDefault();if(!paymentTarget)return;
+ event.preventDefault();if(!paymentTarget||q('#v41-confirm-payment')?.disabled)return;
  const button=q('#v41-confirm-payment'),method=selectedLateMethod(),received=method==='Cash'?Number(q('#v41-payment-received').value||0):null,reference=method==='Cash'?null:q('#v41-payment-reference').value.trim();
  if(method==='Cash'&&received<Number(paymentTarget.total||0))return syncLateChange();
  button.disabled=true;button.classList.add('busy');q('span',button).textContent='Saving full payment…';
@@ -74,7 +74,7 @@ async function submitLatePayment(event){
   const paid=await window.api(`/api/orders/${paymentTarget.id}/payment`,{method:'POST',body:JSON.stringify({paymentMethod:method,cashReceived:received,reference,completeOrder:true})});
   orderMap.set(String(paid.id),paid);state.dashboardSignature='';state.salesSignature='';state.orderSignature='';q('#v41-payment-dialog').close();paymentTarget=null;
   await Promise.allSettled([window.mnahelsV36?.renderOperations?.(true),window.mnahelsV36?.refreshHub?.(true),refreshDue(true)]);
-  await printCustomerBill(paid,true);toast(`MC-${paid.tokenNumber} paid and completed.`);
+  await window.mnahelsV64.once('payment:'+paid.id,()=>printCustomerBill(paid,true));toast(`MC-${paid.tokenNumber} paid and completed.`);
  }catch(error){toast(error.message||'Payment save nahi hui.')}finally{button.disabled=false;button.classList.remove('busy');q('span',button).textContent='Confirm payment & complete'}
 }
 
@@ -105,7 +105,7 @@ function decorateCards(){
   let bar=q('.v41-order-payment',card),markup=paymentBar(order),sig=`${order.paymentStatus}:${order.paymentMethod}:${order.status}:${order.total}`;
   if(!bar){q('.v36-progress',card)?.insertAdjacentHTML('beforebegin',markup);bar=q('.v41-order-payment',card)}else if(bar.dataset.sig!==sig)bar.outerHTML=markup;
   bar=q('.v41-order-payment',card);if(bar)bar.dataset.sig=sig;card.classList.toggle('v41-unpaid',!isPaid(order));
-  const payLabel=q('.v36-total>span b',card);if(payLabel)payLabel.textContent=isPaid(order)?order.paymentMethod||'Paid':'Payment due';if(isPaid(order)&&order.status!=='Cancelled')q('.v36-cancel',card)?.remove();
+  const payLabel=q('.v36-total>span b',card);if(payLabel){const want=isPaid(order)?order.paymentMethod||'Paid':'Payment due';if(payLabel.textContent!==want)payLabel.textContent=want;}if(isPaid(order)&&order.status!=='Cancelled')q('.v36-cancel',card)?.remove();
  });
 }
 
@@ -124,22 +124,23 @@ function syncBookPaymentUi(){
  const label=q('#place-order span');if(label)label.textContent=payNow?'Pay & book':'Book order';
  const ref=q('#v41-book-reference');if(ref)ref.hidden=!payNow||state.payment==='Cash';
 }
-function validateResources(){if(!state.v38SetupDone){toast('Pehle New order se order setup complete karein.');window.mnahelsV38?.openSetup?.(false);return false}if(state.orderType==='Delivery'&&!state.riderId){toast('Delivery order ke liye rider select karein.');return false}if(state.orderType==='Dine-in'&&!state.tableId){toast('Dine-in order ke liye table select karein.');return false}if(state.orderType==='Dine-in'&&!state.waiterId){toast('Dine-in order ke liye waiter select karein.');return false}return true}
-function customerValues(){return{name:q('#customer-name')?.value.trim()||null,phone:String(q('#customer-phone')?.value||'').replace(/\D/g,'')||null,address:q('#delivery-address')?.value.trim()||null}}
+function validateResources(){if(!state.v38SetupDone){toast('Pehle New order se order setup complete karein.');window.mnahelsV38?.openSetup?.(false);return false}if(state.orderType==='Delivery'&&!state.riderId){toast('Delivery order ke liye rider select karein.');return false}if(state.orderType==='Dine-in'&&!state.tableId){toast('Dine-in order ke liye table select karein.');return false}/* v60: no dine-in waiter requirement. */return true}
+function customerValues(){if(state.orderType==='Dine-in')return{name:null,phone:null,address:null};return{name:q('#customer-name')?.value.trim()||null,phone:String(q('#customer-phone')?.value||'').replace(/\D/g,'')||null,address:q('#delivery-address')?.value.trim()||null}}
 async function submitBooking(){
+ if(Number(state.v56EditingOrderId||0)>0&&typeof window.mnahelsV56?.updateEditingOrder==='function')return window.mnahelsV56.updateEditingOrder();
  if(bookingBusy)return;if(!state.cart.length)return toast('Add an item first.');if(!validateResources())return;
  const customer=customerValues();if(state.orderType==='Delivery'&&(!customer.name||!customer.phone||!customer.address))return toast('Delivery ke liye complete customer details required hain.');
  const total=orderTotal(),received=bookCash();if(payNow&&state.payment==='Cash'&&received<total){toast(`Cash received kam az kam ${cash(total)} hona chahiye.`);q('#v36-cash-received')?.focus();return}
  const button=q('#place-order'),old=button.innerHTML;bookingBusy=true;button.disabled=true;button.innerHTML='<span>Booking order…</span><b>•••</b>';
  try{
   const payload={items:state.cart.map(item=>({variantId:item.variantId,quantity:item.quantity,notes:null})),orderType:state.orderType,paymentMethod:payNow?state.payment:null,payNow,discount:window.mnahelsV39?.discountAmount?.()||0,notes:q('#order-note')?.value.trim()||null,customerName:customer.name,customerPhone:customer.phone,deliveryAddress:state.orderType==='Delivery'?customer.address:null,tableNumber:state.orderType==='Dine-in'?state.tableId:null,tableId:state.orderType==='Dine-in'?state.tableId:null,waiterId:state.orderType==='Dine-in'?state.waiterId:null,riderId:state.orderType==='Delivery'?state.riderId:null,cashReceived:payNow&&state.payment==='Cash'?received:null,paymentReference:payNow&&state.payment!=='Cash'?q('#v41-book-reference-input')?.value.trim()||null:null};
-  const order=await window.api('/api/orders',{method:'POST',body:JSON.stringify(payload)});orderMap.set(String(order.id),order);state.lastOrder=order;state.cart=[];resetMenuSearch();
+  const response=await window.api('/api/orders',{method:'POST',body:JSON.stringify(payload)});let order=response?.order||response;const receiptReady=value=>!!(value&&Number(value.id)>0&&value.tokenNumber!=null&&Array.isArray(value.items)&&value.items.length);const responseId=Number(order?.id||response?.orderId||0);if(!receiptReady(order)&&responseId)order=await window.api(`/api/orders/${responseId}/edit`);if(!receiptReady(order))throw new Error('Order save ho gaya lekin receipt data load nahi hua. Order Tracking se receipt dobara print karein.');orderMap.set(String(order.id),order);state.lastOrder=order;state.cart=[];resetMenuSearch();
   const discount=q('#discount');if(discount){discount.value='';discount.dataset.v39Percent='0'}if(q('#order-note'))q('#order-note').value='';if(q('#v36-cash-received'))q('#v36-cash-received').value='';if(q('#v41-book-reference-input'))q('#v41-book-reference-input').value='';
   payNow=false;syncBookPaymentUi();renderCart();showOrderComplete(order);setTimeout(()=>{const detail=q('#v40-order-success .v40-success-card>p');if(detail)detail.textContent=isPaid(order)?`${order.orderType} · Paid now`:`${order.orderType} · Booked unpaid`},40);state.dashboardSignature='';state.salesSignature='';await refreshDue(true);postBookingPrint(order);
  }catch(error){toast(error.message||'Order book nahi hua.')}finally{bookingBusy=false;button.disabled=false;button.innerHTML=old;syncBookPaymentUi();window.totals?.()}
 }
 function enqueuePrint(task){const run=printQueue.then(task,task);printQueue=run.catch(()=>{});return run}
-async function postBookingPrint(order){if(order.orderType==='Dine-in')return;return enqueuePrint(async()=>{await new Promise(resolve=>setTimeout(resolve,320));await window.mnahelsV36?.printSlip?.(order,'kitchen',true);await new Promise(resolve=>setTimeout(resolve,180));await printCustomerBillNow(order,isPaid(order))})}
+async function postBookingPrint(order){return enqueuePrint(async()=>{if(window.mnahelsV64&&!window.mnahelsV64.claim('booking:'+order.id))return;await new Promise(resolve=>setTimeout(resolve,320));await window.mnahelsV36?.printSlip?.(order,'kitchen',true);await new Promise(resolve=>setTimeout(resolve,180));await printCustomerBillNow(order,isPaid(order))})}
 
 function billLine(label,value){return `<div class="tp-line"><span>${label}</span><b>${value}</b></div>`}
 function billHtml(order,paid=isPaid(order)){
@@ -148,7 +149,7 @@ function billHtml(order,paid=isPaid(order)){
  const service=order.orderType==='Dine-in'?`${billLine('Table',E(order.tableName||`Table ${order.tableNumber||'—'}`))}${billLine('Waiter',E(order.waiterName||'—'))}`:order.orderType==='Delivery'?`${billLine('Rider',E(order.riderName||'—'))}${order.deliveryAddress?billLine('Address',E(order.deliveryAddress)):''}`:'';
  return `<div class="tp tp-customer v41-receipt ${paid?'paid':'unpaid'}"><div class="tp-head"><b>MNAHEL'S CAFE</b><small>${paid?'FINAL PAID RECEIPT':'PROVISIONAL BILL'}</small></div><div class="v41-receipt-state">${paid?'PAID':'PAYMENT DUE'}</div><div class="tp-dash"></div>${billLine('Order',`MC-${E(order.tokenNumber)}`)}${billLine('Type',E(order.orderType||'Takeaway'))}${billLine('Customer',E(order.customerName||'Walk-in'))}${service}<div class="tp-dash"></div><div class="tp-th"><span>Item</span><b>Amount</b></div>${items}<div class="tp-dash"></div>${billLine('Subtotal',cash(order.subtotal))}${order.discount?billLine('Discount',`- ${cash(order.discount)}`):''}<div class="tp-total"><span>${paid?'TOTAL PAID':'AMOUNT DUE'}</span><b>${cash(order.total)}</b></div>${paid?`${billLine('Payment method',E(order.paymentMethod||'Paid'))}${order.paymentReference?billLine('Reference',E(order.paymentReference)):''}${order.paymentMethod==='Cash'&&order.cashReceived!=null?`${billLine('Cash received',cash(order.cashReceived))}${billLine('Change',cash(order.changeDue))}`:''}`:'<div class="v41-due-warning"><b>PAYMENT DUE</b><span>This is not a paid receipt.</span></div>'}<div class="tp-foot"><b>A product by Eastern Cross Technology</b><small>${paid?'Thank you.':'Please collect full payment before completion.'}</small></div></div>`;
 }
-async function printCustomerBillNow(order,paid=isPaid(order)){const sheet=q('#print-sheet');if(!sheet)return false;sheet.removeAttribute('style');sheet.className='print-sheet tp-sheet customer';sheet.innerHTML=billHtml(order,paid);await new Promise(resolve=>setTimeout(resolve,140));try{if(window.__mnahelsDualPrintBridge&&window.chrome?.webview?.postMessage)window.chrome.webview.postMessage('mnahels-print-customer');else window.print();return true}catch(error){toast('Bill print nahi hua.');return false}}
+async function printCustomerBillNow(order,paid=isPaid(order)){if(window.mnahelsV64)return window.mnahelsV64.printHtml(billHtml(order,paid),'customer');const sheet=q('#print-sheet');if(!sheet)return false;sheet.removeAttribute('style');sheet.className='print-sheet tp-sheet customer';sheet.innerHTML=billHtml(order,paid);await new Promise(resolve=>setTimeout(resolve,140));try{if(window.__mnahelsDualPrintBridge&&window.chrome?.webview?.postMessage)window.chrome.webview.postMessage('mnahels-print-customer');else window.print();return true}catch(error){toast('Bill print nahi hua.');return false}}
 async function printCustomerBill(order,paid=isPaid(order)){return enqueuePrint(()=>printCustomerBillNow(order,paid))}
 async function setComplete(order){if(!order)return;if(!isPaid(order))return openPayment(order);try{const updated=await window.api(`/api/orders/${order.id}/status`,{method:'PUT',body:JSON.stringify({status:'Completed'})});orderMap.set(String(order.id),{...order,...updated,status:'Completed'});state.dashboardSignature='';state.salesSignature='';await Promise.allSettled([window.mnahelsV36?.renderOperations?.(true),window.mnahelsV36?.refreshHub?.(true)]);toast(`MC-${order.tokenNumber} completed.`)}catch(error){toast(error.message||'Order complete nahi hua.')}}
 function findOrder(id){return orderMap.get(String(id))}
@@ -159,10 +160,10 @@ function salesMetricsCorrect(){return qa('#one-metrics>.metric small').map(x=>x.
 function scheduleSalesRepair(){if(state?.currentScreen!=='sales'||salesMetricsCorrect())return;clearTimeout(salesRepairTimer);salesRepairTimer=setTimeout(()=>paintSalesMetrics(),120)}
 async function paintSalesMetrics(){
  const box=q('#one-metrics');if(!box||state?.currentScreen!=='sales'||salesPaintBusy)return;salesPaintBusy=true;
- try{const all=await rawOrders(),{start,end}=periodBounds(),rows=all.filter(order=>{const date=new Date(order.createdAt);return date>=start&&date<end}),valid=rows.filter(order=>order.status!=='Cancelled'),paid=valid.filter(isPaid),active=valid.filter(isActive),outstanding=valid.filter(order=>!isPaid(order)).reduce((sum,order)=>sum+Number(order.total||0),0),revenue=paid.reduce((sum,order)=>sum+Number(order.total||0),0),cashSales=paid.filter(order=>order.paymentMethod==='Cash').reduce((sum,order)=>sum+Number(order.total||0),0);box.innerHTML=[['Paid sales',cash(revenue),'green'],['Paid orders',paid.length,'green'],['Booked active',active.length,'amber'],['Outstanding',cash(outstanding),'orange'],['Cash sales',cash(cashSales),'neutral']].map(([label,value,tone])=>`<article class="metric v41-metric-${tone}"><small>${label}</small><strong>${value}</strong></article>`).join('');box.dataset.v41PaymentMetrics='1'}catch(error){console.warn('[v41 sales]',error)}finally{salesPaintBusy=false;if(!salesMetricsCorrect())scheduleSalesRepair()}
+ try{const all=await rawOrders(),{start,end}=periodBounds(),rows=all.filter(order=>{const date=new Date(order.createdAt);return date>=start&&date<end}),valid=rows.filter(order=>order.status!=='Cancelled'),paid=valid.filter(isPaid),active=valid.filter(isActive),outstanding=valid.filter(order=>!isPaid(order)).reduce((sum,order)=>sum+Number(order.total||0),0),revenue=paid.reduce((sum,order)=>sum+Number(order.total||0),0),cashSales=paid.filter(order=>order.paymentMethod==='Cash').reduce((sum,order)=>sum+Number(order.total||0),0);const stableSalesMarkup=[['Paid sales',cash(revenue),'green'],['Paid orders',paid.length,'green'],['Booked active',active.length,'amber'],['Outstanding',cash(outstanding),'orange'],['Cash sales',cash(cashSales),'neutral']].map(([label,value,tone])=>`<article class="metric v41-metric-${tone}"><small>${label}</small><strong>${value}</strong></article>`).join('');if(box.innerHTML!==stableSalesMarkup)box.innerHTML=stableSalesMarkup;box.dataset.v41PaymentMetrics='1'}catch(error){console.warn('[v41 sales]',error)}finally{salesPaintBusy=false;if(!salesMetricsCorrect())scheduleSalesRepair()}
 }
 function hookSales(){const current=window.loadSales;if(typeof current!=='function'||current===salesHooked||current.__v41)return;const wrapped=async function(){const out=await current.apply(this,arguments);await paintSalesMetrics();return out};wrapped.__v41=true;wrapped.__v40=true;salesHooked=wrapped;window.loadSales=wrapped}
-function decorateDashboardMetrics(){const grid=q('#metric-grid');if(!grid)return;const cards=qa(':scope>.metric',grid);if(cards.length>=4){q('small',cards[0]).textContent='Paid sales';q('small',cards[1]).textContent='Booked active';q('small',cards[2]).textContent='Outstanding';q('small',cards[3]).textContent='Active kitchen';grid.dataset.v41PaymentAware='1'}}
+function decorateDashboardMetrics(){const grid=q('#metric-grid');if(!grid)return;const cards=qa(':scope>.metric',grid);if(cards.length>=4){if(q('small',cards[0]).textContent!=='Paid sales')q('small',cards[0]).textContent='Paid sales';if(q('small',cards[1]).textContent!=='Booked active')q('small',cards[1]).textContent='Booked active';if(q('small',cards[2]).textContent!=='Outstanding')q('small',cards[2]).textContent='Outstanding';if(q('small',cards[3]).textContent!=='Active kitchen')q('small',cards[3]).textContent='Active kitchen';grid.dataset.v41PaymentAware='1'}}
 function observe(){if(document.documentElement.dataset.v41Observed)return;document.documentElement.dataset.v41Observed='1';new MutationObserver(records=>{let cards=false,metrics=false,sales=false;for(const record of records){const target=record.target;if(target.closest?.('#admin-orders'))cards=true;if(target.id==='metric-grid'||target.closest?.('#metric-grid'))metrics=true;if(target.id==='one-metrics'||target.closest?.('#one-metrics'))sales=true}if(cards)requestAnimationFrame(decorateCards);if(metrics)requestAnimationFrame(decorateDashboardMetrics);if(sales)scheduleSalesRepair()}).observe(document.body,{childList:true,subtree:true})}
 function boot(){document.documentElement.dataset.uiRevision=UI_REVISION;installApiBridge();hookSales();ensurePaymentDialog();ensureDueDialog();ensureCartPayment();decorateCards();decorateDashboardMetrics();if(state?.user)refreshDue()}
 

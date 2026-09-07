@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS v0.15.34 · delivery, receipt and readability release */
+/* MNHEL CAFE v0.15.34 · delivery, receipt and readability release */
 (()=>{'use strict';
 const BUILD='0.15.34',REV='20260902-delivery-receipt-sales-34';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];

@@ -73,10 +73,19 @@ static class OrderEditingFeatures
 
     private static async Task<IResult> LoadOrder(long id, PosDb db)
     {
-        var order = await db.Orders.Include(x => x.Items).AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
-        if (order is null) return Results.NotFound(new { message = "Order not found." });
-        var catalog = await LoadCatalog(db);
-        return Results.Ok(EditableView(order, catalog));
+        try
+        {
+            var order = await db.Orders.Include(x => x.Items).AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
+            if (order is null) return Results.NotFound(new { message = "Order not found." });
+            Dictionary<int, ProductVariant> catalog;
+            try { catalog = await LoadCatalog(db); }
+            catch { catalog = new Dictionary<int, ProductVariant>(); }
+            return Results.Ok(EditableView(order, catalog));
+        }
+        catch (Exception error)
+        {
+            return Results.Json(new { message = $"Order edit load failed: {error.Message}" }, statusCode: 500);
+        }
     }
 
     private static async Task<IResult> UpdateOrder(long id, UpdateBookedOrderRequest request, PosDb db, ClaimsPrincipal principal)
@@ -104,7 +113,7 @@ static class OrderEditingFeatures
             return Results.BadRequest(new { message = "Updated cart empty nahi ho sakta." });
 
         var requestedLines = request.Items
-            .Where(x => x.VariantId > 0)
+            .Where(x => x.VariantId > 0 && x.Quantity > 0)
             .Select(x => new
             {
                 x.VariantId,
@@ -131,6 +140,7 @@ static class OrderEditingFeatures
 
         var catalog = await LoadCatalog(db);
         var oldTotal = order.Total;
+        var previousOrder = JsonSerializer.SerializeToElement(OrderView.From(order));
         var original = new List<RunningOrderSnapshotLine>();
         var existingByKey = new Dictionary<string, List<OrderItem>>(StringComparer.Ordinal);
         foreach (var item in order.Items)
@@ -203,6 +213,8 @@ static class OrderEditingFeatures
 
         var payload = JsonSerializer.Serialize(new
         {
+            previousOrder,
+            updatedOrder = JsonSerializer.SerializeToElement(OrderView.From(order)),
             additions = delta.Additions,
             cancellations = delta.Cancellations,
             previousTotal = oldTotal,
@@ -226,6 +238,8 @@ static class OrderEditingFeatures
             additions = delta.Additions,
             cancellations = delta.Cancellations,
             amendmentKind = kind,
+            previousTotal = oldTotal,
+            updatedTotal = order.Total,
             amendedAt = now
         });
     }

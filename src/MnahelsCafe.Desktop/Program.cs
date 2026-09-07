@@ -1,6 +1,6 @@
 /*
  * ============================================================================
- *  Mnahel's Cafe POS · Desktop shell — PROPRIETARY SOFTWARE. DO NOT MODIFY.
+ *  MNHEL CAFE · Desktop shell — PROPRIETARY SOFTWARE. DO NOT MODIFY.
  *  Owner    : Eastern Cross Technology · https://techmint.org
  *  Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
  *  Credit   : A product by Eastern Cross Technology.
@@ -31,6 +31,12 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
         var role = args.Any(x => x.Equals("admin", StringComparison.OrdinalIgnoreCase)) ? "admin" : "cashier";
+        using var singleInstance = new Mutex(true, $"Local\\MnahelsCafePOS-{role}", out var isFirstInstance);
+        if (!isFirstInstance)
+        {
+            MessageBox.Show("MNHEL CAFE pehle se open hai.", "MNHEL CAFE", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
         var config = ConnectionConfig.Load();
 
         var serverArgument = args.FirstOrDefault(x => x.StartsWith("--server=", StringComparison.OrdinalIgnoreCase));
@@ -65,16 +71,20 @@ internal sealed class PosWindow : Form
 {
     private const int ResizeBorder = 7;
 
-    internal const string BuildTag = "0.15.34";
+    internal const string BuildTag = "0.15.61";
 
     private const string BridgeScript =
-        "(function(){document.documentElement.classList.add('mnahels-desktop-shell');window.__mnahelsDualPrintBridge=true;window.__mnahelsSilentPrint=true;" +
+        "(function(){document.documentElement.classList.add('mnahels-desktop-shell');window.__mnahelsDualPrintBridge=true;window.__mnahelsPrintJobBridge=true;if(!window.__mnahelsAfterPrintBridge){window.__mnahelsAfterPrintBridge=true;window.addEventListener('afterprint',function(){try{window.chrome.webview.postMessage('mnahels-print-dialog-closed')}catch(e){}});}window.__mnahelsSilentPrint=true;" +
         "window.print=function(){try{window.chrome.webview.postMessage('mnahels-silent-print')}catch(e){}};" +
         "if(!window.__mnahelsUserBridge){window.__mnahelsUserBridge=true;var last='';" +
         "function syncUser(){var shell=document.getElementById('app-shell'),login=document.getElementById('login-screen'),shown=shell&&!shell.classList.contains('hidden')&&(!login||login.hidden||getComputedStyle(login).display==='none');" +
         "var name=document.getElementById('user-name'),role=document.getElementById('user-role'),value=shown&&name?((name.textContent||'').trim()+'|'+((role&&role.textContent)||'POS').trim()):'';" +
         "if(value===last)return;last=value;try{window.chrome.webview.postMessage(value?'mnahels-user:'+encodeURIComponent(value.split('|')[0])+'|'+encodeURIComponent(value.split('|').slice(1).join('|')):'mnahels-user-hidden')}catch(x){}}" +
-        "new MutationObserver(syncUser).observe(document.documentElement,{subtree:true,childList:true,attributes:true,characterData:true,attributeFilter:['class','style','hidden']});setInterval(syncUser,1000);syncUser();}" +
+        "var syncTimer=0;function queueSync(){clearTimeout(syncTimer);syncTimer=setTimeout(syncUser,80)}" +
+        "var shell=document.getElementById('app-shell'),login=document.getElementById('login-screen'),name=document.getElementById('user-name');" +
+        "[shell,login].forEach(function(x){if(x)new MutationObserver(queueSync).observe(x,{attributes:true,attributeFilter:['class','hidden']})});" +
+        "if(name)new MutationObserver(queueSync).observe(name,{childList:true,subtree:true,characterData:true});" +
+        "document.addEventListener('click',function(){queueSync();setTimeout(syncUser,500)},true);window.addEventListener('focus',queueSync);syncUser();}" +
         "if(!window.__mnahelsKeyBridge){window.__mnahelsKeyBridge=true;" +
         "document.addEventListener('keydown',function(e){var k=e.key||'';" +
         "if(k==='F10'||(e.ctrlKey&&e.shiftKey&&(k==='P'||k==='p'))){e.preventDefault();e.stopPropagation();" +
@@ -121,7 +131,7 @@ internal sealed class PosWindow : Form
             using(var centered=new StringFormat{Alignment=StringAlignment.Center,LineAlignment=StringAlignment.Center})e.Graphics.DrawString("M",logoFont,logoBrush,logoRect,centered);
             using(var nameFont=new Font("Segoe UI",(float)(27*(.82+.18*namePhase)),FontStyle.Bold))
             using(var nameBrush=new SolidBrush(Fade(Color.FromArgb(249,244,232),namePhase)))
-            using(var centered=new StringFormat{Alignment=StringAlignment.Center})e.Graphics.DrawString("Mnahel's Cafe POS",nameFont,nameBrush,new PointF(centerX,centerY-44),centered);
+            using(var centered=new StringFormat{Alignment=StringAlignment.Center})e.Graphics.DrawString("MNHEL CAFE",nameFont,nameBrush,new PointF(centerX,centerY-44),centered);
             using(var sloganFont=new Font("Segoe UI",(float)(10*(.84+.16*sloganPhase)),FontStyle.Bold))
             using(var sloganBrush=new SolidBrush(Fade(Color.FromArgb(244,191,36),sloganPhase)))
             using(var centered=new StringFormat{Alignment=StringAlignment.Center})e.Graphics.DrawString("THE WORLD OF TASTE",sloganFont,sloganBrush,new PointF(centerX,centerY+2),centered);
@@ -135,6 +145,7 @@ internal sealed class PosWindow : Form
     private readonly ConnectionConfig _config;
     private readonly string _baseUrl;
     private readonly SemaphoreSlim _printGate = new(1, 1);
+    private TaskCompletionSource<bool>? _interactivePrintCompletion;
     private readonly System.Windows.Forms.Timer _titleClock = new() { Interval = 1000 };
     private Panel? _titleUserChip;
     private Label? _titleUserMark;
@@ -149,7 +160,7 @@ internal sealed class PosWindow : Form
         _role = role;
         _config = config;
         _baseUrl = config.BaseUrl();
-        Text = role == "admin" ? "Mnahel's Cafe Admin" : "Mnahel's Cafe POS";
+        Text = role == "admin" ? "Mnahel's Cafe Admin" : "MNHEL CAFE";
         if (config.IsClient) Text += "  ·  " + new Uri(_baseUrl).Host;
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1024, 680);
@@ -179,6 +190,11 @@ internal sealed class PosWindow : Form
             await StartBrowserAsync();
         };
         SizeChanged += (_, _) => EnableRoundedCorners();
+        FormClosing += (_, _) =>
+        {
+            try { _browser.CoreWebView2?.Stop(); } catch { }
+            try { _browser.Dispose(); } catch { }
+        };
         FormClosed += (_, _) => _titleClock.Stop();
         KeyDown += (_, e) =>
         {
@@ -395,7 +411,7 @@ internal sealed class PosWindow : Form
 
     private async Task StartBrowserAsync()
     {
-        var minimumSplash = Task.Delay(1850);
+        var minimumSplash = Task.Delay(850);
         if (!await WaitForServerAsync())
         {
             _loading.Text = _config.IsClient
@@ -413,11 +429,12 @@ internal sealed class PosWindow : Form
                 "MnahelsCafePOS",
                 _role == "admin" ? "WebView2-Admin" : "WebView2-Cashier");
             Directory.CreateDirectory(profile);
-            var environment = await CoreWebView2Environment.CreateAsync(null, profile);
+            var environmentOptions = new CoreWebView2EnvironmentOptions("--disable-background-mode");
+            var environment = await CoreWebView2Environment.CreateAsync(null, profile, environmentOptions);
             await _browser.EnsureCoreWebView2Async(environment);
 
             var core = _browser.CoreWebView2;
-            var uiRevision = "20260901-performance-service-32";
+            var uiRevision = "20260905-receipt-integrity-58";
             var cacheRevisionPath = Path.Combine(profile, "ui-cache-revision.txt");
             var cachedRevision = string.Empty;
             try { if (File.Exists(cacheRevisionPath)) cachedRevision = File.ReadAllText(cacheRevisionPath).Trim(); } catch { }
@@ -512,6 +529,24 @@ internal sealed class PosWindow : Form
                     return;
                 }
 
+                if (message == "mnahels-print-dialog-closed")
+                {
+                    _interactivePrintCompletion?.TrySetResult(true);
+                    return;
+                }
+                if (message.StartsWith("mnahels-print-job:", StringComparison.Ordinal))
+                {
+                    try
+                    {
+                        using var job = JsonDocument.Parse(message[18..]);
+                        var jobId = job.RootElement.GetProperty("id").GetString() ?? "";
+                        var jobType = job.RootElement.GetProperty("type").GetString() == "kitchen" ? "kitchen" : "customer";
+                        var printed = await PrintReceiptAsync(core, jobType);
+                        core.PostWebMessageAsString("mnahels-print-result:" + jobId + (printed ? ":done" : ":cancelled"));
+                    }
+                    catch (Exception error) { PrinterConfig.Log("Print job failed: " + error.Message); }
+                    return;
+                }
                 var known = message is "mnahels-print-customer" or "mnahels-print-kitchen" or "mnahels-silent-print";
                 if (!known) return;
 
@@ -553,8 +588,15 @@ internal sealed class PosWindow : Form
             {
                 try
                 {
-                    core.ShowPrintUI(CoreWebView2PrintDialogKind.Browser);
-                    return true;
+                    var dialogCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    _interactivePrintCompletion = dialogCompleted;
+                    try
+                    {
+                        core.ShowPrintUI(CoreWebView2PrintDialogKind.Browser);
+                        var finished = await Task.WhenAny(dialogCompleted.Task, Task.Delay(TimeSpan.FromMinutes(5)));
+                        return finished == dialogCompleted.Task;
+                    }
+                    finally { if (ReferenceEquals(_interactivePrintCompletion, dialogCompleted)) _interactivePrintCompletion = null; }
                 }
                 catch (Exception ex)
                 {
@@ -593,7 +635,7 @@ internal sealed class PosWindow : Form
                 var info = await PreparePrintAsync(core);
                 PrinterConfig.Log(type + " sheet: " + info);
                 var textLength = ParseTag(info, "txt=");
-                if (textLength >= 0 && textLength < 20)
+                if (textLength < 20)
                 {
                     await ToastAsync(core, "Receipt ka content khali tha — print nahi bheji gayi. Dobara koshish karen.");
                     return false;
@@ -612,7 +654,7 @@ internal sealed class PosWindow : Form
                 settings.MarginLeft = 0;
                 settings.MarginRight = 0;
 
-                if (_printers.UseDriverPaper || exactHtmlDesign)
+                if (_printers.UseDriverPaper)
                 {
                     PrinterConfig.Log(type + " paper: printer driver 80mm roll (forced for compact receipt)");
                 }
@@ -632,6 +674,7 @@ internal sealed class PosWindow : Form
 
                 var status = await core.PrintAsync(settings);
                 if (status == CoreWebView2PrintStatus.Succeeded) return true;
+                // No automatic RAW resend of an uncertain styled HTML job.
 
                 var reason = status == CoreWebView2PrintStatus.PrinterUnavailable
                     ? "Printer available nahi hai" + (string.IsNullOrWhiteSpace(printer) ? " (Windows default printer set karen)" : ": " + printer)

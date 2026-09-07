@@ -1,11 +1,11 @@
 /*
- * Mnahel's Cafe POS · v0.15.47 prominent order editing and reliable edit loading
+ * MNHEL CAFE · v0.15.47 prominent order editing and reliable edit loading
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */
 (()=>{
 'use strict';
-const BUILD='0.15.47',REV='20260905-order-edit-console-47';
+const BUILD='0.15.60',REV='20260905-route-dupe-new-added-52';
 const ACTIVE=new Set(['New','Confirmed','Preparing','Ready']);
 const q=(selector,root=document)=>root.querySelector(selector);
 const qa=(selector,root=document)=>[...root.querySelectorAll(selector)];
@@ -46,7 +46,7 @@ function mapCart(order){
    quantity,originalQuantity:quantity,
    unitPrice:price,price,lineTotal:price*quantity,notes:item.notes||null
   };
- }).filter(line=>line.variantId>0);
+ }).map(line=>{if(!line.variantId)throw new Error(line.productName+' is not mapped to the menu; no items were removed.');return line;});
 }
 
 function banner(order){
@@ -89,7 +89,7 @@ function applyEdit(order){
  current.waiterId=order.waiterId||null;
  current.riderId=order.riderId||null;
  const note=q('#order-note');if(note)note.value=order.notes||'';
- const discount=q('#discount');if(discount)discount.value=Number(order.discount||0);
+ const discount=q('#discount');if(discount){const percent=Number(order.subtotal)>0?Number(order.discount||0)*100/Number(order.subtotal):0;discount.value=String(percent);discount.dataset.v39Percent=String(percent);}
  qa('[data-order-type]').forEach(button=>button.classList.toggle('active',button.dataset.orderType===current.orderType));
  qa('[data-payment]').forEach(button=>button.classList.toggle('active',button.dataset.payment===current.paymentMethod));
  document.documentElement.classList.add('v56-editing-order','v35-booking-active','v60-editing-order');
@@ -125,6 +125,7 @@ async function openEdit(id){
  }
  try{
   if(!order)throw new Error(problem?`Order data nahi mila (${problem}).`:'Order data nahi mila.');
+  if(!canEdit(order))throw new Error('Paid, completed ya cancelled order locked hai.');
   applyEdit(order);
   if(problem)console.warn('[v60 edit fallback]',problem);
  }
@@ -169,7 +170,7 @@ async function refresh(force){
 function version(){
  document.documentElement.dataset.v60Revision=REV;
  const meta=q('meta[name="application-version"]');if(meta)meta.content=BUILD;
- document.title=`Mnahel's Cafe POS · v${BUILD}`;
+ document.title=`MNHEL CAFE · v${BUILD}`;
 }
 
 document.addEventListener('click',event=>{

@@ -1,7 +1,7 @@
-/* Mnahel's Cafe POS v0.15.42 — order-start guard and receipt header correction */
+/* MNHEL CAFE v0.15.42 — order-start guard and receipt header correction */
 (()=>{
 'use strict';
-const BUILD='0.15.42',UI_REVISION='20260904-order-start-receipt-performance-42';
+const BUILD='0.15.60',UI_REVISION='20260904-order-start-receipt-performance-42';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const currentState=()=>window.state||{};
 const orderReady=()=>!!currentState().v38SetupDone||!!currentState().v56EditingOrderId;

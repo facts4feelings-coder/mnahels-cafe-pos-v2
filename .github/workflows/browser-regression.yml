@@ -1,0 +1,69 @@
+name: Browser regression and baseline measurements
+on:
+  workflow_call:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  browser-regression:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: 2d0ae1c394907c428e6430d9fd5ef7485482d606
+          path: qa-baseline
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build and verify catalog plus actual browser sessions
+        shell: pwsh
+        run: |
+          dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release --nologo *> browser-tests.log
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-catalog-sync.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-topping-quotes.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-checkout-safety.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-v61-catalog.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          npm install --no-save --ignore-scripts playwright@1.55.0 >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-guided-focus.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-ui-workflows.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          $env:CAFE_BASELINE_ROOT=(Resolve-Path 'qa-baseline/src/MnahelsCafe.Pos/wwwroot').Path
+          node scripts/run-browser-regression.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-cta-browser.cjs --source-only >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-cta-browser.cjs >> browser-tests.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/test-checkout-browser.cjs >> browser-tests.log 2>&1
+          exit $LASTEXITCODE
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v61-browser-proof
+          path: |
+            browser-tests.log
+            reports/v61-browser-tests.json
+            reports/v61-catalog-tests.json
+            reports/v61-checkout-tests.json
+            reports/v61-cta-tests.json
+            reports/v61-ui-workflows.json
+            reports/browser/*.png
+          if-no-files-found: error
+      - if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');let text=fs.existsSync('browser-tests.log')?fs.readFileSync('browser-tests.log','utf8').slice(-14000):'No log';for(const name of ['v61-browser-tests','v61-checkout-tests','v61-cta-tests','v61-ui-workflows'])if(fs.existsSync('reports/'+name+'.json')){const r=JSON.parse(fs.readFileSync('reports/'+name+'.json'));text+='\n'+JSON.stringify(name==='v61-browser-tests'?{metrics:Object.fromEntries(Object.entries(r.measurements).map(([k,v])=>[k,{...v,styles:undefined}])),errors:r.errors}:r,null,2).slice(-12000)}await github.rest.issues.createComment({...context.repo,issue_number:context.issue.number,body:'Browser verification for '+context.payload.pull_request.head.sha+'\n```text\n'+text+'\n```'});

@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.7 service hub, animated order timeline and cash change
+ * MNHEL CAFE · v0.15.7 service hub, animated order timeline and cash change
  * Owner: Eastern Cross Technology · https://techmint.org
  * A product by Eastern Cross Technology.
  */
@@ -199,7 +199,7 @@ function receiptHtml(order,kind='customer'){
  return `<div class="tp tp-customer v36-receipt"><div class="tp-head"><b>MNAHEL'S CAFE</b><small>${title}</small></div>${receiptMode(order)}<div class="tp-dash"></div>${receiptRow('Order',`MC-${E(order.tokenNumber)}`)}${receiptRow('Customer',E(order.customerName||'Walk-in'))}${service}<div class="tp-dash"></div><div class="tp-th"><span>Item</span><b>${kind==='kitchen'?'Qty':'Amount'}</b></div>${items}${note}${money}<div class="tp-foot"><b>A product by Eastern Cross Technology</b><small>${kind==='waiter'?'Serve and keep with the table.':'Thank you.'}</small></div></div>`;
 }
 function bridgePrint(type){return new Promise(resolve=>{if(!(window.__mnahelsDualPrintBridge&&window.chrome?.webview?.postMessage)){try{window.print()}catch(e){}resolve(true);return}let done=false;const h=e=>{const m=String(e.data||'');if(m===`mnahels-print-${type}-done`||m===`mnahels-print-${type}-cancelled`){done=true;try{window.chrome.webview.removeEventListener('message',h)}catch(err){}resolve(m.endsWith('-done'))}};try{window.chrome.webview.addEventListener('message',h);window.chrome.webview.postMessage(`mnahels-print-${type}`)}catch(e){resolve(false)}setTimeout(()=>{if(!done)resolve(true)},20000)})}
-async function printSlip(order,kind='customer',quiet=false){const sheet=q('#print-sheet');if(!sheet)return false;sheet.removeAttribute('style');const printer=kind==='kitchen'?'kitchen':'customer';sheet.className=`print-sheet tp-sheet ${printer}`;sheet.innerHTML=receiptHtml(order,kind);await new Promise(r=>setTimeout(r,140));const ok=await bridgePrint(printer);if(!quiet)toast(ok?`${kind==='waiter'?'Waiter':kind==='kitchen'?'Kitchen':'Customer'} receipt sent to printer.`:'Printing cancelled.');return ok}
+async function printSlip(order,kind='customer',quiet=false){if(window.mnahelsV64)return window.mnahelsV64.printHtml(receiptHtml(order,kind),kind==='kitchen'?'kitchen':'customer');const sheet=q('#print-sheet');if(!sheet)return false;sheet.removeAttribute('style');const printer=kind==='kitchen'?'kitchen':'customer';sheet.className=`print-sheet tp-sheet ${printer}`;sheet.innerHTML=receiptHtml(order,kind);await new Promise(r=>setTimeout(r,140));const ok=await bridgePrint(printer);if(!quiet)toast(ok?`${kind==='waiter'?'Waiter':kind==='kitchen'?'Kitchen':'Customer'} receipt sent to printer.`:'Printing cancelled.');return ok}
 function previewSlip(order,kind){const success=q('#success-dialog'),preview=q('#receipt-preview'),body=q('#receipt-preview-body');if(!preview||!body)return;if(success?.open)success.close();body.innerHTML=receiptHtml(order,kind);preview.showModal()}
 async function autoPrintDine(order){
  if(!order||order.orderType!=='Dine-in'||Number(order.id)===lastAutoPrint)return;
@@ -212,7 +212,7 @@ async function autoPrintDine(order){
 function hookGlobals(){
  if(globalsHooked)return;globalsHooked=true;
  if(typeof loadDashboard==='function'){const old=loadDashboard;loadDashboard=async function(force=false){const r=await old(force);await renderOperations(force);return r}}
- if(typeof showOrderComplete==='function'){const old=showOrderComplete;showOrderComplete=function(order){old(order);state.tableId=null;state.tableNumber=null;state.waiterId=null;state.riderId=null;const input=q('#v36-cash-received');if(input)input.value='';updateChange();operationsSignature='';refreshHub(true);setTimeout(()=>autoPrintDine(order),260)}}
+ if(typeof showOrderComplete==='function'){const old=showOrderComplete;showOrderComplete=function(order){old(order);state.tableId=null;state.tableNumber=null;state.waiterId=null;state.riderId=null;const input=q('#v36-cash-received');if(input)input.value='';updateChange();operationsSignature='';refreshHub(true);/* Booking printing is owned by v41 only. */}}
 }
 function boot(){
  if(booted){ensureServiceNav();bookingFields();enhanceNoteAndCash();return}booted=true;ensureServiceNav();bookingFields();enhanceNoteAndCash();installApiBridge();hookGlobals();syncAssignmentMode(false);refreshHub();

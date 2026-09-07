@@ -1,0 +1,47 @@
+name: Remaining frontend hot-path diagnosis
+on:
+  workflow_dispatch:
+  push:
+    branches: ['refactor/performance-v0.15.61']
+    paths: ['src/**', 'scripts/profile-v61-hotpaths.cjs', '.github/workflows/hotpath-profile.yml']
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: hotpath-profile-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  hotpath-profile:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Profile actual current frontend using temporary data
+        shell: pwsh
+        run: |
+          dotnet build src/MnahelsCafe.Pos/MnahelsCafe.Pos.csproj -c Release --nologo *> hotpath-profile.log
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          npm install --no-save --ignore-scripts playwright@1.55.0 >> hotpath-profile.log 2>&1
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node scripts/profile-v61-hotpaths.cjs >> hotpath-profile.log 2>&1
+          exit $LASTEXITCODE
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v61-hotpath-profile
+          path: |
+            hotpath-profile.log
+            reports/v61-hotpaths.json
+            reports/hotpaths/*.cpuprofile
+          if-no-files-found: error
+      - if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');const prs=await github.rest.pulls.list({...context.repo,head:context.repo.owner+':'+process.env.GITHUB_REF_NAME,state:'open'});if(!prs.data.length)return;const raw=fs.existsSync('reports/v61-hotpaths.json')?fs.readFileSync('reports/v61-hotpaths.json','utf8').slice(0,42000):'No report';const log=fs.existsSync('hotpath-profile.log')?fs.readFileSync('hotpath-profile.log','utf8').slice(-3000):'No log';await github.rest.issues.createComment({...context.repo,issue_number:prs.data[0].number,body:'Current frontend hot-path diagnosis for '+process.env.GITHUB_SHA+' — sampled CPU frames/input/cart-cycle memory only; NOT native or completed-order acceptance.\n```json\n'+raw+'\n```\n```text\n'+log+'\n```'});

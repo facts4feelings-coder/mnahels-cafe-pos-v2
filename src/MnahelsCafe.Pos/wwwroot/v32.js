@@ -1,6 +1,6 @@
 (()=>{
 /* ==========================================================================
-   Mnahel's Cafe POS - v32 layer - build 0.14.8
+   MNHEL CAFE - v32 layer - build 0.14.8
    Owner    : Eastern Cross Technology - https://techmint.org
    Copyright: (c) 2026 Eastern Cross Technology. All rights reserved.
    A product by Eastern Cross Technology.

@@ -1,4 +1,4 @@
-/* Mnahel's Cafe POS · v0.15.25 shared print settings and cashier performance */
+/* MNHEL CAFE · v0.15.25 shared print settings and cashier performance */
 (()=>{
 'use strict';
 const BUILD='0.15.25',UI_REVISION='20260901-receipt-speed-25';

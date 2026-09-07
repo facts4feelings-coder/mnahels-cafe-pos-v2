@@ -1,5 +1,5 @@
 /*
- * Mnahel's Cafe POS · v0.15.11 five-column menu and guided order setup
+ * MNHEL CAFE · v0.15.11 five-column menu and guided order setup
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology.
  */
@@ -39,7 +39,7 @@ async function loadSetupData(){
 }
 function renderMode(){
  const dialog=ensureDialog(),steps=qa('.v38-setup-steps i',dialog);steps[0].classList.add('active');steps[1].classList.remove('active');
- const body=q('#v38-setup-body');body.innerHTML=`<section class="v38-mode-step"><div class="v38-step-copy"><small>STEP 1 OF 2</small><h3>How will this order be served?</h3><p>Choose once. Dine-in staff is selected now; delivery rider is assigned after preparation.</p></div><div class="v38-mode-grid"><button type="button" data-v38-mode="Takeaway"><span>${icons.takeaway}</span><div><strong>Takeaway</strong><small>Counter pickup</small></div><i>→</i></button><button type="button" data-v38-mode="Dine-in"><span>${icons.dine}</span><div><strong>Dine-in</strong><small>Table service</small></div><i>→</i></button><button type="button" data-v38-mode="Delivery"><span>${icons.delivery}</span><div><strong>Delivery</strong><small>Rider after preparation</small></div><i>→</i></button></div><p class="v38-key-hint">← → move · Enter select · Esc close</p></section>`;
+ const body=q('#v38-setup-body');body.innerHTML=`<section class="v38-mode-step"><div class="v38-step-copy"><small>STEP 1 OF 2</small><h3>How will this order be served?</h3><p>Choose once. Dine-in needs only a table; delivery rider is assigned after preparation.</p></div><div class="v38-mode-grid"><button type="button" data-v38-mode="Takeaway"><span>${icons.takeaway}</span><div><strong>Takeaway</strong><small>Counter pickup</small></div><i>→</i></button><button type="button" data-v38-mode="Dine-in"><span>${icons.dine}</span><div><strong>Dine-in</strong><small>Table service</small></div><i>→</i></button><button type="button" data-v38-mode="Delivery"><span>${icons.delivery}</span><div><strong>Delivery</strong><small>Rider after preparation</small></div><i>→</i></button></div><p class="v38-key-hint">← → move · Enter select · Esc close</p></section>`;
  body.scrollTop=0;q('#v38-setup-footer').innerHTML='<span>Order details stay outside the cart, keeping checkout compact.</span>';
  requestAnimationFrame(()=>q('[data-v38-mode]',dialog)?.focus());
 }
@@ -48,6 +48,7 @@ function resourceRows(kind,rows,selected){
  return `<div class="v38-resource-grid">${(rows||[]).map((x,i)=>{const busy=kind==='waiter'?!x.isActive:!!(x.booked||x.occupied||!x.isActive),on=Number(selected)===Number(x.id),tables=Number(x.tableCount||x.assignments?.length||0),detail=kind==='waiter'&&tables?`Serving ${tables} table${tables===1?'':'s'} · available`:busy&&!on?`Booked${x.tokenNumber?` · MC-${E(x.tokenNumber)}`:''}`:x.phone?E(x.phone):on?'Selected':'Available';return `<button type="button" class="v38-resource ${on?'selected':''}" data-v38-resource="${kind}" data-id="${x.id}" ${busy&&!on?'disabled':''} style="--resource-i:${i}"><span>${icon}</span><div><strong>${E(x.name||`${kind} ${x.id}`)}</strong><small>${detail}</small></div>${on?icons.check:'<i>○</i>'}</button>`}).join('')||'<p class="v38-none">No available options. Add them in Service Hub.</p>'}</div>`;
 }
 function assignmentMarkup(){
+ if(draft.mode==='Dine-in')return `<section><div class="v38-section-title"><span>${icons.table}</span><div><strong>Select table</strong><small>Only table selection is required</small></div></div>${resourceRows('table',resources.tables,draft.tableId)}</section>`;
  if(draft.mode==='Dine-in')return `<div class="v38-assignment-columns"><section><div class="v38-section-title"><span>${icons.table}</span><div><strong>Select table</strong><small>Required for dine-in</small></div></div>${resourceRows('table',resources.tables,draft.tableId)}</section><section><div class="v38-section-title"><span>${icons.waiter}</span><div><strong>Assign waiter</strong><small>Available floor team</small></div></div>${resourceRows('waiter',resources.waiters,draft.waiterId)}</section></div>`;
  if(draft.mode==='Delivery')return `<div class="v38-takeaway-note v55-rider-later"><span>${icons.rider}</span><div><strong>Rider will be assigned after preparation</strong><small>Book this delivery now. When Prepared is selected, choose whoever is available.</small></div></div>`;
  return `<div class="v38-takeaway-note"><span>${icons.takeaway}</span><div><strong>Counter pickup</strong><small>No table or team assignment is needed.</small></div></div>`;
@@ -57,10 +58,12 @@ function renderDetails(){
  const dialog=ensureDialog(),steps=qa('.v38-setup-steps i',dialog);steps[0].classList.add('active');steps[1].classList.add('active');
  const name=draft.name||defaultName(proposedToken),phone=draft.phone||defaultPhone(proposedToken),address=draft.address||'';
  const body=q('#v38-setup-body');body.innerHTML=`<section class="v38-detail-step"><div class="v38-selected-mode"><span>${modeIcon(draft.mode)}</span><div><small>MC-${proposedToken}</small><strong>${E(draft.mode)}</strong></div><button type="button" data-v38-back>Change</button></div>${assignmentMarkup()}<section class="v38-customer-setup"><div class="v38-section-title"><span>${icons.customer}</span><div><strong>Customer details</strong><small>Safe defaults are already matched to MC-${proposedToken}; click a default to replace it.</small></div></div><div class="v38-customer-fields"><label><span>Customer name</span><input id="v38-customer-name" value="${E(name)}" autocomplete="off"></label><label><span>Phone number</span><input id="v38-customer-phone" value="${E(phone)}" inputmode="numeric" maxlength="11" autocomplete="off"></label>${draft.mode==='Delivery'?`<label class="v38-address"><span>Delivery address <b>*</b></span><input id="v38-delivery-address" value="${E(address)}" placeholder="House, street, area" autocomplete="street-address"></label>`:''}</div></section></section>`;
+ if(draft.mode==='Dine-in')q('.v38-customer-setup',body)?.remove();
  body.scrollTop=0;q('#v38-setup-footer').innerHTML='<button type="button" class="v38-back" data-v38-back>← Back</button><div><small>Next: add menu items</small><button type="button" class="v38-start" data-v38-start>Start order <b>→</b></button></div>';
  autoInput(q('#v38-customer-name'),defaultName(proposedToken));autoInput(q('#v38-customer-phone'),defaultPhone(proposedToken));
  q('#v38-customer-phone')?.addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,11));
- requestAnimationFrame(()=>q('.v38-resource:not(:disabled),#v38-customer-name',dialog)?.focus());
+ // Do not steal focus after an operator has already moved to another field.
+ const focusOwner=document.activeElement;requestAnimationFrame(()=>{if(dialog.open&&(document.activeElement===focusOwner||document.activeElement===document.body))q('.v38-resource:not(:disabled),#v38-customer-name',dialog)?.focus()});
 }
 function modeSelect(mode){draft.mode=mode;draft.tableId=null;draft.waiterId=null;draft.riderId=null;const button=q(`[data-v38-mode="${mode}"]`);button?.classList.add('chosen');setTimeout(renderDetails,180)}
 function setResource(kind,id){draft.name=q('#v38-customer-name')?.value||draft.name;draft.phone=q('#v38-customer-phone')?.value||draft.phone;draft.address=q('#v38-delivery-address')?.value||draft.address;id=Number(id)||null;if(kind==='table')draft.tableId=id;if(kind==='waiter')draft.waiterId=id;if(kind==='rider')draft.riderId=id;renderDetails()}
@@ -70,19 +73,23 @@ function renderContext(){
  const toolbar=q('#screen-pos .catalog-panel .toolbar');if(!toolbar)return;let bar=q('#v38-order-context');if(!bar){bar=document.createElement('section');bar.id='v38-order-context';toolbar.after(bar)}
  const service=draft.mode==='Dine-in'?`${selectedResource('table',draft.tableId)?.name||'Table'} · ${selectedResource('waiter',draft.waiterId)?.name||'Waiter'}`:draft.mode==='Delivery'?'Rider after preparation':'Counter pickup';
  bar.innerHTML=`<span class="v38-context-token">MC-${proposedToken}</span><span class="v38-context-mode">${modeIcon(draft.mode)}<b>${E(draft.mode)}</b></span><span class="v38-context-customer">${icons.customer}<span><b>${E(draft.name)}</b><small>${E(draft.phone)}</small></span></span><span class="v38-context-service">${draft.mode==='Dine-in'?icons.table:draft.mode==='Delivery'?icons.rider:icons.takeaway}<b>${E(service)}</b></span><button type="button" data-v38-edit>${icons.edit}<span>Edit</span></button>`;
+ if(draft.mode==='Dine-in')q('.v38-context-customer',bar)?.remove();
  const head=q('#screen-pos .cart-head');if(head){const title=q('h3',head),label=q('.eyebrow',head);if(title){title.textContent=`MC-${proposedToken}`;title.dataset.v38Locked='1'}if(label)label.textContent=`${draft.mode} · ${service}`}
 }
-function commitSetup(){
+async function commitSetup(){
+ if(window.mnahelsV66&&!await window.mnahelsV66.ensureShift())return;
  const name=q('#v38-customer-name')?.value.trim()||defaultName(proposedToken),phone=(q('#v38-customer-phone')?.value||'').replace(/\D/g,'')||defaultPhone(proposedToken),address=q('#v38-delivery-address')?.value.trim()||'';
  if(draft.mode==='Dine-in'&&!draft.tableId)return toast('Dine-in order ke liye available table select karein.');
- if(draft.mode==='Dine-in'&&!draft.waiterId)return toast('Dine-in order ke liye available waiter select karein.');
+ // v60: dine-in needs a table only.
  if(draft.mode==='Delivery'&&!address){toast('Delivery address required hai.');q('#v38-delivery-address')?.focus();return}
- draft.name=name;draft.phone=phone;draft.address=address;state.orderType=draft.mode;state.tableId=draft.mode==='Dine-in'?draft.tableId:null;state.tableNumber=state.tableId;state.waiterId=draft.mode==='Dine-in'?draft.waiterId:null;state.riderId=draft.mode==='Delivery'?-1:null;state.v38ProposedToken=proposedToken;state.v38SetupDone=true;
- qa('#screen-pos [data-order-type]').forEach(x=>x.classList.toggle('active',x.dataset.orderType===draft.mode));setField('#customer-name',name);setField('#customer-phone',phone);setField('#delivery-address',draft.mode==='Delivery'?address:'');q('#customer-suggestions')?.classList.remove('show');
+ if(draft.mode==='Dine-in'){draft.waiterId=null;}
+ draft.name=draft.mode==='Dine-in'?'':name;draft.phone=draft.mode==='Dine-in'?'':phone;draft.address=address;state.orderType=draft.mode;state.tableId=draft.mode==='Dine-in'?draft.tableId:null;state.tableNumber=state.tableId;state.waiterId=draft.mode==='Dine-in'?draft.waiterId:null;state.riderId=draft.mode==='Delivery'?-1:null;state.v38ProposedToken=proposedToken;state.v38SetupDone=true;
+ qa('#screen-pos [data-order-type]').forEach(x=>x.classList.toggle('active',x.dataset.orderType===draft.mode));setField('#customer-name',draft.name);setField('#customer-phone',draft.phone);setField('#delivery-address',draft.mode==='Delivery'?address:'');q('#customer-suggestions')?.classList.remove('show');
  if(!editing){state.cart=[];q('#discount')&&(q('#discount').value=0);q('#order-note')&&(q('#order-note').value='');q('#v36-cash-received')&&(q('#v36-cash-received').value='');renderCart()}
  renderContext();const screen=q('#screen-pos');screen?.classList.add('v35-booking-open','v38-ready');document.documentElement.classList.add('v35-booking-active');ensureDialog().close();const focusSearch=()=>{const search=q('#search');if(!search)return;search.focus({preventScroll:true});try{search.select()}catch(e){}};requestAnimationFrame(focusSearch);setTimeout(focusSearch,80);setTimeout(focusSearch,220);
 }
 async function openSetup(edit=false){
+ if(window.mnahelsV66&&!await window.mnahelsV66.ensureShift())return;
  const dialog=ensureDialog();editing=!!edit;const legacyWizard=q('#order-wizard');if(legacyWizard?.open)legacyWizard.close();const legacyVariant=q('#variant-dialog');if(legacyVariant?.open)legacyVariant.close();if(state.currentScreen!=='pos'){try{navigate('pos')}catch(e){q('[data-screen="pos"]')?.click()}}
  if(!dialog.open)dialog.showModal();loading();if(edit&&state.v38SetupDone){proposedToken=Number(state.v38ProposedToken)||proposedToken;draft={mode:state.orderType||'Takeaway',tableId:state.tableId||null,waiterId:state.waiterId||null,riderId:state.riderId||null,name:q('#customer-name')?.value||defaultName(proposedToken),phone:q('#customer-phone')?.value||defaultPhone(proposedToken),address:q('#delivery-address')?.value||''}}
  await loadSetupData();if(!dialog.open)return;if(!edit){draft={mode:'',tableId:null,waiterId:null,riderId:null,name:defaultName(proposedToken),phone:defaultPhone(proposedToken),address:''};renderMode()}else renderDetails();

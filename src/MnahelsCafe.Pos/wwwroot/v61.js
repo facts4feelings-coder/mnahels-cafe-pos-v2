@@ -1,11 +1,11 @@
-/* Mnahel's Cafe POS v0.15.52 - shift order log, per-order log, running-order delta slips,
+/* MNHEL CAFE v0.15.52 - shift order log, per-order log, running-order delta slips,
  * instant edit-mode cart with a NEW ADDED section, glitch-free Book/Update label
  * and a Service Hub shortcut.
  * Copyright (c) 2026 Eastern Cross Technology. All rights reserved.
  * A product by Eastern Cross Technology. */
 (function(){
 'use strict';
-const BUILD='0.15.52',REV='20260905-route-dupe-new-added-52';
+const BUILD='0.15.61',REV='20260905-menu-images-order-print-56';
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'Rs '+Math.round(Number(v||0)).toLocaleString('en-PK');
@@ -51,7 +51,7 @@ function slipHtml(order,lines,type,result){
  const items=rows.map(row=>itemRow(row,cancellation)).join('')||'<div class="v43-empty">No items</div>';
  const token=(order&&order.tokenNumber!=null)?order.tokenNumber:'-';
  const customer=(order&&order.customerName)||'Walk-in customer';
- return '<article class="tp tp-customer v43-receipt kitchen v58-running-slip v61-running-slip '+(cancellation?'v61-cancellation':'v61-addition')+'" data-receipt-kind="'+(cancellation?'running-cancellation':'running-addition')+'" data-order-mode="'+esc(mode)+'"><header class="tp-head v43-dark-head"><div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">'+LOGO+'</span><b>MNAHEL&#39;S CAFE</b></div><small>THE WORLD OF TASTE</small></div><div class="v43-mode"><span class="v43-mode-icon">'+ICONS[mode]+'</span><b>'+esc(mode.toUpperCase())+'</b></div><div class="v43-seal"><strong>'+(cancellation?'CANCELLED':'RUNNING')+'</strong><small>'+(cancellation?'REMOVE ITEMS':'ADD ITEMS')+'</small></div></header><div class="v43-body"><div class="v43-meta-grid">'+metaCell('ORDER','MC-'+token)+metaCell('PLACED AT',placedAt(order))+metaCell('CUSTOMER',customer)+metaCell(info.label,info.value)+'</div><div class="v61-running-banner"><b>RUNNING ORDER</b><small>'+(cancellation?'CANCELLED ITEMS ONLY':'NEW ITEMS ONLY')+'</small></div><div class="v61-running-hint">'+hint+'</div><div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>AMOUNT</b></div>'+items+'</div>'+billBlock(previous,updated,cancellation)+'<footer class="tp-foot v41-footer"><strong>RUNNING ORDER'+(cancellation?' - CANCELLATION':'')+'</strong><span>'+(cancellation?'Cancelled items only':'New items only')+'</span><b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small></footer></div></article>';
+ return (window.mnahelsV63?.cleanHtml||String)('<article class="tp tp-customer v43-receipt kitchen v58-running-slip v61-running-slip '+(cancellation?'v61-cancellation':'v61-addition')+'" data-receipt-kind="'+(cancellation?'running-cancellation':'running-addition')+'" data-order-mode="'+esc(mode)+'"><header class="tp-head v43-dark-head"><div class="v43-brand"><div class="v43-brand-line"><span class="v43-brand-logo">'+LOGO+'</span><b>MNAHEL&#39;S CAFE</b></div><small>THE WORLD OF TASTE</small></div><div class="v43-mode"><span class="v43-mode-icon">'+ICONS[mode]+'</span><b>'+esc(mode.toUpperCase())+'</b></div><div class="v43-seal"><strong>'+(cancellation?'CANCELLED':'RUNNING')+'</strong><small>'+(cancellation?'REMOVE ITEMS':'ADD ITEMS')+'</small></div></header><div class="v43-body"><div class="v43-meta-grid">'+metaCell('ORDER','MC-'+token)+metaCell('PLACED AT',placedAt(order))+metaCell('CUSTOMER',customer)+metaCell(info.label,info.value)+'</div><div class="v61-running-banner"><b>'+(cancellation?'RUNNING ORDER — REMOVAL/CANCELLED':'RUNNING ORDER')+'</b><small>'+(cancellation?'CANCELLED ITEMS ONLY':'NEW ITEMS ONLY')+'</small></div><div class="v61-running-hint">'+hint+'</div><div class="v43-items"><div class="tp-th"><span>QTY</span><span>ITEM</span><b>AMOUNT</b></div>'+items+'</div>'+billBlock(previous,updated,cancellation)+'<footer class="tp-foot v41-footer"><strong>RUNNING ORDER'+(cancellation?' - CANCELLATION':'')+'</strong><span>'+(cancellation?'Cancelled items only':'New items only')+'</span><b>A product by eastern cross technology</b><small>www.easterncrosstech.com</small></footer></div></article>');/*v63-clean*/
 }
 
 /* ---- printing: one deduped path for every running-order slip ---- */
@@ -65,7 +65,7 @@ function bridgePrint(){
   setTimeout(()=>{if(!finished){try{window.chrome.webview.removeEventListener('message',handler)}catch(e){}resolve(true)}},20000);
  });
 }
-async function printSlip(order,lines,type,result){
+async function printSlip(order,lines,type,result){if(window.mnahelsV64){if(!lines?.length)return true;return window.mnahelsV64.printHtml(slipHtml(order,lines,type,result),'kitchen');}
  if(!Array.isArray(lines)||!lines.length)return true;
  const key=String((order&&order.tokenNumber)||'-')+':'+String(type)+':'+lines.length+':'+Number((result&&result.updatedTotal)||0);
  const now=Date.now();
@@ -125,7 +125,7 @@ function installApiHook(){
   const promise=original.call(this,usePath,useOptions);
   try{
    const clean=pathOf(usePath),method=String((useOptions&&useOptions.method)||'GET').toUpperCase();
-   if(method==='PUT'&&/^\/orders\/\d+$/.test(clean)&&promise&&typeof promise.then==='function')promise.then(result=>{pendingEdit=0;try{handleAmendment(result)}catch(e){}},()=>{});
+   if(method==='PUT'&&/^\/orders\/\d+$/.test(clean)&&promise&&typeof promise.then==='function')promise.then(result=>{pendingEdit=0;/* Completion owns printing; watcher only refreshes audit. */setTimeout(()=>loadLog(true),700)},()=>{});
   }catch(e){}
   return promise;
  };
@@ -224,33 +224,85 @@ function markNewAdded(){
  setShown(bookedHead,lines.length>fresh);
 }
 
-/* ---- Book order / Update order label: one desired value, enforced instantly ---- */
+/* ---- Book order / Update order label: bounded discovery, instant repair ---- */
+const CTA_SELECTOR='b,strong,small,span';
+const CTA_TEXT=new Set(['Book first','Book order','Place order','Update order','Order will be Booked + Unpaid','Order will be Updated']);
+const ctaLabels=new Set();
+let ctaRoot=null,ctaObserver=null;
+function rememberCta(el){
+ if(!el||el.nodeType!==1)return false;
+ const had=ctaLabels.has(el);
+ const eligible=el.matches(CTA_SELECTOR)&&!el.children.length&&ctaRoot&&ctaRoot.contains(el)&&
+  !el.closest('#place-order,#v56-edit-banner')&&el.id!==HEAD_NEW&&el.id!==HEAD_BOOKED&&CTA_TEXT.has(String(el.textContent||'').trim());
+ if(eligible)ctaLabels.add(el);else ctaLabels.delete(el);
+ return had||eligible;
+}
+function discoverCta(node){
+ if(!node||node.nodeType!==1)return false;
+ let changed=rememberCta(node);
+ // Text-only mutations must not rediscover every product in the POS root.
+ if(node.children.length)node.querySelectorAll(CTA_SELECTOR).forEach(el=>{if(rememberCta(el))changed=true});
+ return changed;
+}
+function collectCtaMutations(records){
+ let changed=false,removed=false;
+ records.forEach(record=>{
+  if(record.type==='attributes'){
+   if(record.target===ctaRoot)paint();
+   return;
+  }
+  const el=record.target.nodeType===1?record.target:record.target.parentElement;
+  if(rememberCta(el))changed=true;
+  if(el&&el.closest('#place-order'))changed=true;
+  if(record.type==='childList'){
+   record.addedNodes.forEach(node=>{if(discoverCta(node))changed=true});
+   if(record.removedNodes.length)removed=true;
+  }
+ });
+ if(removed)ctaLabels.forEach(el=>{if(!ctaRoot.contains(el)){ctaLabels.delete(el);changed=true}});
+ return changed;
+}
+function ensureCtaRoot(root){
+ if(root===ctaRoot)return;
+ if(ctaObserver)ctaObserver.disconnect();
+ ctaObserver=null;ctaRoot=root;ctaLabels.clear();
+ if(!root)return;
+ discoverCta(root);
+ ctaObserver=new MutationObserver(records=>{if(collectCtaMutations(records))ctaSync()});
+ ctaObserver.observe(root,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+}
 function ctaSync(){
  const on=editing();
  editFlag(on);
  const root=q('#screen-pos');
- if(root)root.classList.toggle('v61-editing',on);
+ ensureCtaRoot(root);
+ // Drain pending records too: callers may append a label then refresh in the
+ // same JS task, before MutationObserver delivery.
+ if(ctaObserver)collectCtaMutations(ctaObserver.takeRecords());
+ if(root&&root.classList.contains('v61-editing')!==on)root.classList.toggle('v61-editing',on);
  if(!on){document.documentElement.classList.remove('v60-editing-order');editingId=0}
  const label=q('#place-order span');
  if(label&&!label.children.length){
   const want=on?'Update order':'Book order';
   if(String(label.textContent||'').trim()!==want)label.textContent=want;
  }
- if(!root)return;
- qa('b,strong,small,span',root).forEach(el=>{
-  if(el.children.length||el.closest('#place-order')||el.closest('#v56-edit-banner')||el.id===HEAD_NEW||el.id===HEAD_BOOKED)return;
+ ctaLabels.forEach(el=>{
+  rememberCta(el);
+  if(!ctaLabels.has(el))return;
   const raw=String(el.textContent||'').trim();
-  if(!raw||raw.length>40)return;
+  let want=raw;
   if(on){
-   if(raw==='Book first'||raw==='Book order'||raw==='Place order')el.textContent='Update order';
-   else if(raw==='Order will be Booked + Unpaid')el.textContent='Order will be Updated';
+   if(raw==='Book first'||raw==='Book order'||raw==='Place order')want='Update order';
+   else if(raw==='Order will be Booked + Unpaid')want='Order will be Updated';
   }else{
-   if(raw==='Update order')el.textContent='Book first';
-   else if(raw==='Order will be Updated')el.textContent='Order will be Booked + Unpaid';
+   if(raw==='Update order')want='Book first';
+   else if(raw==='Order will be Updated')want='Order will be Booked + Unpaid';
   }
+  if(raw!==want)el.textContent=want;
  });
 }
 function stampBuild(){
+ const title='MNHEL CAFE · v'+BUILD;if(document.title!==title)document.title=title;
  const meta=q('meta[name="application-version"]');
  if(meta&&meta.content!==BUILD)meta.content=BUILD;
  qa('.side-bottom *,.server-state *,.sidebar small,.sidebar b,.sidebar strong,.sidebar span,#v46-chip *').forEach(el=>{
@@ -263,7 +315,7 @@ function stampBuild(){
 }
 
 /* ---- instant repaint: observers instead of timers, so the cart never flashes ---- */
-let painting=false,syncing=false;
+let painting=false;
 function paint(){
  if(painting)return;
  painting=true;
@@ -271,19 +323,12 @@ function paint(){
  if(typeof requestAnimationFrame==='function')requestAnimationFrame(run);else setTimeout(run,0);
 }
 function watchUi(){
- const button=q('#place-order');
- if(button&&!button.__v61){
-  button.__v61=true;
-  new MutationObserver(()=>{if(syncing)return;syncing=true;try{ctaSync()}finally{syncing=false}}).observe(button,{childList:true,subtree:true,characterData:true});
- }
  const panel=q('#screen-pos .cart-panel');
  if(panel&&!panel.__v61){panel.__v61=true;new MutationObserver(paint).observe(panel,{childList:true,subtree:true})}
- const root=q('#screen-pos');
- if(root&&!root.__v61){root.__v61=true;new MutationObserver(paint).observe(root,{attributes:true,attributeFilter:['class']})}
 }
 
 /* ---- per-order log on the shift screen ---- */
-function localTime(v){if(!v)return'-';const d=new Date(v);return Number.isNaN(d.getTime())?'-':d.toLocaleString('en-PK',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function localTime(v){if(!v)return'-';const d=new Date(v);if(Number.isNaN(d.getTime()))return'-';return '<span class="v65-shift-time">'+d.toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric',timeZone:'Asia/Karachi'})+'<br>'+d.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Karachi'})+'</span>'}
 function roleBadge(role){const n=String(role||'Staff');return '<span class="v46-role '+(n.toLowerCase()==='admin'?'admin':'cashier')+'">'+esc(n.toUpperCase())+'</span>'}
 function grouped(events){
  const map=new Map();

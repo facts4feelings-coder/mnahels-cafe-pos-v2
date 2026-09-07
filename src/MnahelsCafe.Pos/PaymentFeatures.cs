@@ -26,10 +26,10 @@ static class PaymentFeatures
             return Results.BadRequest(new { message = "Order mode invalid." });
 
         var tableId = type == "Dine-in" ? request.TableId ?? request.TableNumber : null;
-        var waiterId = type == "Dine-in" ? request.WaiterId : null;
+        int? waiterId = null;
         var riderId = type == "Delivery" && request.RiderId.HasValue && request.RiderId.Value > 0 ? request.RiderId : null;
-        var name = request.CustomerName?.Trim();
-        var phone = CustomerPhone.Normalize(request.CustomerPhone);
+        var name = type == "Dine-in" ? null : request.CustomerName?.Trim();
+        var phone = type == "Dine-in" ? "" : CustomerPhone.Normalize(request.CustomerPhone);
         var address = request.DeliveryAddress?.Trim();
         CafeTable? table = null;
         ServicePerson? waiter = null;
@@ -51,9 +51,7 @@ static class PaymentFeatures
             if (table is null) return Results.BadRequest(new { message = "Selected table available nahi hai." });
             if (await db.Orders.AnyAsync(x => x.TableId == tableId && x.Status != "Completed" && x.Status != "Cancelled"))
                 return Results.BadRequest(new { message = $"{table.Name} already booked hai." });
-            if (!waiterId.HasValue) return Results.BadRequest(new { message = "Dine-in order ke liye available waiter select karein." });
-            waiter = await db.ServicePeople.FirstOrDefaultAsync(x => x.Id == waiterId && x.Type == "Waiter" && x.IsActive);
-            if (waiter is null) return Results.BadRequest(new { message = "Selected waiter available nahi hai." });
+            // Table-only dine-in: no waiter or customer assignment required.
         }
 
         var variantIds = request.Items.Select(x => x.VariantId).Distinct().ToList();
@@ -63,8 +61,8 @@ static class PaymentFeatures
         if (variants.Count != variantIds.Count) return Results.BadRequest(new { message = "One or more items are unavailable." });
 
         var now = DateTimeOffset.Now;
-        var shift = request.PayNow ? await ShiftFeatures.GetOpenShiftAsync(db) : null;
-        if (request.PayNow && shift is null) return ShiftFeatures.ShiftRequired();
+        var shift = await ShiftFeatures.GetOpenShiftAsync(db);
+        if (shift is null) return ShiftFeatures.ShiftRequired();
         Customer? customer = null;
         if (!string.IsNullOrWhiteSpace(phone))
         {
@@ -95,11 +93,12 @@ static class PaymentFeatures
             Status = "New", KitchenStatus = "Pending", PaymentStatus = "Unpaid", PaymentMethod = ""
         };
         ShiftFeatures.StampCreated(order, principal);
+        order.ShiftId=shift.Id;
         foreach (var line in request.Items)
         {
             var variant = variants[line.VariantId];
             var quantity = Math.Clamp(line.Quantity, 1, 99);
-            order.Items.Add(new OrderItem { ProductName = variant.Product!.Name, VariantName = variant.Name,
+            order.Items.Add(new OrderItem { VariantId = variant.Id, ProductName = variant.Product!.Name, VariantName = variant.Name,
                 Quantity = quantity, UnitPrice = variant.Price, LineTotal = variant.Price * quantity, Notes = line.Notes });
         }
         order.Subtotal = order.Items.Sum(x => x.LineTotal);

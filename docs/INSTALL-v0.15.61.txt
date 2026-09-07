@@ -1,0 +1,37 @@
+Mnahel's Cafe POS 0.15.61 - Windows x64
+A product by Eastern Cross Technology. Existing licensing and attribution apply.
+
+PACKAGE
+MnahelsCafePOS-Setup-0.15.61.exe
+SHA256SUMS.txt
+build-info.json
+INSTALL-README.txt
+
+BEFORE UPGRADING
+1. Use the application's Backup function and keep the backup outside the install folder.
+2. Record the current Server/Cashier role, server address and printer choices.
+3. Close POS windows and install during a quiet period. Keep the previous installer.
+4. Keep your existing valid installation/activation information. This installer does not remove licensing.
+
+INSTALL
+Extract the downloaded ZIP. Verify the EXE against SHA256SUMS.txt:
+  Get-FileHash .\MnahelsCafePOS-Setup-0.15.61.exe -Algorithm SHA256
+Run the setup EXE as administrator. Select the same role as the existing PC.
+Server PC hosts the database/service; Cashier PC connects to that server.
+The existing installer rewrites connection.json, so a Cashier PC may need its server address entered again through Connection setup.
+The normal database location remains %ProgramData%\MnahelsCafePOS\mnahels-pos.db.
+Do not delete that folder or use Reset to Defaults as an upgrade step.
+The .NET runtime is bundled. The desktop shell also needs Microsoft Edge WebView2 Runtime.
+
+AFTER INSTALL
+Open the desktop shortcut. Check login, existing menu/prices and order history.
+Confirm server connection and printer selections before taking live orders.
+Test customer/kitchen output on the actual printer before normal cafe service.
+Avoid repeated retries if a printer result is uncertain; reconcile the saved order first.
+
+VERIFICATION BOUNDARY
+Automated Windows build, browser booking/payment, catalog and receipt-queue gates are required before this package is uploaded.
+Browser print-call verification is not a physical-printer or native-installation certification.
+The completed UI matrix uses size selection followed by cart + for quantity; rapid repeated size-picker interaction is not fully accepted. Use the cart quantity controls.
+No blanket speed, zero-bug, clean-upgrade or cafe-hardware guarantee is made.
+The exact built commit, version and EXE SHA256 are recorded in build-info.json.

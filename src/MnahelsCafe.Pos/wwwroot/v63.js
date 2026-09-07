@@ -17,6 +17,7 @@ function cleanHtml(html){
   qa('.v61-bill,.v43-summary,.v43-payment-grid,.v61-running-hint,.tp-foot,.v43-third,.tp-th>b',r).forEach(n=>n.remove());
   qa('.v43-item-name small',r).forEach(n=>{qa('.v61-add-tag,.v61-cancel-tag',n).forEach(tag=>tag.remove());n.innerHTML=n.innerHTML.replace(/\s*[-·]\s*Rs\s*[\d,.]+\s*each\s*/i,' ').replace(/\s*·\s*Prep line/,'').trim()});
  }
+ window.mnahelsV65?.polish(r);window.mnahelsV66?.polish(r);
  return t.innerHTML;
 }
 function apply(){
@@ -33,17 +34,18 @@ function apply(){
  rule(' .v43-meta-grid','grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;');
  rule(' .v43-meta-cell','height:auto!important;overflow:visible!important;');
  rule(' .v43-meta-cell *','overflow:visible!important;');
- for(const s of [' .v43-items .tp-th',' .v43-item-row'])rule(s,'display:grid!important;grid-template-columns:minmax(0,13%) minmax(0,1fr) minmax(0,29%)!important;align-items:stretch!important;height:auto!important;min-height:0!important;');
+ for(const s of [' .v43-items .tp-th',' .v43-item-row'])rule(s,'display:grid!important;grid-template-columns:minmax(2.2em,13%) minmax(0,1fr) minmax(0,29%)!important;align-items:stretch!important;height:auto!important;min-height:0!important;');
  rule(' .v43-item-row *','height:auto!important;overflow:visible!important;');
- rule('.v63-kitchen .v43-item-row','grid-template-columns:minmax(0,16%) minmax(0,1fr)!important;');
- rule('.v63-kitchen .tp-th','grid-template-columns:minmax(0,16%) minmax(0,1fr)!important;');
+ rule('.v63-kitchen .v43-item-row','grid-template-columns:minmax(2.2em,16%) minmax(0,1fr)!important;');
+ rule('.v63-kitchen .tp-th','grid-template-columns:minmax(2.2em,16%) minmax(0,1fr)!important;');
  rule(' .v43-dark-head',`height:auto!important;min-height:110px!important;grid-template-rows:auto auto!important;overflow:visible!important;background:${white?'#fff':'#000'}!important;color:${white?'#000':'#fff'}!important;`);
  rule(' .v43-dark-head *',`color:${white?'#000':'#fff'}!important;`);
  rule(' .v43-brand-line','max-width:100%!important;min-width:0!important;');
- rule(' .v43-brand-line>b',`font-size:${Math.max(18.5,f+5)}px!important;white-space:normal!important;`);
- rule(' .v43-brand-logo','width:28px!important;min-width:28px!important;flex:0 0 28px!important;');
+ rule(' .v43-brand-line>b',`font-size:${Math.max(18,f+4)}px!important;white-space:normal!important;`);
+ rule(' .v43-brand-logo','width:40px!important;height:40px!important;min-width:40px!important;flex:0 0 40px!important;');
+ rule(' .v43-brand-logo svg','width:40px!important;height:40px!important;');
  rule(' .v43-seal',`width:102px!important;max-width:100%!important;height:auto!important;min-height:31px!important;background:${white?'#fff':'#000'}!important;border-color:${white?'#000':'#fff'}!important;`);
- rule(' .v43-seal *','font-size:10px!important;line-height:1.3!important;');
+ rule(' .v43-seal *',`font-size:${f}px!important;line-height:1.3!important;`);
  rule(' .v43-mode-icon',`min-width:26px!important;background:${white?'#fff':'#000'}!important;border-color:${white?'#000':'#fff'}!important;`);
  rule(' .v43-mode-icon svg',`stroke:${white?'#000':'#fff'}!important;`);
  rule(' .v61-running-banner','height:auto!important;overflow:visible!important;background:#000!important;color:#fff!important;');
@@ -52,6 +54,7 @@ function apply(){
  rule(' .v62-section-title','display:flex!important;flex-wrap:wrap!important;gap:4px!important;');
  rule(' .v62-section-title small','text-align:left!important;');
  css+=`html body #receipt-preview-body{max-width:100%;overflow:auto}html body #receipt-preview-body>.v43-receipt.v63-receipt,html body .v63-export>.v43-receipt.v63-receipt{width:${Math.max(30,w-Math.abs(left))}mm!important;padding:0 ${pad}mm!important;left:${Math.max(0,left)}mm!important}@media print{html body #print-sheet .v43-receipt.v63-receipt{width:${Math.max(30,w-Math.abs(left))}mm!important;padding:0 ${pad}mm!important;left:${Math.max(0,left)}mm!important}html body #print-sheet .v43-receipt.v63-receipt .v43-item-row,html body #print-sheet .v43-receipt.v63-receipt .tp-line,html body #print-sheet .v43-receipt.v63-receipt .tp-total{break-inside:avoid!important}}`;
+ css+=window.mnahelsV65?.css(scopes)||'';css+=window.mnahelsV66?.css(scopes)||'';
  let style=q('#v63-receipt-style');if(!style){style=document.createElement('style');style.id='v63-receipt-style';document.head.append(style)}if(style.textContent!==css)style.textContent=css;
 }
 // Same automatic-JPG queue and filenames. Render the actual existing HTML layout,
@@ -65,6 +68,7 @@ async function renderCanvas(receipt,settings){
   const clone=root.cloneNode(true),originals=[root,...root.querySelectorAll('*')],copies=[clone,...clone.querySelectorAll('*')];
   originals.forEach((node,i)=>{const c=getComputedStyle(node);let text='';for(const key of c)text+=key+':'+c.getPropertyValue(key)+';';copies[i].setAttribute('style',text)});
   const x=Math.max(0,settings.leftPx||0);clone.style.left='0';clone.style.position='relative';clone.style.margin='0';
+  [['.v43-brand','1 / 1 / 2 / 3'],['.v43-mode','2 / 1 / 3 / 2'],['.v43-seal','2 / 2 / 3 / 3']].forEach(([selector,area])=>clone.querySelector(selector)?.style.setProperty('grid-area',area,'important'));
   const markup=new XMLSerializer().serializeToString(clone),svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width*2}" height="${height*2}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="white"/><foreignObject x="${x}" y="0" width="${width-x}" height="${height}"><div xmlns="http://www.w3.org/1999/xhtml">${markup}</div></foreignObject></svg>`;
   const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('Receipt image could not be rendered.'));image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
   const canvas=document.createElement('canvas');canvas.width=width*2;canvas.height=height*2;const c=canvas.getContext('2d',{alpha:false});c.fillStyle='#fff';c.fillRect(0,0,canvas.width,canvas.height);c.drawImage(image,0,0);image.src='';return{canvas,width,height};

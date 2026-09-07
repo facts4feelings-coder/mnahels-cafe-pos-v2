@@ -1,0 +1,9 @@
+{
+  "staticStylesheetsBefore": 55,
+  "staticStylesheetsAfter": 1,
+  "duplicateRulesRemoved": 28,
+  "duplicateDeclarationsRemoved": 0,
+  "cssBytesBefore": 355836,
+  "cssBytesAfter": 353652,
+  "removedPermanentPollingLoops": 2
+}

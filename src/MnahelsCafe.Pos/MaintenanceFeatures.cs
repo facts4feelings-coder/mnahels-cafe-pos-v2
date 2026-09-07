@@ -21,17 +21,20 @@ static class MaintenanceFeatures
                 // are deliberately outside this destructive operation.
                 foreach (var table in new[]
                 {
-                    "ShiftCashMovements", "OrderItems", "Orders", "Shifts", "Customers", "MenuSearchCodes", "ProductVariants",
+                    "OrderAmendments", "ShiftOrderAuditSnapshots", "ShiftCashMovements", "OrderItems", "Orders", "Shifts", "Customers", "MenuSearchCodes", "ProductVariants",
                     "Products", "Categories", "ServicePeople", "CafeTables", "AuditLogs"
                 })
+                {
+                    if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sqlite_master WHERE type='table' AND name={table}").SingleAsync() == 0) continue;
                     await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{table}\";");
+                }
 
                 await db.Database.ExecuteSqlRawAsync(
                     "DELETE FROM \"sqlite_sequence\" WHERE \"name\" IN " +
                     "('ShiftCashMovements','OrderItems','Orders','Shifts','Customers','ProductVariants','Products','Categories','ServicePeople','CafeTables','AuditLogs');");
 
                 db.ChangeTracker.Clear();
-                SeedData.Apply(db); // restore the photographed menu and the four default tables
+                MenuCatalog.Initialize(db, factoryReset: true); // same current defaults as first install
                 await transaction.CommitAsync();
 
                 return Results.Ok(new
